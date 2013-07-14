@@ -1,0 +1,21 @@
+---=== v1.4 ===---
+- Added 4 new button mappings, accessible by holding a C button for each
+mapping. These are reported to be useful for Super Smash bros Melee and Brawl.
+
+---=== v1.3 ===---
+- The L and Z button inversion can now be cancelled by holding
+'L' down when connecting the controller.
+
+- N64 buttons C left and C right are mapped to Gamecube Y and X if the 'R'
+button is held when connecting the controller. This is reported to be
+useful for the Sin and Punishment virtual console game.
+
+- The joystick sensitivity may now be increased or decreased by holding
+the Digital right or left when connecting the controller.
+
+---=== v1.2 ===---
+- Fix an occasional reliability problem with some controllers.
+
+
+
+

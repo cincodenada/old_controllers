@@ -1,0 +1,52 @@
+This file is just a technical discussion/log of why N64 joystick values are multiplicated
+by 1.375 by default. 
+
+
+Gamecube controllers and N64 controllers both report the 
+Analogic values using 8 bits. But the maximum values reported
+by a N64 controller are much lower than those from Gamecube controllers.
+
+       gamecube controller   |   n64 controller 
+--------------------------------------------------
+min x:       -28039          |      -21283       
+max x:        29898          |       20268
+min y:       -32093          |      -21958
+max y:        30403          |       21957
+
+(note: Values are 16 bit because they passed thru the linux joystick
+interface)
+
+Let's take both controller's maximum value:
+
+ gc_val     n64val
+ ------  =  ------
+ 32093      21957
+
+
+input_value * 32093 / 21957 = output_value
+
+But this would be difficult to implement as is in assembler because it would 
+need 24 bit multiplications and divisions.
+
+Let's look at how we can do this using only multiplications.
+
+32093 / 21957 = ~ 1.46
+
+So now we just need to multiply by 1.46. But this is still difficult. We would
+need floating point (very resource consuming), fixed point or scaled math.
+Scaled math is the easiest solution, but it has the disadvantage to require
+approximately 16 bits of registers and a division at the end. 
+
+We can probably trade off some precision for an easy implementation.
+
+There are two near values that are easy to implement using only shifts and additions.
+
+1.5x  = (x + (x>>1) )
+1.375x = (x + (x>>2) + (x>>4) = X + (1/4)X + (1/8)X
+
+The result is clamped to the maximum possible value in case an overflow occurs.
+
+By default, I use the 1.375 value. If 1.5 is needed, the Dpad Right direction can be held at
+powerup to enable multiplicating by 1.5. In case no multiplication is required at all (occurs on
+clone controllers, which have different mecanical characteristics).
+

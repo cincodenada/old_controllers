@@ -1,0 +1,16 @@
+--- v1.2 (May 2, 2009)
+- License changed to GPLv2
+- Implemented "Live autodetection". This allows NES and SNES controllers to be
+changed at runtime. This features can be disabled by closing JP1.
+- Added NES fourscore support. When a fourscore is detected in port 1, fourscore
+mode is entered and ports 1 and 2 are used to read up to 4 NES controllers.
+
+--- v1.1 (18 Apr 2007)
+- Changed report descriptor. There are now four separate report IDs, one
+per controller. This was necessary because even though all axis and buttons
+were perfectly functional in 'control panel -> game controllers', it was not
+the case in many games, including zsnes and snes9x!
+- Changed device id to 0x0A9D
+
+--- v1.0 (24 Mar 2007)
+Initial release.
