@@ -32,27 +32,23 @@ struct {
 } N64_status;
 char N64_raw_dump[33]; // 1 received bit per byte
 
-
 void N64_send(unsigned char *buffer, char length);
 void N64_get();
 void print_N64_status();
 void translate_raw_data();
 
-
 #include "crc_table.h"
-
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
-
+  Joystick.useManualSend(true);
 
   // Communication with gamecube controller on this pin
   // Don't remove these lines, we don't want to push +5V to the controller
   digitalWrite(N64_PIN, LOW);  
   pinMode(N64_PIN, INPUT);
-
 
   // Initialize the gamecube controller by sending it a null byte.
   // This is unnecessary for a standard controller, but is required for the
@@ -66,7 +62,7 @@ void setup()
   // can't start asking for status if it's still responding
   int x;
   for (x=0; x<64; x++) {
-      // make sure the line is idle for 64 iterations, should
+      // make sure the lines are idle for 64 iterations, should
       // be plenty.
       if (!N64_QUERY)
           x = 0;
@@ -80,6 +76,9 @@ void setup()
   N64_get();
   interrupts();
   translate_raw_data();  
+
+  digitalWrite(N64_PIN+4, LOW);
+  pinMode(N64_PIN+4, OUTPUT);
 }
 
 void translate_raw_data()
@@ -121,8 +120,6 @@ void N64_send(unsigned char *buffer, char length)
     // Send these bytes
     char bits;
     
-    bool bit;
-
     // This routine is very carefully timed by examining the assembly output.
     // Do not change any statements, it could throw the timings off
     //
@@ -278,7 +275,6 @@ read_loop:
 
 void print_N64_status()
 {
-    int i;
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
     // bits: 0, 0, L, R, Cup, Cdown, Cleft, Cright
     Serial.println();
@@ -326,7 +322,6 @@ void print_N64_status()
 void loop()
 {
     int i;
-    unsigned char data, addr;
 
     // Command to send to the gamecube
     // The last bit is rumble, flip it to rumble
@@ -334,6 +329,7 @@ void loop()
     // array gets mutilated when it goes through N64_send
     unsigned char command[] = {0x01};
 
+    digitalWrite(N64_PIN+4, HIGH);
     // don't want interrupts getting in the way
     noInterrupts();
     // send those 3 bytes
@@ -346,22 +342,28 @@ void loop()
     // translate the data in N64_raw_dump to something useful
     translate_raw_data();
 
-   for (i=0; i<16; i++) {
-       Serial.print(N64_raw_dump[i], DEC);
+    //Update each button
+    char mask = 0x01;
+    for (i=0; i<8; i++) {
+        Joystick.button(8-i,N64_status.data1 & mask ? 1 : 0);
+        Joystick.button(16-i,N64_status.data2 & mask ? 1 : 0);
+        mask = mask << 1;
     }
-    Serial.print(' ');
-    Serial.print(N64_status.stick_x, DEC);
-    Serial.print(' ');
-    Serial.print(N64_status.stick_y, DEC);
-    Serial.print(" \n");
-   //   Serial.print("         Stick X:");
- //   Serial.print(N64_status.stick_x, DEC);
-  //  Serial.print("         Stick Y:");
-//Serial.println(N64_status.stick_y, DEC);
+  
+    //The array is given as approx -81 to 81
+    //Joystick funcitons need 0 to 1023
+    unsigned int joyx, joyy;
+    joyx = max(min((int)N64_status.stick_x * 6, 511), -512) + 512;
+    joyy = max(min((int)N64_status.stick_y * 6, 511), -512) + 512;
+     
+    Joystick.X(joyx);
+    Joystick.Y(joyy);
 
+    Joystick.send_now();
+    digitalWrite(N64_PIN+4, LOW);
 
     // DEBUG: print it
-    //print_N64_status();
+    print_N64_status();
     delay(25);
 }
 
