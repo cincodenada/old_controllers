@@ -16,11 +16,16 @@
 #define N64_PIN_DIR DDRD
 // these two macros set arduino pin 2 to input or output, which with an
 // external 1K pull-up resistor to the 3.3V rail, is like pulling it high or
-// low.
-// They have to be all complicated in order to accomodate arguments.  They are 3 instructions, 1 cycle each
-#define N64_HIGH(cmask) asm volatile ("in __tmp_reg__, %[port]\nand __tmp_reg__, r4\nout %[port], __tmp_reg__\n"::[port] "I" (_SFR_IO_ADDR(DDRD)))
-#define N64_LOW(cmask) asm volatile ("in __tmp_reg__, %[port]\nor __tmp_reg__, r3\nout %[port], __tmp_reg__\n"::[port] "I" (_SFR_IO_ADDR(DDRD)))
+// low.  These operations translate to 1 op code, which takes 2 cycles
+#define N64_HIGH(cmask) DDRD &= ~cmask
+#define N64_LOW(cmask) DDRD |= cmask
 #define N64_QUERY(cmask) (PIND & cmask)
+#define N64_HIGH_1 DDRD &= ~0x04
+#define N64_LOW_1 DDRD |= 0x04
+#define N64_QUERY_1 (PIND & 0x04)
+#define N64_HIGH_2 DDRD &= ~0x08
+#define N64_LOW_2 DDRD |= 0x08
+#define N64_QUERY_2 (PIND & 0x08)
 
 // 8 bytes of data that we get from the controller
 struct N64_status_struct {
@@ -55,6 +60,10 @@ void setup()
   digitalWrite(N64_PIN(1), LOW);
   pinMode(N64_PIN(0), INPUT);
   pinMode(N64_PIN(1), INPUT);
+  pinMode(N64_PIN(0)+2, OUTPUT);
+  pinMode(N64_PIN(0)+4, OUTPUT);
+  pinMode(N64_PIN(1)+2, OUTPUT);
+  pinMode(N64_PIN(1)+4, OUTPUT);
 
   // Initialize the gamecube controller by sending it a null byte.
   // This is unnecessary for a standard controller, but is required for the
@@ -117,25 +126,46 @@ void translate_raw_data(short int cnum)
     }
 }
 
+void N64_send(short int cnum, unsigned char *buffer, char length) 
+{
+    digitalWrite(N64_PIN(cnum)+4, HIGH);
+    switch(cnum) {
+        case 0:
+            N64_send_1(buffer, length);
+            break;
+        case 1:
+            N64_send_2(buffer, length);
+            break;
+    }
+    digitalWrite(N64_PIN(cnum)+4, LOW);
+}
+
+void N64_get(short int cnum)
+{
+    //digitalWrite(N64_PIN(cnum)+2, HIGH);
+    switch(cnum) {
+        case 0:
+            N64_get_1();
+            break;
+        case 1:
+            N64_get_2();
+            break;
+    }
+    //digitalWrite(N64_PIN(cnum)+2, LOW);
+}
 
 /**
  * This sends the given byte sequence to the controller
  * length must be at least 1
  * Oh, it destroys the buffer passed in as it writes it
  */
-void N64_send(short int cnum, unsigned char *buffer, char length)
+void N64_send_1(unsigned char *buffer, char length)
 {
     // Send these bytes
     char bits;
     
     bool bit;
     
-    register unsigned char cmask asm("r3");
-    register unsigned char invmask asm("r4");
-    
-    cmask = cmask_list[cnum];
-    invmask = ~cmask;
-
     // This routine is very carefully timed by examining the assembly output.
     // Do not change any statements, it could throw the timings off
     //
@@ -147,17 +177,16 @@ void N64_send(short int cnum, unsigned char *buffer, char length)
     // with a for loop
     
     asm volatile (";Starting outer for loop");
-outer_loop:
+outer_loop_1:
     {
         asm volatile (";Starting inner for loop");
         bits=8;
-inner_loop:
+inner_loop_1:
         {
             // Starting a bit, set the line low
             asm volatile (";Setting line to low");
-            //Set low, in our control-freak way
-            N64_LOW(cmask);
-            
+            N64_LOW_1; // 1 op, 2 cycles
+
             asm volatile (";branching");
             if (*buffer >> 7) {
                 asm volatile (";Bit is a 1");
@@ -167,7 +196,7 @@ inner_loop:
                 asm volatile ("nop\nnop\nnop\nnop\nnop\n");
                 
                 asm volatile (";Setting line to high");
-                N64_HIGH(cmask); //3 ops, 3 cycles (in/and/out)
+                N64_HIGH_1;
 
                 // nop block 2
                 // we'll wait only 2us to sync up with both conditions
@@ -195,7 +224,7 @@ inner_loop:
                               "nop\n");
 
                 asm volatile (";Setting line to high");
-                N64_HIGH(cmask);
+                N64_HIGH_1;
 
                 // wait for 1us
                 asm volatile ("; end of conditional branch, need to wait 1us more before next bit");
@@ -216,7 +245,7 @@ inner_loop:
                 asm volatile (";rotating out bits");
                 *buffer <<= 1;
 
-                goto inner_loop;
+                goto inner_loop_1;
             } // fall out of inner loop
         }
         asm volatile (";continuing outer loop");
@@ -226,25 +255,25 @@ inner_loop:
         --length;
         if (length != 0) {
             ++buffer;
-            goto outer_loop;
+            goto outer_loop_1;
         } // fall out of outer loop
     }
 
     // send a single stop (1) bit
     // nop block 5
     asm volatile ("nop\nnop\nnop\nnop\n");
-    N64_LOW(cmask);
+    N64_LOW_1;
     // wait 1 us, 16 cycles, then raise the line 
     // 16-2=14
     // nop block 6
     asm volatile ("nop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\n");
-    N64_HIGH(cmask);
+    N64_HIGH_1;
 
 }
 
-void N64_get(short int cnum)
+void N64_get_1()
 {
     // listen for the expected 8 bytes of data back from the controller and
     // blast it out to the N64_raw_dump array, one bit per byte for extra speed.
@@ -253,15 +282,14 @@ void N64_get(short int cnum)
     asm volatile (";Starting to listen");
     unsigned char timeout;
     char bitcount = 32;
-    char *bitbin = N64_raw_dump[cnum];
-    unsigned char cmask = cmask_list[cnum];
+    char *bitbin = N64_raw_dump[0];
 
     // Again, using gotos here to make the assembly more predictable and
     // optimization easier (please don't kill me)
-read_loop:
+read_loop_1:
     timeout = 0x3f;
     // wait for line to go low
-    while (N64_QUERY(cmask)) {
+    while (N64_QUERY_1) {
         if (!--timeout)
             return;
     }
@@ -274,7 +302,7 @@ read_loop:
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
             );
-    *bitbin = N64_QUERY(cmask);
+    *bitbin = N64_QUERY_1;
     ++bitbin;
     --bitcount;
     if (bitcount == 0)
@@ -283,11 +311,176 @@ read_loop:
     // wait for line to go high again
     // it may already be high, so this should just drop through
     timeout = 0x3f;
-    while (!N64_QUERY(cmask)) {
+    while (!N64_QUERY_1) {
         if (!--timeout)
             return;
     }
-    goto read_loop;
+    goto read_loop_1;
+
+}
+
+/**
+ * This sends the given byte sequence to the controller
+ * length must be at least 1
+ * Oh, it destroys the buffer passed in as it writes it
+ */
+void N64_send_2(unsigned char *buffer, char length)
+{
+    // Send these bytes
+    char bits;
+    
+    bool bit;
+    
+    // This routine is very carefully timed by examining the assembly output.
+    // Do not change any statements, it could throw the timings off
+    //
+    // We get 16 cycles per microsecond, which should be plenty, but we need to
+    // be conservative. Most assembly ops take 1 cycle, but a few take 2
+    //
+    // I use manually constructed for-loops out of gotos so I have more control
+    // over the outputted assembly. I can insert nops where it was impossible
+    // with a for loop
+    
+    asm volatile (";Starting outer for loop");
+outer_loop_2:
+    {
+        asm volatile (";Starting inner for loop");
+        bits=8;
+inner_loop_2:
+        {
+            // Starting a bit, set the line low
+            asm volatile (";Setting line to low");
+            N64_LOW_2; // 1 op, 2 cycles
+
+            asm volatile (";branching");
+            if (*buffer >> 7) {
+                asm volatile (";Bit is a 1");
+                // 1 bit
+                // remain low for 1us, then go high for 3us
+                // nop block 1
+                asm volatile ("nop\nnop\nnop\nnop\nnop\n");
+                
+                asm volatile (";Setting line to high");
+                N64_HIGH_2;
+
+                // nop block 2
+                // we'll wait only 2us to sync up with both conditions
+                // at the bottom of the if statement
+                asm volatile ("nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              );
+
+            } else {
+                asm volatile (";Bit is a 0");
+                // 0 bit
+                // remain low for 3us, then go high for 1us
+                // nop block 3
+                asm volatile ("nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\n");
+
+                asm volatile (";Setting line to high");
+                N64_HIGH_2;
+
+                // wait for 1us
+                asm volatile ("; end of conditional branch, need to wait 1us more before next bit");
+                
+            }
+            // end of the if, the line is high and needs to remain
+            // high for exactly 16 more cycles, regardless of the previous
+            // branch path
+
+            asm volatile (";finishing inner loop body");
+            --bits;
+            if (bits != 0) {
+                // nop block 4
+                // this block is why a for loop was impossible
+                asm volatile ("nop\nnop\nnop\nnop\nnop\n"  
+                              "nop\nnop\nnop\nnop\n");
+                // rotate bits
+                asm volatile (";rotating out bits");
+                *buffer <<= 1;
+
+                goto inner_loop_2;
+            } // fall out of inner loop
+        }
+        asm volatile (";continuing outer loop");
+        // In this case: the inner loop exits and the outer loop iterates,
+        // there are /exactly/ 16 cycles taken up by the necessary operations.
+        // So no nops are needed here (that was lucky!)
+        --length;
+        if (length != 0) {
+            ++buffer;
+            goto outer_loop_2;
+        } // fall out of outer loop
+    }
+
+    // send a single stop (1) bit
+    // nop block 5
+    asm volatile ("nop\nnop\nnop\nnop\n");
+    N64_LOW_2;
+    // wait 1 us, 16 cycles, then raise the line 
+    // 16-2=14
+    // nop block 6
+    asm volatile ("nop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\n");
+    N64_HIGH_2;
+
+}
+
+void N64_get_2()
+{
+    // listen for the expected 8 bytes of data back from the controller and
+    // blast it out to the N64_raw_dump array, one bit per byte for extra speed.
+    // Afterwards, call translate_raw_data() to interpret the raw data and pack
+    // it into the N64_status struct.
+    asm volatile (";Starting to listen");
+    unsigned char timeout;
+    char bitcount = 32;
+    char *bitbin = N64_raw_dump[1];
+
+    // Again, using gotos here to make the assembly more predictable and
+    // optimization easier (please don't kill me)
+read_loop_2:
+    timeout = 0x3f;
+    // wait for line to go low
+    while (N64_QUERY_2) {
+        if (!--timeout)
+            return;
+    }
+    // wait approx 2us and poll the line
+    asm volatile (
+                  "nop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\n"  
+            );
+    *bitbin = N64_QUERY_2;
+    ++bitbin;
+    --bitcount;
+    if (bitcount == 0)
+        return;
+
+    // wait for line to go high again
+    // it may already be high, so this should just drop through
+    timeout = 0x3f;
+    while (!N64_QUERY_2) {
+        if (!--timeout)
+            return;
+    }
+    goto read_loop_2;
 
 }
 
