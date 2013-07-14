@@ -50,6 +50,117 @@ void translate_raw_data(short int cnum);
 
 #include "crc_table.h"
 
+//Gameport stuff
+
+int ledPin = 4;
+int x_center = 0;
+int x_deadzone = 0;
+int y_center = 0;
+int y_deadzone = 0;
+int z_center = 0;
+int z_deadzone = 0;
+
+int gp_base = 8;
+bool do_gp = true;
+
+int x_min = 0;
+int x_max = 0;
+int y_min = 0;
+int y_max = 0;
+int z_min = 0;
+int z_max = 0;
+
+int scale_analog_read(int *v_max,int *v_min,int *v_center,int *v_deadzone,int value){
+  if (value < *v_min){
+    *v_min = value;
+  }
+  else if(value > *v_max){
+    *v_max = value;
+  }
+  
+  if ((value >= *v_center - *v_deadzone) & (value <= *v_center + *v_deadzone))
+  {
+    value = *v_center;
+  }
+
+  float delta = float(*v_max - *v_min)/1024.0;
+
+  return (value-*v_min)/delta;
+}
+
+void correct_deadzone(int *v_center,int *v_deadzone, int value){
+    if (value > *v_center + *v_deadzone){
+      int temp_min_v = *v_center - *v_deadzone;
+      int temp_max_v = value;
+      *v_center = (temp_max_v + temp_min_v)/2;
+      int temp_deadzone_1 = *v_center - temp_min_v;
+      int temp_deadzone_2 = temp_max_v - *v_center;
+      if (temp_deadzone_1 > temp_deadzone_2){
+        *v_deadzone = temp_deadzone_1;
+      }
+      
+      else{
+        *v_deadzone = temp_deadzone_2;
+      }
+    }
+    else if ( value < *v_center - *v_deadzone){
+      int temp_min_v = value;
+      int temp_max_v = *v_center + *v_deadzone;;
+      *v_center = (temp_max_v + temp_min_v)/2;
+      int temp_deadzone_1 = *v_center - temp_min_v;
+      int temp_deadzone_2 = temp_max_v - *v_center;
+      if (temp_deadzone_1 > temp_deadzone_2){
+        *v_deadzone = temp_deadzone_1;
+      }
+      else{
+        *v_deadzone = temp_deadzone_2;
+      }
+    } 
+}
+
+void gameport_setup() {
+  ledPin = gp_mode + ledPin
+  pinMode(gp_mode+0, INPUT_PULLUP);
+  pinMode(gp_mode+1, INPUT_PULLUP);
+  pinMode(gp_mode+2, INPUT_PULLUP);
+  pinMode(gp_mode+3, INPUT_PULLUP);
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, HIGH);
+  //Serial.begin(9600); // USB is always 12 Mbit/sec
+  
+  x_center = analogRead(0);
+  y_center = analogRead(1);
+  z_center = analogRead(2);
+  x_min = x_center;
+  x_max = x_center;
+  y_min = y_center;
+  y_max = y_center;
+  z_min = z_center;
+  z_max = z_center;
+    
+  int counter = 200; 
+  while (counter > 0 )
+  {
+    delay(50);
+    int x = analogRead(0);
+    int y = analogRead(1);
+    int z = analogRead(2);
+
+    //fix X deadzone
+    correct_deadzone(&x_center,&x_deadzone, x);
+
+    //fix Y deadzone
+    correct_deadzone(&y_center,&y_deadzone, y);
+
+    //fix Z deadzone
+    correct_deadzone(&z_center,&z_deadzone, z);
+    counter--;
+    
+  }
+
+  digitalWrite(ledPin,LOW);
+}
+
 void setup()
 {
   Serial.begin(9600);
@@ -103,7 +214,11 @@ void setup()
 
   digitalWrite(N64_PIN(4), LOW);
   pinMode(N64_PIN(4), OUTPUT);
+
+  gameport_setup();
 }
+
+
 
 void clear_dump() {
   for(int i=0;i<33;i++) {
@@ -380,7 +495,7 @@ void loop()
     unsigned char joynum, joypos, command;
 
     digitalWrite(N64_PIN(4), HIGH);
-    for(short int cnum=0; cnum < 4; cnum++) {
+    for(short int cnum=0; cnum < 4; cnum+=2) {
       // Command to send to the gamecube
       // The last bit is rumble, flip it to rumble
       // yes this does need to be inside the loop, the
@@ -436,6 +551,27 @@ void loop()
       DualJoystick.send_now();
     }
     digitalWrite(N64_PIN(4), LOW);
+
+    if(do_gp) {
+        int x = scale_analog_read(&x_max,&x_min,&x_center,&x_deadzone,analogRead(0));
+        int y = scale_analog_read(&y_max,&y_min,&y_center,&y_deadzone,analogRead(1));
+        int z = scale_analog_read(&z_max,&z_min,&z_center,&z_deadzone,analogRead(2));
+
+        DualJoystick.setJoyNum(1);
+
+        // read analog inputs and set X-Y position
+        DualJoystick.X(x);
+        DualJoystick.Y(y);
+        DualJoystick.Z(z);
+
+        // read the digital inputs and set the buttons
+        DualJoystick.button(1, !digitalRead(gp_base+0));
+        DualJoystick.button(2, !digitalRead(gp_base+1));
+        DualJoystick.button(3, !digitalRead(gp_base+2));
+        DualJoystick.button(4, !digitalRead(gp_base+3));
+
+        do_gp = !do_gp;
+    }
 
     // DEBUG: print it
     print_N64_status(0);
