@@ -1,0 +1,3 @@
+[submodule "teensyduino/teensy"]
+	path = teensyduino/teensy
+	url = git@github.com:cincodenada/teensyduino_multijoy.git
