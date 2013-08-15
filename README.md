@@ -5,9 +5,13 @@ I wanted to play some N64 games on my computer, but wanted to use real controlle
 Well, I'm an engineer, so of course it was take out my [Teensy](http://www.pjrc.com/teensy/) and get coding.
 
 Currently, this code will let you plug up to four N64 controllers into the Teensy and use them as USB Joysticks.
+You will need my extensions to the Teensyduino hardware definitions, which will be a submodule once I figure out
+how to update GitHub's reference, but for now is at [cincodenada/teensyduino-multijoy](https://github.com/cincodenada/teensyduino-multijoy).
+These simply add a new hardware option to allow for two joystics.  Perhaps I'll make a branch that only supports
+two controllers and can use the default Joystick to make things easier, that would be pretty easy.
 
 Details: using the [pin diagram](https://github.com/cincodenada/old_controllers/blob/master/reference/N64%20Controller%20Protocol_files/n64pins.png),
-connect the data pins (middle) to pins D2-D5 of the Teensy, connect ground to ground nad VCC to a **3.3V source**
+connect the data pins (middle) to pins D2-D5 of the Teensy, connect ground to ground and VCC to a **3.3V source**
 
 I'll repeat: you must **connect it to +3.3V**, I just used some resistors with some diodes that I had laying around,
 but ***don't*** connect the controllers to 5V, because bad things may happen.
