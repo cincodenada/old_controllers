@@ -75,7 +75,7 @@ void loop()
       //Joystick funcitons need 0 to 1023
       unsigned int joyx, joyy;
       joyx = max(min((int)JoyStatus[cnum].axis[0] * 6, 511), -512) + 512;
-      joyy = max(min((int)JoyStatus[cnum].axis[1] * 6, 511), -512) + 512;
+      joyy = max(min((int)JoyStatus[cnum].axis[1] * -6, 511), -512) + 512;
        
       switch(joypos) {
         case 0:
