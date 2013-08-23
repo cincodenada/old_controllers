@@ -25,4 +25,4 @@ to allow for NES and SNES controllers as well.  The multi_controller branch has 
 
 And in fact, I'm building a custom daughterboard that will have plugs and everything, and be smart and auto-switch
 between the controllers so you can plug whatever combination you want into it.  
-The board files are over at cincodenada/old_controllers-pcb if you like that kind of thing.
+The board files are over at [https://github.com/cincodenada/old_controllers-pcb](cincodenada/old_controllers-pcb) if you like that kind of thing.
