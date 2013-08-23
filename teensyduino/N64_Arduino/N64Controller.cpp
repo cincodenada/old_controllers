@@ -1,13 +1,30 @@
 #include "N64Controller.h"
 #include <stdio.h>
 
+void blink_binary(int num, char bits) {
+    int mask = 1 << (bits-1);
+    digitalWrite(PIN_TRIGGER, HIGH);
+    delay(300);
+    while(mask) {
+        digitalWrite(PIN_TRIGGER, LOW);
+        delay(100);
+        digitalWrite(PIN_TRIGGER, HIGH);
+        delay(100 + 200 * (num & mask));
+        mask >>= 1;
+    }
+    digitalWrite(PIN_TRIGGER, LOW);
+    delay(300);
+    digitalWrite(PIN_TRIGGER, HIGH);
+}
+
 //Assembly stub functions
+//TODO: Investigate if PIND vs PORTD makes anny difference?
 short int N64_query(char cmask) {
   short int inbit;
   asm volatile ("in %[inbits], %[port]\n"
                 "and %[inbits], %[cmask]\n"
                 :[inbits] "=r"(inbit)
-                :[port] "I" (_SFR_IO_ADDR(PIND)), [cmask] "r" (cmask)
+                :[port] "I" (_SFR_IO_ADDR(DATA_PORT)), [cmask] "r" (cmask)
                 );
   return inbit;
 }
@@ -18,13 +35,16 @@ N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus) {
 
 void N64Controller::init() {
     Serial.println("Initiating N64 controllers");
+    digitalWrite(PIN_TRIGGER, LOW);
+    pinMode(PIN_TRIGGER, OUTPUT);
 
     this->detect_controllers();
 
-    //Set low
-    PIN_PORT &= ~this->pinmask;
-    //Set output (low)
-    PIN_DIR &= ~this->pinmask;
+    //Set up data port for our guys
+    //Express low
+    DATA_PORT &= ~(this->pinmask << DATA_SHIFT);
+    //Set dir to input (low)
+    DATA_DIR &= ~(this->pinmask << DATA_SHIFT);
 
     unsigned char command;
     // Initialize the gamecube controller by sending it a null byte.
@@ -35,48 +55,48 @@ void N64Controller::init() {
 
     this->send(&command, 1);
 
+    digitalWrite(PIN_TRIGGER, HIGH);
     // Stupid routine to wait for the gamecube controller to stop
     // sending its response. We don't care what it is, but we
     // can't start asking for status if it's still responding
     int x;
+    // Set pins to input
+    DATA_DIR &= ~(this->pinmask << DATA_SHIFT);
     for (x=0; x<64; x++) {
         // make sure the lines are idle for 64 iterations, should
         // be plenty.
-        if (!N64_query(this->pinmask)) { x = 0; }
+        if (!N64_query((this->pinmask << DATA_SHIFT))) { x = 0; }
     }
+    digitalWrite(PIN_TRIGGER, LOW);
 
     // Query for the gamecube controller's status. We do this
     // to get the 0 point for the control stick.
     this->read_state();
 
     digitalWrite(PIN_TRIGGER, LOW);
-    pinMode(PIN_TRIGGER, OUTPUT);
 }
 
 void N64Controller::clear_dump() {
   for(int i=0;i<33;i++) {
-    N64_raw_dump[i] = 0;
+    this->N64_raw_dump[i] = 0;
   }
 }
 
 void N64Controller::detect_controllers() {
     //For now just handle all with N64
     this->pinmask = IO_MASK;
-    this->datamask = 0x0F;
+    //For our pins, set N64 flag low (=N64)
+    N64_PORT &= ~(this->pinmask << N64_SHIFT);
 }
 
 void N64Controller::read_state() {
     noInterrupts();
-
-    digitalWrite(PIN_TRIGGER, HIGH);
 
     unsigned char command = 0x01;
     clear_dump();
     this->send(&command, 1);
     // read in data and dump it to N64_raw_dump
     this->get();
-
-    digitalWrite(PIN_TRIGGER, LOW);
 
     interrupts();
 
@@ -95,7 +115,7 @@ void N64Controller::send(unsigned char *buffer, char length) {
     register unsigned char cmask asm("r3");
     register unsigned char invmask asm("r4");
     
-    cmask = this->pinmask;
+    cmask = this->pinmask << DATA_SHIFT;
     invmask = ~cmask;
 
     // This routine is very carefully timed by examining the assembly output.
@@ -165,7 +185,7 @@ inner_loop:
 
                 asm volatile (";Setting line to high");
                 N64_HIGH; //3 cycles
-                //7 + 3 + 35 + 3 = 48 cycles = 3us
+                //7 + 3 + 34 + 3 = 47 cycles = 3us - 1c
 
                 asm volatile ("; end of conditional branch, need to wait 1us more before next bit");
                 //Fall through, with 1us + 1c remaining
@@ -228,10 +248,13 @@ void N64Controller::get() {
     asm volatile (";Starting to listen");
     unsigned char timeout;
     char bitcount = 32;
-    char *bitbin = N64_raw_dump;
+    char *bitbin = this->N64_raw_dump;
     
     //char cmask = this->pinmask;
-    short int cmask = IO_MASK;
+    short int cmask = this->pinmask << DATA_SHIFT;
+    short int invmask = ~cmask;
+
+    DATA_DIR &= invmask;
 
     // Again, using gotos here to make the assembly more predictable and
     // optimization easier (please don't kill me)
@@ -241,27 +264,22 @@ void N64Controller::get() {
 read_loop:
     timeout = 0x3f;
     // wait for line to go low
-    /*
-    while (N64_query(cmask) != 0) {
-        if (!--timeout) {
-            PORTD &= ~0x80;
+
+    while((PIND & cmask) > 0) {
+        if (!--timeout)
             return;
-        }
     }
-    */
     // wait approx 2us and poll the line
-    PORTD |= 0x80;
     asm volatile (
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
-                  //"nop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\n"
             );
-    PORTD &= ~0x80;
-    *bitbin = N64_query(cmask);
+    *bitbin = PIND & cmask;
     ++bitbin;
     --bitcount;
     if (bitcount == 0)
@@ -270,7 +288,7 @@ read_loop:
     // wait for line to go high again
     // it may already be high, so this should just drop through
     timeout = 0x3f;
-    while (!N64_query(cmask)) {
+    while ((PIND & cmask) == 0) {
         if (!--timeout)
             return;
     }
@@ -297,12 +315,12 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
             // line 1
             // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
             for (i=0; i<8; i++) {
-                sprintf(msg, "%X%X%X%X", N64_raw_dump[i],N64_raw_dump[i+8],N64_raw_dump[i+16],N64_raw_dump[i+24]);
+                sprintf(msg, "%X%X%X%X", this->N64_raw_dump[i],this->N64_raw_dump[i+8],this->N64_raw_dump[i+16],this->N64_raw_dump[i+24]);
                 Serial.println(msg);
-                joylist[cnum].buttonset[0] |= (N64_raw_dump[i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].buttonset[1] |= (N64_raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].axis[0] |= (N64_raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].axis[1] |= (N64_raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].axis[0] |= (this->N64_raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].axis[1] |= (this->N64_raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
             }
         }
         if(allpins & 0x01) { cnum++; }

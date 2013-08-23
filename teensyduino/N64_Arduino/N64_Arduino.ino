@@ -30,6 +30,21 @@ void setup()
 
   DualJoystick.useManualSend(true); 
 
+  //Do some port setup
+  //Set N64 to output (low)
+  //And initialize as NES for safety
+  N64_DIR &= ~(IO_MASK << N64_SHIFT);
+  N64_PORT |= IO_MASK << N64_SHIFT;
+  //Set up SNES DIR
+  //Initialize to low (NES)
+  SNES_DIR &= ~(IO_MASK << SNES_SHIFT);
+  SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
+  //Set up clock/latch
+  CLOCK_DIR &= ~(CLOCK_MASK);
+  LATCH_DIR &= ~(LATCH_MASK);
+
+  DDRC |= 0x0C;
+
   controllers = N64Controller(JoyStatus);
 
   controllers.init();
@@ -40,8 +55,9 @@ void loop()
     int i;
     unsigned char joynum, joypos;
 
+    Serial.println("Polling N64 Controllers...");
     controllers.read_state(); 
-    for(short int cnum=0; cnum < 4; cnum++) {
+    for(short int cnum=0; cnum < 1; cnum++) {
       //Set joystick parameters
       joynum = cnum % 2;
       joypos = cnum / 2;
