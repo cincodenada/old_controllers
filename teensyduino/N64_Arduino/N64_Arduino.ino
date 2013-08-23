@@ -417,7 +417,7 @@ void loop()
       //Joystick funcitons need 0 to 1023
       unsigned int joyx, joyy;
       joyx = max(min((int)N64_status[cnum].stick_x * 6, 511), -512) + 512;
-      joyy = max(min((int)N64_status[cnum].stick_y * 6, 511), -512) + 512;
+      joyy = max(min((int)N64_status[cnum].stick_y * -6, 511), -512) + 512;
        
       switch(joypos) {
         case 0:
