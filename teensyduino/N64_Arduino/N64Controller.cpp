@@ -90,6 +90,8 @@ void N64Controller::detect_controllers() {
 }
 
 void N64Controller::read_state() {
+    
+    digitalWrite(PIN_TRIGGER, HIGH);
     noInterrupts();
 
     unsigned char command = 0x01;
@@ -101,6 +103,7 @@ void N64Controller::read_state() {
     interrupts();
 
     this->fillStatus(this->JoyStatus);
+    digitalWrite(PIN_TRIGGER, LOW);
 }
 
 /**
