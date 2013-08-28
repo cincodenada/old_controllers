@@ -9,6 +9,10 @@
  * Digital I/O 2: N64 serial line
  * All appropriate grounding and power lines
  */
+#define AXIS_MAX (32767)
+#define AXIS_MIN (-32768)
+#define JOY_FACT ((AXIS_MAX-AXIS_MIN+1)/1024)
+#define JOY_OFFSET (512);
 
 #include "pins_arduino.h"
 
@@ -71,11 +75,11 @@ void loop()
           mask = mask << 1;
       }
     
-      //The array is given as approx -81 to 81
+      //The array is given as AXIS_MIN to AXIS_MAX
       //Joystick funcitons need 0 to 1023
       unsigned int joyx, joyy;
-      joyx = max(min((int)JoyStatus[cnum].axis[0] * 6, 511), -512) + 512;
-      joyy = max(min((int)JoyStatus[cnum].axis[1] * -6, 511), -512) + 512;
+      joyx = JoyStatus[cnum].axis[0]/JOY_FACT + JOY_OFFSET;
+      joyy = JoyStatus[cnum].axis[1]/JOY_FACT + JOY_OFFSET;
        
       switch(joypos) {
         case 0:

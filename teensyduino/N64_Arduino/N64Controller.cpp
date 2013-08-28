@@ -304,6 +304,7 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
     short int allpins = IO_MASK;
     int cnum = 0;
     char msg[100];
+    char mult = AXIS_MAX/82;
 
     while(pinlist) {
         if(pinlist & 0x01) {
@@ -314,17 +315,23 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
             // into the get_status_extended char array. It's our job to go through
             // that and put each piece neatly into the struct N64_status
             int i;
+            char xaxis = 0;
+            char yaxis = 0;
+
             memset(&joylist[cnum], 0, sizeof(JoystickStatusStruct));
             // line 1
             // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
             for (i=0; i<8; i++) {
                 sprintf(msg, "%X%X%X%X", this->N64_raw_dump[i],this->N64_raw_dump[i+8],this->N64_raw_dump[i+16],this->N64_raw_dump[i+24]);
                 Serial.println(msg);
-                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].axis[0] |= (this->N64_raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].axis[1] |= (this->N64_raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x01 << i) : 0;
+                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x01 << i) : 0;
+                xaxis |= (this->N64_raw_dump[16+i] & datamask) ? (0x01 << i) : 0;
+                yaxis |= (this->N64_raw_dump[24+i] & datamask) ? (0x01 << i) : 0;
             }
+            // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]
+            joylist[cnum].axis[0] = max(min((int)xaxis * (mult), AXIS_MAX), AXIS_MIN);
+            joylist[cnum].axis[1] = max(min((int)yaxis * (-mult), AXIS_MAX), AXIS_MIN);
         }
         if(allpins & 0x01) { cnum++; }
 

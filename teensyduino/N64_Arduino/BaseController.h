@@ -6,7 +6,7 @@
 
 // 8 bytes of data that we get from the controller
 struct JoystickStatusStruct {
-    char axis[3];
+    signed short int axis[3];
     unsigned char buttonset[2];
 };
 
