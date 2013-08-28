@@ -278,8 +278,8 @@ read_loop:
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\n"  
-                  "nop\nnop\nnop\nnop\nnop\n"  
-                  "nop\nnop\nnop\nnop\nnop\n"  
+                  //"nop\nnop\nnop\nnop\nnop\n"  
+                  //"nop\nnop\nnop\nnop\nnop\n"  
                   "nop\n"
             );
     *bitbin = PIND & cmask;
