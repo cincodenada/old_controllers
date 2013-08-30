@@ -90,20 +90,37 @@ void N64Controller::detect_controllers() {
 }
 
 void N64Controller::read_state() {
-    
-    digitalWrite(PIN_TRIGGER, HIGH);
-    noInterrupts();
+    //Save the pinmask
+    short int old_mask = this->pinmask;
 
-    unsigned char command = 0x01;
-    clear_dump();
-    this->send(&command, 1);
-    // read in data and dump it to N64_raw_dump
-    this->get();
+    //Run through our controllers one at a time
+    short int pinlist = old_mask;
+    short int datamask = 0x01;
 
-    interrupts();
+    //This is hackish, but will work fine
+    while(pinlist) {
+        if(pinlist & 0x01) {
+            this->pinmask = datamask;
+            digitalWrite(PIN_TRIGGER, HIGH);
+            noInterrupts();
 
-    this->fillStatus(this->JoyStatus);
-    digitalWrite(PIN_TRIGGER, LOW);
+            unsigned char command = 0x01;
+            clear_dump();
+            this->send(&command, 1);
+            // read in data and dump it to N64_raw_dump
+            this->get();
+
+            interrupts();
+
+            this->fillStatus(this->JoyStatus);
+            digitalWrite(PIN_TRIGGER, LOW);
+        }
+        pinlist >>= 1;
+        datamask <<= 1;
+    }
+
+    //Restore the pinmask
+    this->pinmask = old_mask;
 }
 
 /**
