@@ -9,19 +9,15 @@
  * Digital I/O 2: N64 serial line
  * All appropriate grounding and power lines
  */
-#define AXIS_MAX (32767)
-#define AXIS_MIN (-32768)
-#define JOY_FACT ((AXIS_MAX-AXIS_MIN+1)/1024)
-#define JOY_OFFSET (512);
-
 #include "pins_arduino.h"
 
 #include "pin_config.h"
 #include "crc_table.h"
 #include "N64Controller.h"
+#include "NESController.h"
 #include <stdio.h>
 
-N64Controller controllers;
+NESController controllers;
 struct JoystickStatusStruct JoyStatus[4];
 
 void setup()
@@ -44,12 +40,12 @@ void setup()
   SNES_DIR &= ~(IO_MASK << SNES_SHIFT);
   SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
   //Set up clock/latch
-  CLOCK_DIR &= ~(CLOCK_MASK);
-  LATCH_DIR &= ~(LATCH_MASK);
+  CLOCK_DIR |= CLOCK_MASK;
+  LATCH_DIR |= LATCH_MASK;
 
   DDRC |= 0x0C;
 
-  controllers = N64Controller(JoyStatus);
+  controllers = NESController(JoyStatus);
 
   controllers.init();
 }
@@ -59,8 +55,9 @@ void loop()
     int i;
     unsigned char joynum, joypos;
 
-    Serial.println("Polling N64 Controllers...");
+    Serial.println("Polling Controllers...");
     controllers.read_state(); 
+    /*
     for(short int cnum=0; cnum < 2; cnum++) {
       //Set joystick parameters
       joynum = cnum % 2;
@@ -97,9 +94,10 @@ void loop()
       }
       DualJoystick.send_now();
     }
+    */
 
     // DEBUG: print it
     //controllers.print_status(0);
     //controllers.print_status(1);
-    delay(25);
+    //delay(25);
 }
