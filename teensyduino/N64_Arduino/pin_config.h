@@ -3,14 +3,17 @@
 
 #define DATA_DIR DDRD
 #define DATA_PORT PORTD
+#define DATA_IN PIND
 #define DATA_SHIFT 0
 //Low = N64, High = NES/SNES
 #define N64_DIR DDRB
 #define N64_PORT PORTB
+#define N64_IN PINB
 #define N64_SHIFT 0
 //+5V = SNES, GND = NES
 #define SNES_DIR DDRF
 #define SNES_PORT PORTF
+#define SNES_IN PINF
 #define SNES_SHIFT 4
 //D7 = clock, D6 = latch
 #define CLOCK_DIR DDRD

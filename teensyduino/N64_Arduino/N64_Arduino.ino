@@ -57,7 +57,6 @@ void loop()
 
     Serial.println("Polling Controllers...");
     controllers.read_state(); 
-    /*
     for(short int cnum=0; cnum < 2; cnum++) {
       //Set joystick parameters
       joynum = cnum % 2;
@@ -94,10 +93,9 @@ void loop()
       }
       DualJoystick.send_now();
     }
-    */
 
     // DEBUG: print it
     //controllers.print_status(0);
     //controllers.print_status(1);
-    //delay(25);
+    delay(25);
 }

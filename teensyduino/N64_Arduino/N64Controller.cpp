@@ -1,22 +1,6 @@
 #include "N64Controller.h"
 #include <stdio.h>
 
-void blink_binary(int num, char bits) {
-    int mask = 1 << (bits-1);
-    digitalWrite(PIN_TRIGGER, HIGH);
-    delay(300);
-    while(mask) {
-        digitalWrite(PIN_TRIGGER, LOW);
-        delay(100);
-        digitalWrite(PIN_TRIGGER, HIGH);
-        delay(100 + 200 * (num & mask));
-        mask >>= 1;
-    }
-    digitalWrite(PIN_TRIGGER, LOW);
-    delay(300);
-    digitalWrite(PIN_TRIGGER, HIGH);
-}
-
 //Assembly stub functions
 //TODO: Investigate if PIND vs PORTD makes anny difference?
 short int N64_query(char cmask) {
@@ -24,7 +8,7 @@ short int N64_query(char cmask) {
   asm volatile ("in %[inbits], %[port]\n"
                 "and %[inbits], %[cmask]\n"
                 :[inbits] "=r"(inbit)
-                :[port] "I" (_SFR_IO_ADDR(DATA_PORT)), [cmask] "r" (cmask)
+                :[port] "I" (_SFR_IO_ADDR(DATA_IN)), [cmask] "r" (cmask)
                 );
   return inbit;
 }
@@ -285,7 +269,7 @@ read_loop:
     timeout = 0x3f;
     // wait for line to go low
 
-    while((PIND & cmask) > 0) {
+    while((DATA_IN & cmask) > 0) {
         if (!--timeout)
             return;
     }
@@ -299,7 +283,7 @@ read_loop:
                   //"nop\nnop\nnop\nnop\nnop\n"  
                   "nop\n"
             );
-    *bitbin = PIND & cmask;
+    *bitbin = DATA_IN & cmask;
     ++bitbin;
     --bitcount;
     if (bitcount == 0)
@@ -308,7 +292,7 @@ read_loop:
     // wait for line to go high again
     // it may already be high, so this should just drop through
     timeout = 0x3f;
-    while ((PIND & cmask) == 0) {
+    while ((DATA_IN & cmask) == 0) {
         if (!--timeout)
             return;
     }
@@ -341,10 +325,10 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
             for (i=0; i<8; i++) {
                 sprintf(msg, "%X%X%X%X", this->N64_raw_dump[i],this->N64_raw_dump[i+8],this->N64_raw_dump[i+16],this->N64_raw_dump[i+24]);
                 Serial.println(msg);
-                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x01 << i) : 0;
-                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x01 << i) : 0;
-                xaxis |= (this->N64_raw_dump[16+i] & datamask) ? (0x01 << i) : 0;
-                yaxis |= (this->N64_raw_dump[24+i] & datamask) ? (0x01 << i) : 0;
+                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x08 >> i) : 0;
+                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x08 >> i) : 0;
+                xaxis |= (this->N64_raw_dump[16+i] & datamask) ? (0x08 >> i) : 0;
+                yaxis |= (this->N64_raw_dump[24+i] & datamask) ? (0x08 >> i) : 0;
             }
             // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]
             joylist[cnum].axis[0] = max(min((int)xaxis * (mult), AXIS_MAX), AXIS_MIN);

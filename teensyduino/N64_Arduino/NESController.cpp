@@ -1,21 +1,36 @@
 #include "NESController.h"
 #include <stdio.h>
 
+void blink_binary(int num, char bits) {
+    int mask = 1 << (bits-1);
+    digitalWrite(PIN_TRIGGER, HIGH);
+    delay(300);
+    while(mask) {
+        digitalWrite(PIN_TRIGGER, LOW);
+        delay(100);
+        digitalWrite(PIN_TRIGGER, HIGH);
+        delay(100 + 200 * (num & mask));
+        mask >>= 1;
+    }
+    digitalWrite(PIN_TRIGGER, LOW);
+    delay(300);
+    digitalWrite(PIN_TRIGGER, HIGH);
+}
+
 NESController::NESController(struct JoystickStatusStruct *JoyStatus) {
     this->JoyStatus = JoyStatus;
 }
 
 void NESController::init() {
     Serial.println("Initiating NES controllers");
-    digitalWrite(PIN_TRIGGER, LOW);
+    //digitalWrite(PIN_TRIGGER, LOW);
     pinMode(PIN_TRIGGER, OUTPUT);
 
     this->detect_controllers();
 
-    DATA_PORT &= ~(this->pinmask << DATA_SHIFT);
-    DATA_DIR &= this->pinmask << DATA_SHIFT;
-  CLOCK_DIR |= CLOCK_MASK;
-  LATCH_DIR |= LATCH_MASK;
+    //Set up data port to be input, pull-up
+    DATA_PORT |= this->pinmask << DATA_SHIFT;
+    DATA_DIR &= ~(this->pinmask << DATA_SHIFT);
 }
 
 void NESController::clear_dump() {
@@ -35,20 +50,18 @@ void NESController::detect_controllers() {
 
 void NESController::read_state() {
     
-    digitalWrite(PIN_TRIGGER, HIGH);
+    //digitalWrite(PIN_TRIGGER, HIGH);
 
     // read in data and dump it to NES_raw_dump
     this->get();
 
-    //this->fillStatus(this->JoyStatus);
-    digitalWrite(PIN_TRIGGER, LOW);
+    this->fillStatus(this->JoyStatus);
+    //digitalWrite(PIN_TRIGGER, LOW);
 }
 
 void NESController::get() {
     char curbit = 8;
     char *bitbin = this->NES_raw_dump;
-
-    PORTC |= 0x80;
 
     //Send a 12-us pulse to the latch pin
     LATCH_PORT |= LATCH_MASK;
@@ -77,13 +90,12 @@ void NESController::get() {
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   ); //8*12 = 6us
-    delayMicroseconds(12);
     LATCH_PORT &= ~LATCH_MASK;
 
     //Record response
     while(curbit) {
         //Read value
-        *bitbin = (DATA_PORT & this->pinmask);
+        *bitbin = ~DATA_IN & this->pinmask;
         ++bitbin;
         --curbit;
         //Send a 12-us 50% duty cycle clock pulse
@@ -116,8 +128,6 @@ void NESController::get() {
                       ); //6*5 - 1 = 29 nops
         CLOCK_PORT &= ~CLOCK_MASK;
     }
-
-    PORTC &= ~0x80;
 }
 
 void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
@@ -140,17 +150,18 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
             memset(&joylist[cnum], 0, sizeof(JoystickStatusStruct));
             // line 1
             // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
+            // (reversed)
             for (i=0; i<8; i++) {
                 sprintf(msg, "%X", this->NES_raw_dump[i]);
                 Serial.println(msg);
                 //If the button is pressed, set the bit
                 if(NES_raw_dump[i] & datamask) {
-                    joylist[cnum].buttonset[0] |= (0x01 << i);
+                    joylist[cnum].buttonset[0] |= (0x80 >> i);
 
                     //Emulate a joystick as well, because why not?
-                    if(i > 3) {
+                    if(i < 4) {
                         //x axis = 0, y axis = 1
-                        axisnum = (i > 5) ? 0 : 1;
+                        axisnum = (i < 2) ? 0 : 1;
                         //down and right = negative
                         axisdir = (0 == i%2) ? AXIS_MAX : AXIS_MIN;
                         
