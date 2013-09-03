@@ -1,31 +1,47 @@
-#include "NESController.h"
+#include "SNESController.h"
 #include <stdio.h>
 
-NESController::NESController(struct JoystickStatusStruct *JoyStatus) {
+void blink_binary(int num, char bits) {
+    int mask = 1 << (bits-1);
+    digitalWrite(PIN_TRIGGER, HIGH);
+    delay(300);
+    while(mask) {
+        digitalWrite(PIN_TRIGGER, LOW);
+        delay(100);
+        digitalWrite(PIN_TRIGGER, HIGH);
+        delay(100 + 200 * (num & mask));
+        mask >>= 1;
+    }
+    digitalWrite(PIN_TRIGGER, LOW);
+    delay(300);
+    digitalWrite(PIN_TRIGGER, HIGH);
+}
+
+SNESController::SNESController(struct JoystickStatusStruct *JoyStatus) {
     this->JoyStatus = JoyStatus;
 }
 
-void NESController::init() {
-    Serial.println("Initiating NES controllers");
+void SNESController::init() {
+    Serial.println("Initiating SNES controllers");
 
     this->detect_controllers();
 
-    //For our pins, set N64 flag high (=NES)
+    //For our pins, set N64 flag high (=S/NES)
     N64_PORT |= this->pinmask << N64_SHIFT;
-    //And set SNES flag to low (=NES)
-    SNES_PORT &= ~(this->pinmask << SNES_SHIFT);
+    //And set SNES flag to high (=SNES)
+    SNES_PORT |= this->pinmask << SNES_SHIFT;
 
-    snprintf(msg, MSG_LEN, "NES Pinmask: %X", this->pinmask);
+    snprintf(msg, MSG_LEN, "SNES Pinmask: %X", this->pinmask);
     Serial.println(msg);
 }
 
-void NESController::clear_dump() {
+void SNESController::clear_dump() {
   for(int i=0;i<8;i++) {
-    this->NES_raw_dump[i] = 0;
+    this->SNES_raw_dump[i] = 0;
   }
 }
 
-void NESController::detect_controllers() {
+void SNESController::detect_controllers() {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
     char N64_prev, SNES_prev;
@@ -37,10 +53,10 @@ void NESController::detect_controllers() {
     //Try setting all ports to SNES
     //For our pins, set N64 flag high (=S/NES)
     N64_PORT |= IO_MASK << N64_SHIFT;
-    //And set SNES flag to low (=NES)
-    SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
+    //And set SNES flag to high (=SNES)
+    SNES_PORT |= IO_MASK << SNES_SHIFT;
 
-    //Lines pulled low are NES controllers
+    //Lines pulled low are SNES controllers
     //So invert and mask
     this->pinmask = (~DATA_IN) & IO_MASK;
 
@@ -49,20 +65,20 @@ void NESController::detect_controllers() {
     SNES_PORT = SNES_prev;
 }
 
-void NESController::read_state() {
+void SNESController::read_state() {
     
     //digitalWrite(PIN_TRIGGER, HIGH);
 
-    // read in data and dump it to NES_raw_dump
+    // read in data and dump it to SNES_raw_dump
     this->get();
 
     this->fillStatus(this->JoyStatus);
     //digitalWrite(PIN_TRIGGER, LOW);
 }
 
-void NESController::get() {
-    char curbit = 8;
-    char *bitbin = this->NES_raw_dump;
+void SNESController::get() {
+    char curbit = 16;
+    char *bitbin = this->SNES_raw_dump;
 
     //Send a 12-us pulse to the latch pin
     LATCH_PORT |= LATCH_MASK;
@@ -131,7 +147,7 @@ void NESController::get() {
     }
 }
 
-void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
+void SNESController::fillStatus(struct JoystickStatusStruct *joylist) {
     short int pinlist = this->pinmask;
     short int datamask = 0x01;
     short int allpins = IO_MASK;
@@ -142,20 +158,21 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
             Serial.println("Filling status: ");
             snprintf(msg, MSG_LEN, "%X %X %X %d", pinlist, allpins, datamask, cnum);
             Serial.println(msg);
-            // The get_NES_status function sloppily dumps its data 1 bit per byte
+            // The get_SNES_status function sloppily dumps its data 1 bit per byte
             // into the get_status_extended char array. It's our job to go through
-            // that and put each piece neatly into the struct NES_status
+            // that and put each piece neatly into the struct SNES_status
             int i;
-            char axisnum, axisdir;
+            signed short int axisnum, axisdir;
             memset(&joylist[cnum], 0, sizeof(JoystickStatusStruct));
             // line 1
-            // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
+            // bits: B, Y, Select, Start, Dup, Ddown, Dleft, Dright
+            // bits2: A, X, L, R, NCx4
             // (reversed)
             for (i=0; i<8; i++) {
-                snprintf(msg, MSG_LEN, "%X", this->NES_raw_dump[i]);
+                snprintf(msg, MSG_LEN, "%X", this->SNES_raw_dump[i]);
                 Serial.println(msg);
                 //If the button is pressed, set the bit
-                if(NES_raw_dump[i] & datamask) {
+                if(SNES_raw_dump[i] & datamask) {
                     joylist[cnum].buttonset[0] |= (0x80 >> i);
 
                     //Emulate a joystick as well, because why not?
@@ -168,6 +185,11 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
                         joylist[cnum].axis[axisnum] = axisdir;
                     }
                 }
+                if((i > 3) && (SNES_raw_dump[i+8] & datamask)) {
+                    //If it's the others, we've got the 
+                    //SNES buttons to deal with
+                    joylist[cnum].buttonset[1] |= (0x80 >> i);
+                }
             }
         }
         if(allpins & 0x01) { cnum++; }
@@ -179,48 +201,48 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
 }
 
 /*
-void NESController::print_status(short int cnum) {
+void SNESController::print_status(short int cnum) {
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
     // bits: 0, 0, L, R, Cup, Cdown, Cleft, Cright
     Serial.println();
     Serial.print("Start: ");
-    Serial.println(NES_status[cnum].data1 & 16 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 16 ? 1:0);
 
     Serial.print("Z:     ");
-    Serial.println(NES_status[cnum].data1 & 32 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 32 ? 1:0);
 
     Serial.print("B:     ");
-    Serial.println(NES_status[cnum].data1 & 64 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 64 ? 1:0);
 
     Serial.print("A:     ");
-    Serial.println(NES_status[cnum].data1 & 128 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 128 ? 1:0);
 
     Serial.print("L:     ");
-    Serial.println(NES_status[cnum].data2 & 32 ? 1:0);
+    Serial.println(SNES_status[cnum].data2 & 32 ? 1:0);
     Serial.print("R:     ");
-    Serial.println(NES_status[cnum].data2 & 16 ? 1:0);
+    Serial.println(SNES_status[cnum].data2 & 16 ? 1:0);
 
     Serial.print("Cup:   ");
-    Serial.println(NES_status[cnum].data2 & 0x08 ? 1:0);
+    Serial.println(SNES_status[cnum].data2 & 0x08 ? 1:0);
     Serial.print("Cdown: ");
-    Serial.println(NES_status[cnum].data2 & 0x04 ? 1:0);
+    Serial.println(SNES_status[cnum].data2 & 0x04 ? 1:0);
     Serial.print("Cright:");
-    Serial.println(NES_status[cnum].data2 & 0x01 ? 1:0);
+    Serial.println(SNES_status[cnum].data2 & 0x01 ? 1:0);
     Serial.print("Cleft: ");
-    Serial.println(NES_status[cnum].data2 & 0x02 ? 1:0);
+    Serial.println(SNES_status[cnum].data2 & 0x02 ? 1:0);
     
     Serial.print("Dup:   ");
-    Serial.println(NES_status[cnum].data1 & 0x08 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 0x08 ? 1:0);
     Serial.print("Ddown: ");
-    Serial.println(NES_status[cnum].data1 & 0x04 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 0x04 ? 1:0);
     Serial.print("Dright:");
-    Serial.println(NES_status[cnum].data1 & 0x01 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 0x01 ? 1:0);
     Serial.print("Dleft: ");
-    Serial.println(NES_status[cnum].data1 & 0x02 ? 1:0);
+    Serial.println(SNES_status[cnum].data1 & 0x02 ? 1:0);
 
     Serial.print("Stick X:");
-    Serial.println(NES_status[cnum].stick_x, DEC);
+    Serial.println(SNES_status[cnum].stick_x, DEC);
     Serial.print("Stick Y:");
-    Serial.println(NES_status[cnum].stick_y, DEC);
+    Serial.println(SNES_status[cnum].stick_y, DEC);
 }
 */

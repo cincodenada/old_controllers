@@ -15,6 +15,7 @@
 #include "common.h"
 #include "crc_table.h"
 #include "N64Controller.h"
+#include "SNESController.h"
 #include "NESController.h"
 #include <stdio.h>
 
