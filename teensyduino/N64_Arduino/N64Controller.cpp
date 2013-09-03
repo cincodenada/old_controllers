@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 //Assembly stub functions
-//TODO: Investigate if PIND vs PORTD makes anny difference?
+//This function queries and masks the N64 ports
 short int N64_query(char cmask) {
   short int inbit;
   asm volatile ("in %[inbits], %[port]\n"
@@ -19,45 +19,19 @@ N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus) {
 
 void N64Controller::init() {
     Serial.println("Initiating N64 controllers");
-    digitalWrite(PIN_TRIGGER, LOW);
-    pinMode(PIN_TRIGGER, OUTPUT);
 
     this->detect_controllers();
 
-    //Set up data port for our guys
-    //Express low
-    DATA_PORT &= ~(this->pinmask << DATA_SHIFT);
-    //Set dir to input (low)
-    DATA_DIR &= ~(this->pinmask << DATA_SHIFT);
-
-    unsigned char command;
-    // Initialize the gamecube controller by sending it a null byte.
-    // This is unnecessary for a standard controller, but is required for the
-    // Wavebird.
-    command = 0;
-    noInterrupts();
-
-    this->send(&command, 1);
-
-    digitalWrite(PIN_TRIGGER, HIGH);
-    // Stupid routine to wait for the gamecube controller to stop
-    // sending its response. We don't care what it is, but we
-    // can't start asking for status if it's still responding
-    int x;
-    // Set pins to input
-    DATA_DIR &= ~(this->pinmask << DATA_SHIFT);
-    for (x=0; x<64; x++) {
-        // make sure the lines are idle for 64 iterations, should
-        // be plenty.
-        if (!N64_query((this->pinmask << DATA_SHIFT))) { x = 0; }
-    }
-    digitalWrite(PIN_TRIGGER, LOW);
+    //For our pins, set N64 flag low (=N64)
+    N64_PORT &= ~(this->pinmask << N64_SHIFT);
 
     // Query for the gamecube controller's status. We do this
     // to get the 0 point for the control stick.
+    // TODO: Does this actually...do anything?
     this->read_state();
 
-    digitalWrite(PIN_TRIGGER, LOW);
+    snprintf(msg, MSG_LEN, "N64 Pinmask: %X", this->pinmask);
+    Serial.println(msg);
 }
 
 void N64Controller::clear_dump() {
@@ -67,10 +41,46 @@ void N64Controller::clear_dump() {
 }
 
 void N64Controller::detect_controllers() {
-    //For now just handle all with N64
-    this->pinmask = IO_MASK;
+    //NES and SNES pull low on idle, so check for that
+    //(N64 maintains high, and we use pull-up)
+    char N64_prev;
+
+    //Save the states
+    N64_prev = N64_PORT;
+
     //For our pins, set N64 flag low (=N64)
     N64_PORT &= ~(this->pinmask << N64_SHIFT);
+    //SNES/NES port doesn't matter
+    
+    //Just send the ID command and see who answers
+    //This also initializes some controllers (Wavebird, I guess?)
+    unsigned char command;
+    command = 0;
+    noInterrupts();
+
+    this->send(&command, 1);
+
+    //At this point we're pull-up input
+    //Wait for lines to remain high (quiet) for a bit (64 iterations) 
+    //And note which ones pull low at any point
+    //We don't care what they're actually saying
+
+    int x;
+    char inpins;
+    this->pinmask = 0;
+    for (x=0; x<64; x++) {
+        inpins = N64_query(this->pinmask << DATA_SHIFT);
+        //If any of the lines fall low
+        if (inpins != IO_MASK) {
+            //Reset the counter
+            x = 0; 
+            //And take note of which ones talked back
+            this->pinmask |= ((~inpins) & IO_MASK);
+        }
+    }
+
+    //Restore states
+    N64_PORT = N64_prev;
 }
 
 void N64Controller::read_state() {
@@ -121,6 +131,9 @@ void N64Controller::send(unsigned char *buffer, char length) {
     
     cmask = this->pinmask << DATA_SHIFT;
     invmask = ~cmask;
+
+    //Set DATA_PORT to low, since we're using N64_HIGH/LOW macros
+    DATA_PORT &= invmask;
 
     // This routine is very carefully timed by examining the assembly output.
     // Do not change any statements, it could throw the timings off
@@ -240,6 +253,9 @@ inner_loop:
     asm volatile ("nop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\n");
+
+    //Set back to input
+    DATA_PORT |= cmask;
     N64_HIGH;
 }
 
@@ -258,6 +274,8 @@ void N64Controller::get() {
     short int cmask = this->pinmask << DATA_SHIFT;
     short int invmask = ~cmask;
 
+    //TODO: Is this really necessary?
+    //Should be fine just input pull-up
     DATA_DIR &= invmask;
 
     // Again, using gotos here to make the assembly more predictable and
@@ -304,7 +322,6 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
     short int datamask = 0x01;
     short int allpins = IO_MASK;
     int cnum = 0;
-    char msg[100];
     char mult = AXIS_MAX/82;
 
     while(pinlist) {

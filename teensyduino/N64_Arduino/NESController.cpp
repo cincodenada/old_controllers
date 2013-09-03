@@ -23,14 +23,16 @@ NESController::NESController(struct JoystickStatusStruct *JoyStatus) {
 
 void NESController::init() {
     Serial.println("Initiating NES controllers");
-    //digitalWrite(PIN_TRIGGER, LOW);
-    pinMode(PIN_TRIGGER, OUTPUT);
 
     this->detect_controllers();
 
-    //Set up data port to be input, pull-up
-    DATA_PORT |= this->pinmask << DATA_SHIFT;
-    DATA_DIR &= ~(this->pinmask << DATA_SHIFT);
+    //For our pins, set N64 flag high (=NES)
+    N64_PORT |= this->pinmask << N64_SHIFT;
+    //And set SNES flag to low (=NES)
+    SNES_PORT &= ~(this->pinmask << SNES_SHIFT);
+
+    snprintf(msg, MSG_LEN, "NES Pinmask: %X", this->pinmask);
+    Serial.println(msg);
 }
 
 void NESController::clear_dump() {
@@ -40,12 +42,27 @@ void NESController::clear_dump() {
 }
 
 void NESController::detect_controllers() {
-    //For now just handle all with NES
-    this->pinmask = IO_MASK;
-    //For our pins, set N64 flag high (=NES)
-    N64_PORT |= this->pinmask << N64_SHIFT;
+    //NES and SNES pull low on idle, so check for that
+    //(N64 maintains high, and we use pull-up)
+    char N64_prev, SNES_prev;
+
+    //Save the states
+    N64_prev = N64_PORT;
+    SNES_prev = SNES_PORT;
+
+    //Try setting all ports to SNES
+    //For our pins, set N64 flag high (=S/NES)
+    N64_PORT |= IO_MASK << N64_SHIFT;
     //And set SNES flag to low (=NES)
-    SNES_PORT &= ~(this->pinmask << SNES_SHIFT);
+    SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
+
+    //Lines pulled low are NES controllers
+    //So invert and mask
+    this->pinmask = (~DATA_IN) & IO_MASK;
+
+    //Restore states
+    N64_PORT = N64_prev;
+    SNES_PORT = SNES_prev;
 }
 
 void NESController::read_state() {
@@ -135,12 +152,11 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
     short int datamask = 0x01;
     short int allpins = IO_MASK;
     int cnum = 0;
-    char msg[100];
 
     while(pinlist) {
         if(pinlist & 0x01) {
             Serial.println("Filling status: ");
-            sprintf(msg, "%X %X %X %d", pinlist, allpins, datamask, cnum);
+            snprintf(msg, MSG_LEN, "%X %X %X %d", pinlist, allpins, datamask, cnum);
             Serial.println(msg);
             // The get_NES_status function sloppily dumps its data 1 bit per byte
             // into the get_status_extended char array. It's our job to go through
@@ -152,7 +168,7 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
             // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
             // (reversed)
             for (i=0; i<8; i++) {
-                sprintf(msg, "%X", this->NES_raw_dump[i]);
+                snprintf(msg, MSG_LEN, "%X", this->NES_raw_dump[i]);
                 Serial.println(msg);
                 //If the button is pressed, set the bit
                 if(NES_raw_dump[i] & datamask) {

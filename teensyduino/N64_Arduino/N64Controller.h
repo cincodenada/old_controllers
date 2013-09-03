@@ -3,9 +3,16 @@
 
 #include "BaseController.h"
 
-// these two macros set arduino pin 2 to input or output, which with an
-// external 1K pull-up resistor to the 3.3V rail, is like pulling it high or
-// low.  These operations translate to 1 op code, which takes 2 cycles
+//Important: set DATA_PORT to low before using these
+//So when we flip to output, we ouput a low!
+//Outputting high may damage the N64 controller
+
+//Sets the masked pins to input (HIGH) or output (LOW)
+//Which effectively pulls high or low
+//Original note recommended a 1K pull-up resistor to 3.3V
+//But relying on the controller to pull high seems to work fine
+//TODO: Perhaps add a pull-up to be safe?
+//These instructions are 1 cycle each, 3 cycles total
 #define N64_HIGH asm volatile ("in __tmp_reg__, %[port]\nand __tmp_reg__, %[invmask]\nout %[port], __tmp_reg__\n"::[invmask] "r" (invmask), [port] "I" (_SFR_IO_ADDR(DATA_DIR)))
 #define N64_LOW asm volatile ("in __tmp_reg__, %[port]\nor __tmp_reg__, %[cmask]\nout %[port], __tmp_reg__\n"::[cmask] "r" (cmask), [port] "I" (_SFR_IO_ADDR(DATA_DIR)))
 

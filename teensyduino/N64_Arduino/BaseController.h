@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "pin_config.h"
+#include "common.h"
 
 // 8 bytes of data that we get from the controller
 struct JoystickStatusStruct {

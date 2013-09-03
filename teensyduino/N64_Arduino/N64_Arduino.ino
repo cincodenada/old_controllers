@@ -12,6 +12,7 @@
 #include "pins_arduino.h"
 
 #include "pin_config.h"
+#include "common.h"
 #include "crc_table.h"
 #include "N64Controller.h"
 #include "NESController.h"
@@ -19,6 +20,7 @@
 
 NESController controllers;
 struct JoystickStatusStruct JoyStatus[4];
+char msg[MSG_LEN];
 
 void setup()
 {
@@ -42,6 +44,10 @@ void setup()
   //Set up clock/latch
   CLOCK_DIR |= CLOCK_MASK;
   LATCH_DIR |= LATCH_MASK;
+
+  //Set up data port to be input, pull-up
+  DATA_PORT |= IO_MASK << DATA_SHIFT;
+  DATA_DIR &= ~(IO_MASK << DATA_SHIFT);
 
   DDRC |= 0x0C;
 

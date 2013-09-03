@@ -24,14 +24,9 @@
 #define LATCH_MASK 0x40
 
 //For now, just the ports I have populated...
-#define IO_MASK 0x0A
+#define IO_MASK 0x0F
 
 //C6/7 = 9/10
 #define PIN_TRIGGER 11
-
-#define AXIS_MAX (32767)
-#define AXIS_MIN (-32768)
-#define JOY_FACT ((AXIS_MAX-AXIS_MIN+1)/1024)
-#define JOY_OFFSET (512);
 
 #endif /* PIN_CONFIG_H */
