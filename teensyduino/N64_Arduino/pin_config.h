@@ -27,6 +27,6 @@
 #define IO_MASK 0x0F
 
 //C6/7 = 9/10
-#define PIN_TRIGGER 11
+#define PIN_TRIGGER 10
 
 #endif /* PIN_CONFIG_H */

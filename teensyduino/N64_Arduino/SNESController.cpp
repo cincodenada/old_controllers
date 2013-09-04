@@ -58,7 +58,7 @@ void SNESController::detect_controllers() {
 
     //Lines pulled low are SNES controllers
     //So invert and mask
-    this->pinmask = (~DATA_IN) & IO_MASK;
+    this->pinmask = (~DATA_IN & (IO_MASK << DATA_SHIFT)) >> DATA_SHIFT;
 
     //Restore states
     N64_PORT = N64_prev;

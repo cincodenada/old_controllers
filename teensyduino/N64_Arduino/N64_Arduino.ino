@@ -64,7 +64,7 @@ void loop()
 
     Serial.println("Polling Controllers...");
     controllers.read_state(); 
-    for(short int cnum=0; cnum < 2; cnum++) {
+    for(short int cnum=0; cnum < 4; cnum++) {
       //Set joystick parameters
       joynum = cnum % 2;
       joypos = cnum / 2;

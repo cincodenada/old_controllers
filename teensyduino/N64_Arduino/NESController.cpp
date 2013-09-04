@@ -42,7 +42,7 @@ void NESController::detect_controllers() {
 
     //Lines pulled low are NES controllers
     //So invert and mask
-    this->pinmask = (~DATA_IN) & IO_MASK;
+    this->pinmask = (~DATA_IN & (IO_MASK << DATA_SHIFT)) >> DATA_SHIFT;
 
     //Restore states
     N64_PORT = N64_prev;
@@ -96,7 +96,7 @@ void NESController::get() {
     //Record response
     while(curbit) {
         //Read value
-        *bitbin = ~DATA_IN & this->pinmask;
+        *bitbin = (~DATA_IN & (this->pinmask << DATA_SHIFT)) >> DATA_SHIFT;
         ++bitbin;
         --curbit;
         //Send a 12-us 50% duty cycle clock pulse

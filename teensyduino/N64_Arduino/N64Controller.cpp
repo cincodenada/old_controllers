@@ -66,10 +66,10 @@ void N64Controller::detect_controllers() {
     //We don't care what they're actually saying
 
     int x;
-    char inpins;
+    short int inpins;
     this->pinmask = 0;
     for (x=0; x<64; x++) {
-        inpins = N64_query(this->pinmask << DATA_SHIFT);
+        inpins = N64_query(IO_MASK << DATA_SHIFT) >> DATA_SHIFT;
         //If any of the lines fall low
         if (inpins != IO_MASK) {
             //Reset the counter
