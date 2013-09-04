@@ -19,8 +19,10 @@
 #include "NESController.h"
 #include <stdio.h>
 
-NESController controllers;
 struct JoystickStatusStruct JoyStatus[4];
+NESController c1;
+SNESController c2;
+N64Controller c3;
 char msg[MSG_LEN];
 
 void setup()
@@ -52,9 +54,13 @@ void setup()
 
   DDRC |= 0x0C;
 
-  controllers = NESController(JoyStatus);
+  c1 = NESController(JoyStatus);
+  c2 = SNESController(JoyStatus);
+  c3 = N64Controller(JoyStatus);
 
-  controllers.init();
+  c1.init();
+  c2.init();
+  //c3.init();
 }
 
 void loop()
@@ -63,7 +69,9 @@ void loop()
     unsigned char joynum, joypos;
 
     Serial.println("Polling Controllers...");
-    controllers.read_state(); 
+    c1.read_state();
+    c2.read_state();
+    //c3.read_state();
     for(short int cnum=0; cnum < 4; cnum++) {
       //Set joystick parameters
       joynum = cnum % 2;

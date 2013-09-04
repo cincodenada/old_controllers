@@ -36,7 +36,7 @@ void SNESController::init() {
 }
 
 void SNESController::clear_dump() {
-  for(int i=0;i<8;i++) {
+  for(int i=0;i<16;i++) {
     this->SNES_raw_dump[i] = 0;
   }
 }
