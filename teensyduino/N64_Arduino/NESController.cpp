@@ -5,10 +5,10 @@ NESController::NESController(struct JoystickStatusStruct *JoyStatus) {
     this->JoyStatus = JoyStatus;
 }
 
-void NESController::init() {
+void NESController::init(char pins_avail) {
     Serial.println("Initiating NES controllers");
 
-    this->detect_controllers();
+    this->detect_controllers(pins_avail);
 
     //For our pins, set N64 flag high (=NES)
     N64_PORT |= this->pinmask << N64_SHIFT;
@@ -25,7 +25,7 @@ void NESController::clear_dump() {
   }
 }
 
-void NESController::detect_controllers() {
+void NESController::detect_controllers(char pins_avail) {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
     char N64_prev, SNES_prev;
@@ -36,13 +36,14 @@ void NESController::detect_controllers() {
 
     //Try setting all ports to SNES
     //For our pins, set N64 flag high (=S/NES)
-    N64_PORT |= IO_MASK << N64_SHIFT;
+    N64_PORT |= pins_avail << N64_SHIFT;
     //And set SNES flag to low (=NES)
-    SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
+    SNES_PORT &= ~(pins_avail << SNES_SHIFT);
+    delay(5000);
 
     //Lines pulled low are NES controllers
     //So invert and mask
-    this->pinmask = (~DATA_IN & (IO_MASK << DATA_SHIFT)) >> DATA_SHIFT;
+    this->pinmask = (~DATA_IN & (pins_avail << DATA_SHIFT)) >> DATA_SHIFT;
 
     //Restore states
     N64_PORT = N64_prev;

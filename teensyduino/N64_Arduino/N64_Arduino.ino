@@ -28,6 +28,7 @@ char msg[MSG_LEN];
 void setup()
 {
   Serial.begin(9600);
+  delay(5000);
   
   Serial.println("Initiating controllers");
   
@@ -58,9 +59,12 @@ void setup()
   c2 = SNESController(JoyStatus);
   c3 = N64Controller(JoyStatus);
 
-  c1.init();
-  c2.init();
-  //c3.init();
+  char pins_avail = IO_MASK;
+  c2.init(pins_avail);
+  pins_avail &= ~c2.pinmask;
+  c1.init(pins_avail);
+  pins_avail &= ~c1.pinmask;
+  c3.init(pins_avail);
 }
 
 void loop()
@@ -71,7 +75,7 @@ void loop()
     Serial.println("Polling Controllers...");
     c1.read_state();
     c2.read_state();
-    //c3.read_state();
+    c3.read_state();
     for(short int cnum=0; cnum < 4; cnum++) {
       //Set joystick parameters
       joynum = cnum % 2;

@@ -17,10 +17,10 @@ N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus) {
     this->JoyStatus = JoyStatus;
 }
 
-void N64Controller::init() {
+void N64Controller::init(char pins_avail) {
     Serial.println("Initiating N64 controllers");
 
-    this->detect_controllers();
+    this->detect_controllers(pins_avail);
 
     //For our pins, set N64 flag low (=N64)
     N64_PORT &= ~(this->pinmask << N64_SHIFT);
@@ -40,7 +40,7 @@ void N64Controller::clear_dump() {
   }
 }
 
-void N64Controller::detect_controllers() {
+void N64Controller::detect_controllers(char pins_avail) {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
     char N64_prev;
@@ -342,10 +342,10 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
             for (i=0; i<8; i++) {
                 sprintf(msg, "%X%X%X%X", this->N64_raw_dump[i],this->N64_raw_dump[i+8],this->N64_raw_dump[i+16],this->N64_raw_dump[i+24]);
                 Serial.println(msg);
-                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x08 >> i) : 0;
-                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x08 >> i) : 0;
-                xaxis |= (this->N64_raw_dump[16+i] & datamask) ? (0x08 >> i) : 0;
-                yaxis |= (this->N64_raw_dump[24+i] & datamask) ? (0x08 >> i) : 0;
+                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
+                xaxis |= (this->N64_raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
+                yaxis |= (this->N64_raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
             }
             // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]
             joylist[cnum].axis[0] = max(min((int)xaxis * (mult), AXIS_MAX), AXIS_MIN);

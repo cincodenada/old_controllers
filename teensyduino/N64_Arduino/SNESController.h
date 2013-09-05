@@ -12,8 +12,9 @@ public:
     SNESController() {};
     SNESController(struct JoystickStatusStruct *JoyStatus);
 
-    void init();
+    void init(char pins_avail);
     void print_status(short int cnum);
+    void detect_controllers(char pins_avail);
     void get();
     void translate_raw_data();
     void clear_dump();
@@ -21,7 +22,6 @@ public:
     short int pinmask;
     short int datamask;
 
-    void detect_controllers();
     void read_state();
     void fillStatus(struct JoystickStatusStruct *joylist);
 };
