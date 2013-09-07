@@ -23,11 +23,11 @@ public:
     struct JoystickStatusStruct *JoyStatus;
 
     N64Controller() {};
-    N64Controller(struct JoystickStatusStruct *JoyStatus);
+    N64Controller(struct JoystickStatusStruct *, char *);
 
-    void init(char pins_avail);
+    void init();
     void print_status(short int cnum);
-    void detect_controllers(char pins_avail);
+    void detect_controllers();
     void send(unsigned char *buffer, char length);
     void get();
     void translate_raw_data();

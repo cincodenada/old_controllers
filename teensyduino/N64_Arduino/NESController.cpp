@@ -1,14 +1,15 @@
 #include "NESController.h"
 #include <stdio.h>
 
-NESController::NESController(struct JoystickStatusStruct *JoyStatus) {
+NESController::NESController(struct JoystickStatusStruct *JoyStatus, char* global_pins) {
     this->JoyStatus = JoyStatus;
+    this->globalmask = global_pins;
 }
 
-void NESController::init(char pins_avail) {
+void NESController::init() {
     Serial.println("Initiating NES controllers");
 
-    this->detect_controllers(pins_avail);
+    this->detect_controllers();
 
     //For our pins, set N64 flag high (=NES)
     N64_PORT |= this->pinmask << N64_SHIFT;
@@ -25,10 +26,11 @@ void NESController::clear_dump() {
   }
 }
 
-void NESController::detect_controllers(char pins_avail) {
+void NESController::detect_controllers() {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
     char N64_prev, SNES_prev;
+    char pins_avail = ~(*globalmask) & IO_MASK;
 
     //Save the states
     N64_prev = N64_PORT;
@@ -39,11 +41,14 @@ void NESController::detect_controllers(char pins_avail) {
     N64_PORT |= pins_avail << N64_SHIFT;
     //And set SNES flag to low (=NES)
     SNES_PORT &= ~(pins_avail << SNES_SHIFT);
-    delay(5000);
+
+    this->get();
+    delay(1);
 
     //Lines pulled low are NES controllers
     //So invert and mask
     this->pinmask = (~DATA_IN & (pins_avail << DATA_SHIFT)) >> DATA_SHIFT;
+    *globalmask |= this->pinmask;
 
     //Restore states
     N64_PORT = N64_prev;
@@ -56,6 +61,7 @@ void NESController::read_state() {
 
     // read in data and dump it to NES_raw_dump
     this->get();
+    delay(1);
 
     this->fillStatus(this->JoyStatus);
     //digitalWrite(PIN_TRIGGER, LOW);
@@ -135,7 +141,7 @@ void NESController::get() {
 void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
     short int pinlist = this->pinmask;
     short int datamask = 0x01;
-    short int allpins = IO_MASK;
+    short int allpins = *globalmask;
     int cnum = 0;
 
     while(pinlist) {
@@ -147,7 +153,7 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
             // into the get_status_extended char array. It's our job to go through
             // that and put each piece neatly into the struct NES_status
             int i;
-            char axisnum, axisdir;
+            signed short int axisnum, axisdir;
             memset(&joylist[cnum], 0, sizeof(JoystickStatusStruct));
             // line 1
             // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
@@ -160,11 +166,11 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
                     joylist[cnum].buttonset[0] |= (0x80 >> i);
 
                     //Emulate a joystick as well, because why not?
-                    if(i < 4) {
+                    if(i > 3) {
                         //x axis = 0, y axis = 1
-                        axisnum = (i < 2) ? 0 : 1;
-                        //down and right = negative
-                        axisdir = (0 == i%2) ? AXIS_MAX : AXIS_MIN;
+                        axisnum = (i > 5) ? 0 : 1;
+                        //down and right = positive
+                        axisdir = (0 == i%2) ? AXIS_MIN : AXIS_MAX;
                         
                         joylist[cnum].axis[axisnum] = axisdir;
                     }

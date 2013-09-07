@@ -24,11 +24,11 @@ NESController c1;
 SNESController c2;
 N64Controller c3;
 char msg[MSG_LEN];
+char pins_used = 0;
 
 void setup()
 {
   Serial.begin(9600);
-  delay(5000);
   
   Serial.println("Initiating controllers");
   
@@ -53,18 +53,15 @@ void setup()
   DATA_PORT |= IO_MASK << DATA_SHIFT;
   DATA_DIR &= ~(IO_MASK << DATA_SHIFT);
 
-  DDRC |= 0x0C;
+  DDRC |= 0xC0;
 
-  c1 = NESController(JoyStatus);
-  c2 = SNESController(JoyStatus);
-  c3 = N64Controller(JoyStatus);
+  c1 = NESController(JoyStatus, &pins_used);
+  c2 = SNESController(JoyStatus, &pins_used);
+  c3 = N64Controller(JoyStatus, &pins_used);
 
-  char pins_avail = IO_MASK;
-  //c2.init(pins_avail);
-  //pins_avail &= ~c2.pinmask;
-  //c1.init(pins_avail);
-  //pins_avail &= ~c1.pinmask;
-  c3.init(pins_avail);
+  c3.init();
+  c2.init();
+  c1.init();
 }
 
 void loop()
@@ -73,8 +70,8 @@ void loop()
     unsigned char joynum, joypos;
 
     Serial.println("Polling Controllers...");
-    //c1.read_state();
-    //c2.read_state();
+    c1.read_state();
+    c2.read_state();
     c3.read_state();
     for(short int cnum=0; cnum < 4; cnum++) {
       //Set joystick parameters
@@ -95,7 +92,7 @@ void loop()
       unsigned int joyx, joyy;
       joyx = JoyStatus[cnum].axis[0]/JOY_FACT + JOY_OFFSET;
       joyy = JoyStatus[cnum].axis[1]/JOY_FACT + JOY_OFFSET;
-       
+
       switch(joypos) {
         case 0:
           DualJoystick.X(joyx);

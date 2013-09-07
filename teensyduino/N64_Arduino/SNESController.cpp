@@ -17,14 +17,15 @@ void blink_binary(int num, char bits) {
     digitalWrite(PIN_TRIGGER, HIGH);
 }
 
-SNESController::SNESController(struct JoystickStatusStruct *JoyStatus) {
+SNESController::SNESController(struct JoystickStatusStruct *JoyStatus, char* global_pins) {
     this->JoyStatus = JoyStatus;
+    this->globalmask = global_pins;
 }
 
-void SNESController::init(char pins_avail) {
+void SNESController::init() {
     Serial.println("Initiating SNES controllers");
 
-    this->detect_controllers(pins_avail);
+    this->detect_controllers();
 
     //For our pins, set N64 flag high (=S/NES)
     N64_PORT |= this->pinmask << N64_SHIFT;
@@ -41,10 +42,11 @@ void SNESController::clear_dump() {
   }
 }
 
-void SNESController::detect_controllers(char pins_avail) {
+void SNESController::detect_controllers() {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
     char N64_prev, SNES_prev;
+    char pins_avail = ~(*globalmask) & IO_MASK;
 
     //Save the states
     N64_prev = N64_PORT;
@@ -55,11 +57,14 @@ void SNESController::detect_controllers(char pins_avail) {
     N64_PORT |= pins_avail << N64_SHIFT;
     //And set SNES flag to high (=SNES)
     SNES_PORT |= pins_avail << SNES_SHIFT;
-    delay(5000);
+
+    this->get();
+    delay(1);
 
     //Lines pulled low are SNES controllers
     //So invert and mask
     this->pinmask = (~DATA_IN & (pins_avail << DATA_SHIFT)) >> DATA_SHIFT;
+    *globalmask |= this->pinmask;
 
     //Restore states
     N64_PORT = N64_prev;
@@ -72,6 +77,7 @@ void SNESController::read_state() {
 
     // read in data and dump it to SNES_raw_dump
     this->get();
+    delay(1);
 
     this->fillStatus(this->JoyStatus);
     //digitalWrite(PIN_TRIGGER, LOW);
@@ -151,7 +157,7 @@ void SNESController::get() {
 void SNESController::fillStatus(struct JoystickStatusStruct *joylist) {
     short int pinlist = this->pinmask;
     short int datamask = 0x01;
-    short int allpins = IO_MASK;
+    short int allpins = *globalmask;
     int cnum = 0;
 
     while(pinlist) {
@@ -170,23 +176,23 @@ void SNESController::fillStatus(struct JoystickStatusStruct *joylist) {
             // bits2: A, X, L, R, NCx4
             // (reversed)
             for (i=0; i<8; i++) {
-                snprintf(msg, MSG_LEN, "%X", this->SNES_raw_dump[i]);
+                snprintf(msg, MSG_LEN, "%X %X", this->SNES_raw_dump[i], this->SNES_raw_dump[i+8]);
                 Serial.println(msg);
                 //If the button is pressed, set the bit
                 if(SNES_raw_dump[i] & datamask) {
                     joylist[cnum].buttonset[0] |= (0x80 >> i);
 
                     //Emulate a joystick as well, because why not?
-                    if(i < 4) {
+                    if(i > 3) {
                         //x axis = 0, y axis = 1
-                        axisnum = (i < 2) ? 0 : 1;
-                        //down and right = negative
-                        axisdir = (0 == i%2) ? AXIS_MAX : AXIS_MIN;
+                        axisnum = (i > 5) ? 0 : 1;
+                        //down and right = positive
+                        axisdir = (0 == i%2) ? AXIS_MIN : AXIS_MAX;
                         
                         joylist[cnum].axis[axisnum] = axisdir;
                     }
                 }
-                if((i > 3) && (SNES_raw_dump[i+8] & datamask)) {
+                if((i < 4) && (SNES_raw_dump[i+8] & datamask)) {
                     //If it's the others, we've got the 
                     //SNES buttons to deal with
                     joylist[cnum].buttonset[1] |= (0x80 >> i);

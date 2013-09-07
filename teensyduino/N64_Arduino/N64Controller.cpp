@@ -13,14 +13,15 @@ short int N64_query(char cmask) {
   return inbit;
 }
 
-N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus) {
+N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus, char* global_pins) {
     this->JoyStatus = JoyStatus;
+    this->globalmask = global_pins;
 }
 
-void N64Controller::init(char pins_avail) {
+void N64Controller::init() {
     Serial.println("Initiating N64 controllers");
 
-    this->detect_controllers(pins_avail);
+    this->detect_controllers();
 
     //For our pins, set N64 flag low (=N64)
     N64_PORT &= ~(this->pinmask << N64_SHIFT);
@@ -40,20 +41,23 @@ void N64Controller::clear_dump() {
   }
 }
 
-void N64Controller::detect_controllers(char pins_avail) {
+void N64Controller::detect_controllers() {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
     char N64_prev;
+    char pins_avail = ~(*globalmask) & IO_MASK;
+    snprintf(msg, MSG_LEN, "Searching for N64 on %X...", pins_avail);
+    Serial.println(msg);
 
     //Save the states
     N64_prev = N64_PORT;
 
     //For our pins, set N64 flag low (=N64)
-    N64_PORT &= ~(IO_MASK << N64_SHIFT);
+    N64_PORT &= ~(pins_avail << N64_SHIFT);
     //SNES/NES port doesn't matter
     
     //Need to set pinmask in order to send
-    this->pinmask = IO_MASK;
+    this->pinmask = pins_avail;
 
     //Just send the ID command and see who answers
     //This also initializes some controllers (Wavebird, I guess?)
@@ -71,27 +75,25 @@ void N64Controller::detect_controllers(char pins_avail) {
     //We don't care what they're actually saying
 
     int x;
-    short int inpins = 0;
+    short int inpins;
     this->pinmask = 0;
     for (x=0; x<64; x++) {
-        inpins = N64_query(IO_MASK << DATA_SHIFT) >> DATA_SHIFT;
-        Serial.println(inpins);
-        Serial.println(IO_MASK);
+        inpins = N64_query(pins_avail << DATA_SHIFT) >> DATA_SHIFT;
         //If any of the lines fall low
-        if (inpins != IO_MASK) {
+        if (inpins != pins_avail) {
             //Reset the counter
             x = 0; 
-            Serial.println("Resetting!");
             //And take note of which ones talked back
             this->pinmask |= ((~inpins) & IO_MASK);
         }
     }
+    *globalmask |= this->pinmask;
 
     //Restore states
     N64_PORT = N64_prev;
 
     //Put data ports back to pull-up
-    DATA_PORT |= pins_avail << DATA_SHIFT;
+    DATA_PORT |= (~this->pinmask & IO_MASK) << DATA_SHIFT;
 }
 
 void N64Controller::read_state() {
@@ -328,9 +330,9 @@ read_loop:
 }
 
 void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
-    short int pinlist = this->pinmask;
+    short int pinlist = pinmask;
     short int datamask = 0x01;
-    short int allpins = IO_MASK;
+    short int allpins = *globalmask;
     int cnum = 0;
     int mult = AXIS_MAX/90;
     //TODO: Figure out why higher numbers are going negative

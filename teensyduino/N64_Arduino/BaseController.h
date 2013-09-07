@@ -14,7 +14,7 @@ struct JoystickStatusStruct {
 class BaseController {
 public:
     short int pinmask;
-    short int datamask;
+    char* globalmask;
 
     void init(char pins_avail);
     void print_status(short int cnum);

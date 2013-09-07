@@ -10,11 +10,11 @@ public:
     struct JoystickStatusStruct *JoyStatus;
 
     SNESController() {};
-    SNESController(struct JoystickStatusStruct *JoyStatus);
+    SNESController(struct JoystickStatusStruct *, char *);
 
-    void init(char pins_avail);
+    void init();
     void print_status(short int cnum);
-    void detect_controllers(char pins_avail);
+    void detect_controllers();
     void get();
     void translate_raw_data();
     void clear_dump();
