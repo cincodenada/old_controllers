@@ -4,7 +4,7 @@
 //Assembly stub functions
 //This function queries and masks the N64 ports
 short int N64_query(char cmask) {
-  short int inbit;
+  char inbit;
   asm volatile ("in %[inbits], %[port]\n"
                 "and %[inbits], %[cmask]\n"
                 :[inbits] "=r"(inbit)
@@ -49,16 +49,21 @@ void N64Controller::detect_controllers(char pins_avail) {
     N64_prev = N64_PORT;
 
     //For our pins, set N64 flag low (=N64)
-    N64_PORT &= ~(this->pinmask << N64_SHIFT);
+    N64_PORT &= ~(IO_MASK << N64_SHIFT);
     //SNES/NES port doesn't matter
     
+    //Need to set pinmask in order to send
+    this->pinmask = IO_MASK;
+
     //Just send the ID command and see who answers
     //This also initializes some controllers (Wavebird, I guess?)
     unsigned char command;
-    command = 0;
-    noInterrupts();
+    command = 0x00;
 
+    //Ports are set to Hi-Z here
+    noInterrupts();
     this->send(&command, 1);
+    interrupts();
 
     //At this point we're pull-up input
     //Wait for lines to remain high (quiet) for a bit (64 iterations) 
@@ -66,14 +71,17 @@ void N64Controller::detect_controllers(char pins_avail) {
     //We don't care what they're actually saying
 
     int x;
-    short int inpins;
+    short int inpins = 0;
     this->pinmask = 0;
     for (x=0; x<64; x++) {
         inpins = N64_query(IO_MASK << DATA_SHIFT) >> DATA_SHIFT;
+        Serial.println(inpins);
+        Serial.println(IO_MASK);
         //If any of the lines fall low
         if (inpins != IO_MASK) {
             //Reset the counter
             x = 0; 
+            Serial.println("Resetting!");
             //And take note of which ones talked back
             this->pinmask |= ((~inpins) & IO_MASK);
         }
@@ -81,6 +89,9 @@ void N64Controller::detect_controllers(char pins_avail) {
 
     //Restore states
     N64_PORT = N64_prev;
+
+    //Put data ports back to pull-up
+    DATA_PORT |= pins_avail << DATA_SHIFT;
 }
 
 void N64Controller::read_state() {
@@ -132,7 +143,8 @@ void N64Controller::send(unsigned char *buffer, char length) {
     cmask = this->pinmask << DATA_SHIFT;
     invmask = ~cmask;
 
-    //Set DATA_PORT to low, since we're using N64_HIGH/LOW macros
+    //Set input to Hi-Z
+    //Since we're using N64_HIGH/LOW macros
     DATA_PORT &= invmask;
 
     // This routine is very carefully timed by examining the assembly output.
@@ -255,7 +267,6 @@ inner_loop:
                   "nop\nnop\nnop\n");
 
     //Set back to input
-    DATA_PORT |= cmask;
     N64_HIGH;
 }
 
@@ -274,8 +285,7 @@ void N64Controller::get() {
     short int cmask = this->pinmask << DATA_SHIFT;
     short int invmask = ~cmask;
 
-    //TODO: Is this really necessary?
-    //Should be fine just input pull-up
+    //Ensure we're in Hi-Z
     DATA_DIR &= invmask;
 
     // Again, using gotos here to make the assembly more predictable and

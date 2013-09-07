@@ -24,7 +24,7 @@
 #define LATCH_MASK 0x40
 
 //For now, just the ports I have populated...
-#define IO_MASK 0x0F
+#define IO_MASK 0x0A
 
 //C6/7 = 9/10
 #define PIN_TRIGGER 10

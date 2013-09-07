@@ -60,10 +60,10 @@ void setup()
   c3 = N64Controller(JoyStatus);
 
   char pins_avail = IO_MASK;
-  c2.init(pins_avail);
-  pins_avail &= ~c2.pinmask;
-  c1.init(pins_avail);
-  pins_avail &= ~c1.pinmask;
+  //c2.init(pins_avail);
+  //pins_avail &= ~c2.pinmask;
+  //c1.init(pins_avail);
+  //pins_avail &= ~c1.pinmask;
   c3.init(pins_avail);
 }
 
@@ -73,8 +73,8 @@ void loop()
     unsigned char joynum, joypos;
 
     Serial.println("Polling Controllers...");
-    c1.read_state();
-    c2.read_state();
+    //c1.read_state();
+    //c2.read_state();
     c3.read_state();
     for(short int cnum=0; cnum < 4; cnum++) {
       //Set joystick parameters
