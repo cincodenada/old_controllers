@@ -322,7 +322,8 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
     short int datamask = 0x01;
     short int allpins = IO_MASK;
     int cnum = 0;
-    char mult = AXIS_MAX/82;
+    int mult = AXIS_MAX/90;
+    //TODO: Figure out why higher numbers are going negative
 
     while(pinlist) {
         if(pinlist & 0x01) {
@@ -347,6 +348,7 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
                 xaxis |= (this->N64_raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
                 yaxis |= (this->N64_raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
             }
+       
             // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]
             joylist[cnum].axis[0] = max(min((int)xaxis * (mult), AXIS_MAX), AXIS_MIN);
             joylist[cnum].axis[1] = max(min((int)yaxis * (-mult), AXIS_MAX), AXIS_MIN);

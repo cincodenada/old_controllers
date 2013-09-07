@@ -20,7 +20,6 @@ public:
     void clear_dump();
 
     short int pinmask;
-    short int datamask;
 
     void read_state();
     void fillStatus(struct JoystickStatusStruct *joylist);
