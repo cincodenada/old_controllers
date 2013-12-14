@@ -3,8 +3,8 @@
 
 //Assembly stub functions
 //This function queries and masks the N64 ports
-short int N64_query(char cmask) {
-  char inbit;
+short int N64_query(uint8_t cmask) {
+  uint8_t inbit;
   asm volatile ("in %[inbits], %[port]\n"
                 "and %[inbits], %[cmask]\n"
                 :[inbits] "=r"(inbit)
@@ -13,7 +13,7 @@ short int N64_query(char cmask) {
   return inbit;
 }
 
-N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus, char* global_pins) {
+N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
 }
@@ -44,8 +44,8 @@ void N64Controller::clear_dump() {
 void N64Controller::detect_controllers() {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
-    char N64_prev;
-    char pins_avail = ~(*globalmask) & IO_MASK;
+    uint8_t N64_prev;
+    uint8_t pins_avail = ~(*globalmask) & IO_MASK;
     snprintf(msg, MSG_LEN, "Searching for N64 on %X...", pins_avail);
     Serial.println(msg);
 
@@ -61,7 +61,7 @@ void N64Controller::detect_controllers() {
 
     //Just send the ID command and see who answers
     //This also initializes some controllers (Wavebird, I guess?)
-    unsigned char command;
+    uint8_t command;
     command = 0x00;
 
     //Ports are set to Hi-Z here
@@ -111,7 +111,7 @@ void N64Controller::read_state() {
             digitalWrite(PIN_TRIGGER, HIGH);
             noInterrupts();
 
-            unsigned char command = 0x01;
+            uint8_t command = 0x01;
             clear_dump();
             this->send(&command, 1);
             // read in data and dump it to N64_raw_dump
@@ -135,12 +135,12 @@ void N64Controller::read_state() {
  * length must be at least 1
  * Oh, it destroys the buffer passed in as it writes it
  */
-void N64Controller::send(unsigned char *buffer, char length) {
+void N64Controller::send(uint8_t *buffer, uint8_t length) {
     // Send these bytes
-    char bits;
+    uint8_t bits;
     
-    register unsigned char cmask asm("r3");
-    register unsigned char invmask asm("r4");
+    register uint8_t cmask asm("r3");
+    register uint8_t invmask asm("r4");
     
     cmask = this->pinmask << DATA_SHIFT;
     invmask = ~cmask;
@@ -279,11 +279,11 @@ void N64Controller::get() {
     // it into the N64_status struct.
 
     asm volatile (";Starting to listen");
-    unsigned char timeout;
-    char bitcount = 32;
-    char *bitbin = this->N64_raw_dump;
+    uint8_t timeout;
+    uint8_t bitcount = 32;
+    uint8_t *bitbin = this->N64_raw_dump;
     
-    //char cmask = this->pinmask;
+    //uint8_t cmask = this->pinmask;
     short int cmask = this->pinmask << DATA_SHIFT;
     short int invmask = ~cmask;
 
@@ -346,8 +346,8 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
             // into the get_status_extended char array. It's our job to go through
             // that and put each piece neatly into the struct N64_status
             int i;
-            char xaxis = 0;
-            char yaxis = 0;
+            uint8_t xaxis = 0;
+            uint8_t yaxis = 0;
 
             memset(&joylist[cnum], 0, sizeof(JoystickStatusStruct));
             // line 1

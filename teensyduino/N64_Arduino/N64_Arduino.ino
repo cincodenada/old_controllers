@@ -9,6 +9,9 @@
  * Digital I/O 2: N64 serial line
  * All appropriate grounding and power lines
  */
+#include <stdio.h>
+#include <stdint.h>
+
 #include "pins_arduino.h"
 
 #include "pin_config.h"
@@ -17,17 +20,15 @@
 #include "N64Controller.h"
 #include "SNESController.h"
 #include "NESController.h"
-#include <stdio.h>
 
 struct JoystickStatusStruct JoyStatus[4];
 NESController c1;
 SNESController c2;
 N64Controller c3;
 char msg[MSG_LEN];
-char pins_used = 0;
+uint8_t pins_used = 0;
 
-void setup()
-{
+void setup() {
   Serial.begin(9600);
   
   Serial.println("Initiating controllers");
@@ -67,7 +68,7 @@ void setup()
 void loop()
 {
     int i;
-    unsigned char joynum, joypos;
+    uint8_t joynum, joypos;
 
     Serial.println("Polling Controllers...");
     c1.read_state();
@@ -80,7 +81,7 @@ void loop()
       
       DualJoystick.setJoyNum(joynum);
       //Update each button
-      char mask = 0x01;
+      uint8_t mask = 0x01;
       for (i=0; i<8; i++) {
           DualJoystick.button(8-i+joypos*16,JoyStatus[cnum].buttonset[0] & mask ? 1 : 0);
           DualJoystick.button(16-i+joypos*16,JoyStatus[cnum].buttonset[1] & mask ? 1 : 0);

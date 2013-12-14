@@ -1,6 +1,8 @@
 #ifndef BASECONTROLLER_H
 #define BASECONTROLLER_H
 
+#include <stdint.h>
+
 #include "Arduino.h"
 #include "pin_config.h"
 #include "common.h"
@@ -8,13 +10,13 @@
 // 8 bytes of data that we get from the controller
 struct JoystickStatusStruct {
     signed short int axis[3];
-    unsigned char buttonset[2];
+    uint8_t buttonset[2];
 };
 
 class BaseController {
 public:
-    short int pinmask;
-    char* globalmask;
+    uint8_t pinmask;
+    uint8_t* globalmask;
 
     void init(char pins_avail);
     void print_status(short int cnum);

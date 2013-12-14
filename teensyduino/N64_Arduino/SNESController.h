@@ -5,12 +5,12 @@
 
 class SNESController : public BaseController {
 public:
-    char SNES_raw_dump[16]; // Temp dump location
+    uint8_t SNES_raw_dump[16]; // Temp dump location
 
     struct JoystickStatusStruct *JoyStatus;
 
     SNESController() {};
-    SNESController(struct JoystickStatusStruct *, char *);
+    SNESController(struct JoystickStatusStruct *, uint8_t *);
 
     void init();
     void print_status(short int cnum);

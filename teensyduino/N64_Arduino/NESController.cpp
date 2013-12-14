@@ -1,7 +1,7 @@
 #include "NESController.h"
 #include <stdio.h>
 
-NESController::NESController(struct JoystickStatusStruct *JoyStatus, char* global_pins) {
+NESController::NESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
 }
@@ -29,8 +29,8 @@ void NESController::clear_dump() {
 void NESController::detect_controllers() {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
-    char N64_prev, SNES_prev;
-    char pins_avail = ~(*globalmask) & IO_MASK;
+    uint8_t N64_prev, SNES_prev;
+    uint8_t pins_avail = ~(*globalmask) & IO_MASK;
 
     //Save the states
     N64_prev = N64_PORT;
@@ -68,8 +68,8 @@ void NESController::read_state() {
 }
 
 void NESController::get() {
-    char curbit = 8;
-    char *bitbin = this->NES_raw_dump;
+    uint8_t curbit = 8;
+    uint8_t *bitbin = this->NES_raw_dump;
 
     //Send a 12-us pulse to the latch pin
     LATCH_PORT |= LATCH_MASK;
@@ -139,9 +139,9 @@ void NESController::get() {
 }
 
 void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
-    short int pinlist = this->pinmask;
-    short int datamask = 0x01;
-    short int allpins = *globalmask;
+    uint8_t pinlist = this->pinmask;
+    uint8_t datamask = 0x01;
+    uint8_t allpins = *globalmask;
     int cnum = 0;
 
     while(pinlist) {

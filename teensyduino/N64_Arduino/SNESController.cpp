@@ -17,7 +17,7 @@ void blink_binary(int num, char bits) {
     digitalWrite(PIN_TRIGGER, HIGH);
 }
 
-SNESController::SNESController(struct JoystickStatusStruct *JoyStatus, char* global_pins) {
+SNESController::SNESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
 }
@@ -45,8 +45,8 @@ void SNESController::clear_dump() {
 void SNESController::detect_controllers() {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
-    char N64_prev, SNES_prev;
-    char pins_avail = ~(*globalmask) & IO_MASK;
+    uint8_t N64_prev, SNES_prev;
+    uint8_t pins_avail = ~(*globalmask) & IO_MASK;
 
     //Save the states
     N64_prev = N64_PORT;
@@ -84,8 +84,8 @@ void SNESController::read_state() {
 }
 
 void SNESController::get() {
-    char curbit = 16;
-    char *bitbin = this->SNES_raw_dump;
+    short int curbit = 16;
+    uint8_t *bitbin = this->SNES_raw_dump;
 
     //Send a 12-us pulse to the latch pin
     LATCH_PORT |= LATCH_MASK;
