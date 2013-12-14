@@ -1,22 +1,6 @@
 #include "SNESController.h"
 #include <stdio.h>
 
-void blink_binary(int num, char bits) {
-    int mask = 1 << (bits-1);
-    digitalWrite(PIN_TRIGGER, HIGH);
-    delay(300);
-    while(mask) {
-        digitalWrite(PIN_TRIGGER, LOW);
-        delay(100);
-        digitalWrite(PIN_TRIGGER, HIGH);
-        delay(100 + 200 * (num & mask));
-        mask >>= 1;
-    }
-    digitalWrite(PIN_TRIGGER, LOW);
-    delay(300);
-    digitalWrite(PIN_TRIGGER, HIGH);
-}
-
 SNESController::SNESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
@@ -63,7 +47,7 @@ void SNESController::detect_controllers() {
 
     //Lines pulled low are SNES controllers
     //So invert and mask
-    this->pinmask = (~DATA_IN & (pins_avail << DATA_SHIFT)) >> DATA_SHIFT;
+    this->pinmask = this->get_deviants(pins_avail, 1);
     *globalmask |= this->pinmask;
 
     //Restore states

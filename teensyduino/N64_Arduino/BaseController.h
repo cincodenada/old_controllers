@@ -18,11 +18,13 @@ public:
     uint8_t pinmask;
     uint8_t* globalmask;
 
-    void init(char pins_avail);
-    void print_status(short int cnum);
-    void detect_controllers(char pins_avail);
-    void read_state();
-    void fillStatus(struct JoystickStatusStruct *joylist);
+    //virtual void init(uint8_t pins_avail);
+    //virtual void print_status(short int cnum);
+    //virtual void detect_controllers();
+    //virtual void read_state();
+    //virtual void fillStatus(struct JoystickStatusStruct *joylist);
+    uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
+    void blink_binary(int num, uint8_t bits);
 };
 
 #endif /* BASECONTROLLER_H */

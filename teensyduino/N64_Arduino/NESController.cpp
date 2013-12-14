@@ -47,7 +47,7 @@ void NESController::detect_controllers() {
 
     //Lines pulled low are NES controllers
     //So invert and mask
-    this->pinmask = (~DATA_IN & (pins_avail << DATA_SHIFT)) >> DATA_SHIFT;
+    this->pinmask = this->get_deviants(pins_avail, 1);
     *globalmask |= this->pinmask;
 
     //Restore states
