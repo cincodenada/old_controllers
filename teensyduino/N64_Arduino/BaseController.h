@@ -28,10 +28,10 @@ public:
     BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name);
     virtual void init();
     virtual void setup_pins() = 0;
-    //virtual void print_status(short int cnum);
     virtual void detect_controllers() = 0;
-    //virtual void read_state();
-    //virtual void fillStatus(struct JoystickStatusStruct *joylist);
+    virtual void read_state() = 0;
+    virtual void fillStatus(struct JoystickStatusStruct *joylist);
+    virtual void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) = 0;
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
     void blink_binary(int num, uint8_t bits);
 };

@@ -17,10 +17,8 @@ public:
     void translate_raw_data();
     void clear_dump();
 
-    short int pinmask;
-
     void read_state();
-    void fillStatus(struct JoystickStatusStruct *joylist);
+    void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask);
 };
 
 #endif /* SNESCONTROLLER_H */

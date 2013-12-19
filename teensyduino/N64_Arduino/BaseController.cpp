@@ -17,6 +17,28 @@ void BaseController::init() {
     Serial.println(msg);
 }
 
+void BaseController::fillStatus(struct JoystickStatusStruct *joylist) {
+    uint8_t pinlist = this->pinmask;
+    uint8_t datamask = 0x01;
+    uint8_t allpins = *globalmask;
+    int cnum = 0;
+
+    while(pinlist) {
+        if(pinlist & 0x01) {
+            Serial.println("Filling status: ");
+            snprintf(msg, MSG_LEN, "%X %X %X %d", pinlist, allpins, datamask, cnum);
+            Serial.println(msg);
+
+            this->fillJoystick(&joylist[cnum], datamask);
+        }
+        if(allpins & 0x01) { cnum++; }
+
+        allpins >>= 1;
+        pinlist >>= 1;
+        datamask <<= 1;
+    }
+}
+
 uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     int x, resets = 0;
     uint8_t inpins, exp_mask;

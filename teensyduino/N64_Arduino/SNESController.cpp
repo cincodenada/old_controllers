@@ -126,102 +126,35 @@ void SNESController::get() {
     }
 }
 
-void SNESController::fillStatus(struct JoystickStatusStruct *joylist) {
-    short int pinlist = this->pinmask;
-    short int datamask = 0x01;
-    short int allpins = *globalmask;
-    int cnum = 0;
+void SNESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
+    int i;
+    signed short int axisnum, axisdir;
+    memset(joystick, 0, sizeof(JoystickStatusStruct));
+    // line 1
+    // bits: B, Y, Select, Start, Dup, Ddown, Dleft, Dright
+    // bits2: A, X, L, R, NCx4
+    // (reversed)
+    for (i=0; i<8; i++) {
+        snprintf(msg, MSG_LEN, "%X %X", this->raw_dump[i], this->raw_dump[i+8]);
+        Serial.println(msg);
+        //If the button is pressed, set the bit
+        if(raw_dump[i] & datamask) {
+            joystick->buttonset[0] |= (0x80 >> i);
 
-    while(pinlist) {
-        if(pinlist & 0x01) {
-            Serial.println("Filling status: ");
-            snprintf(msg, MSG_LEN, "%X %X %X %d", pinlist, allpins, datamask, cnum);
-            Serial.println(msg);
-            // The get_SNES_status function sloppily dumps its data 1 bit per byte
-            // into the get_status_extended char array. It's our job to go through
-            // that and put each piece neatly into the struct SNES_status
-            int i;
-            signed short int axisnum, axisdir;
-            memset(&joylist[cnum], 0, sizeof(JoystickStatusStruct));
-            // line 1
-            // bits: B, Y, Select, Start, Dup, Ddown, Dleft, Dright
-            // bits2: A, X, L, R, NCx4
-            // (reversed)
-            for (i=0; i<8; i++) {
-                snprintf(msg, MSG_LEN, "%X %X", this->raw_dump[i], this->raw_dump[i+8]);
-                Serial.println(msg);
-                //If the button is pressed, set the bit
-                if(raw_dump[i] & datamask) {
-                    joylist[cnum].buttonset[0] |= (0x80 >> i);
-
-                    //Emulate a joystick as well, because why not?
-                    if(i > 3) {
-                        //x axis = 0, y axis = 1
-                        axisnum = (i > 5) ? 0 : 1;
-                        //down and right = positive
-                        axisdir = (0 == i%2) ? AXIS_MIN : AXIS_MAX;
-                        
-                        joylist[cnum].axis[axisnum] = axisdir;
-                    }
-                }
-                if((i < 4) && (raw_dump[i+8] & datamask)) {
-                    //If it's the others, we've got the 
-                    //SNES buttons to deal with
-                    joylist[cnum].buttonset[1] |= (0x80 >> i);
-                }
+            //Emulate a joystick as well, because why not?
+            if(i > 3) {
+                //x axis = 0, y axis = 1
+                axisnum = (i > 5) ? 0 : 1;
+                //down and right = positive
+                axisdir = (0 == i%2) ? AXIS_MIN : AXIS_MAX;
+                
+                joystick->axis[axisnum] = axisdir;
             }
         }
-        if(allpins & 0x01) { cnum++; }
-
-        allpins >>= 1;
-        pinlist >>= 1;
-        datamask <<= 1;
+        if((i < 4) && (raw_dump[i+8] & datamask)) {
+            //If it's the others, we've got the 
+            //SNES buttons to deal with
+            joystick->buttonset[1] |= (0x80 >> i);
+        }
     }
 }
-
-/*
-void SNESController::print_status(short int cnum) {
-    // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
-    // bits: 0, 0, L, R, Cup, Cdown, Cleft, Cright
-    Serial.println();
-    Serial.print("Start: ");
-    Serial.println(SNES_status[cnum].data1 & 16 ? 1:0);
-
-    Serial.print("Z:     ");
-    Serial.println(SNES_status[cnum].data1 & 32 ? 1:0);
-
-    Serial.print("B:     ");
-    Serial.println(SNES_status[cnum].data1 & 64 ? 1:0);
-
-    Serial.print("A:     ");
-    Serial.println(SNES_status[cnum].data1 & 128 ? 1:0);
-
-    Serial.print("L:     ");
-    Serial.println(SNES_status[cnum].data2 & 32 ? 1:0);
-    Serial.print("R:     ");
-    Serial.println(SNES_status[cnum].data2 & 16 ? 1:0);
-
-    Serial.print("Cup:   ");
-    Serial.println(SNES_status[cnum].data2 & 0x08 ? 1:0);
-    Serial.print("Cdown: ");
-    Serial.println(SNES_status[cnum].data2 & 0x04 ? 1:0);
-    Serial.print("Cright:");
-    Serial.println(SNES_status[cnum].data2 & 0x01 ? 1:0);
-    Serial.print("Cleft: ");
-    Serial.println(SNES_status[cnum].data2 & 0x02 ? 1:0);
-    
-    Serial.print("Dup:   ");
-    Serial.println(SNES_status[cnum].data1 & 0x08 ? 1:0);
-    Serial.print("Ddown: ");
-    Serial.println(SNES_status[cnum].data1 & 0x04 ? 1:0);
-    Serial.print("Dright:");
-    Serial.println(SNES_status[cnum].data1 & 0x01 ? 1:0);
-    Serial.print("Dleft: ");
-    Serial.println(SNES_status[cnum].data1 & 0x02 ? 1:0);
-
-    Serial.print("Stick X:");
-    Serial.println(SNES_status[cnum].stick_x, DEC);
-    Serial.print("Stick Y:");
-    Serial.println(SNES_status[cnum].stick_y, DEC);
-}
-*/

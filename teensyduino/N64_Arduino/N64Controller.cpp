@@ -321,93 +321,27 @@ read_loop:
     goto read_loop;
 }
 
-void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
-    short int pinlist = pinmask;
-    short int datamask = 0x01;
-    short int allpins = *globalmask;
-    int cnum = 0;
+void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
     int mult = AXIS_MAX/90;
     //TODO: Figure out why higher numbers are going negative
 
-    while(pinlist) {
-        if(pinlist & 0x01) {
-            Serial.println("Filling status: ");
-            sprintf(msg, "%X %X %X %d", pinlist, allpins, datamask, cnum);
-            Serial.println(msg);
-            // The get_N64_status function sloppily dumps its data 1 bit per byte
-            // into the get_status_extended char array. It's our job to go through
-            // that and put each piece neatly into the struct N64_status
-            int i;
-            uint8_t xaxis = 0;
-            uint8_t yaxis = 0;
+    int i;
+    int8_t xaxis = 0;
+    int8_t yaxis = 0;
 
-            memset(&joylist[cnum], 0, sizeof(JoystickStatusStruct));
-            // line 1
-            // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
-            for (i=0; i<8; i++) {
-                sprintf(msg, "%X%X%X%X", this->raw_dump[i],this->raw_dump[i+8],this->raw_dump[i+16],this->raw_dump[i+24]);
-                Serial.println(msg);
-                joylist[cnum].buttonset[0] |= (this->raw_dump[i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].buttonset[1] |= (this->raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
-                xaxis |= (this->raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
-                yaxis |= (this->raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
-            }
-       
-            // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]
-            joylist[cnum].axis[0] = max(min((int)xaxis * (mult), AXIS_MAX), AXIS_MIN);
-            joylist[cnum].axis[1] = max(min((int)yaxis * (-mult), AXIS_MAX), AXIS_MIN);
-        }
-        if(allpins & 0x01) { cnum++; }
-
-        allpins >>= 1;
-        pinlist >>= 1;
-        datamask <<= 1;
-    }
-}
-
-/*
-void N64Controller::print_status(short int cnum) {
+    memset(joystick, 0, sizeof(JoystickStatusStruct));
+    // line 1
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
-    // bits: 0, 0, L, R, Cup, Cdown, Cleft, Cright
-    Serial.println();
-    Serial.print("Start: ");
-    Serial.println(N64_status[cnum].data1 & 16 ? 1:0);
+    for (i=0; i<8; i++) {
+        sprintf(msg, "%X%X%X%X", this->raw_dump[i],this->raw_dump[i+8],this->raw_dump[i+16],this->raw_dump[i+24]);
+        Serial.println(msg);
+        joystick->buttonset[0] |= (this->raw_dump[i] & datamask) ? (0x80 >> i) : 0;
+        joystick->buttonset[1] |= (this->raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
+        xaxis |= (this->raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
+        yaxis |= (this->raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
+    }
 
-    Serial.print("Z:     ");
-    Serial.println(N64_status[cnum].data1 & 32 ? 1:0);
-
-    Serial.print("B:     ");
-    Serial.println(N64_status[cnum].data1 & 64 ? 1:0);
-
-    Serial.print("A:     ");
-    Serial.println(N64_status[cnum].data1 & 128 ? 1:0);
-
-    Serial.print("L:     ");
-    Serial.println(N64_status[cnum].data2 & 32 ? 1:0);
-    Serial.print("R:     ");
-    Serial.println(N64_status[cnum].data2 & 16 ? 1:0);
-
-    Serial.print("Cup:   ");
-    Serial.println(N64_status[cnum].data2 & 0x08 ? 1:0);
-    Serial.print("Cdown: ");
-    Serial.println(N64_status[cnum].data2 & 0x04 ? 1:0);
-    Serial.print("Cright:");
-    Serial.println(N64_status[cnum].data2 & 0x01 ? 1:0);
-    Serial.print("Cleft: ");
-    Serial.println(N64_status[cnum].data2 & 0x02 ? 1:0);
-    
-    Serial.print("Dup:   ");
-    Serial.println(N64_status[cnum].data1 & 0x08 ? 1:0);
-    Serial.print("Ddown: ");
-    Serial.println(N64_status[cnum].data1 & 0x04 ? 1:0);
-    Serial.print("Dright:");
-    Serial.println(N64_status[cnum].data1 & 0x01 ? 1:0);
-    Serial.print("Dleft: ");
-    Serial.println(N64_status[cnum].data1 & 0x02 ? 1:0);
-
-    Serial.print("Stick X:");
-    Serial.println(N64_status[cnum].stick_x, DEC);
-    Serial.print("Stick Y:");
-    Serial.println(N64_status[cnum].stick_y, DEC);
+    // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]
+    joystick->axis[0] = max(min((int)xaxis * (mult), AXIS_MAX), AXIS_MIN);
+    joystick->axis[1] = max(min((int)yaxis * (-mult), AXIS_MAX), AXIS_MIN);
 }
-*/
