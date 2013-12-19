@@ -5,14 +5,12 @@
 
 class SNESController : public BaseController {
 public:
-    uint8_t SNES_raw_dump[16]; // Temp dump location
+    uint8_t raw_dump[16]; // Temp dump location
 
-    struct JoystickStatusStruct *JoyStatus;
+    SNESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name)
+        : BaseController(JoyStatus, global_pins, controller_name) {};
 
-    SNESController() {};
-    SNESController(struct JoystickStatusStruct *, uint8_t *);
-
-    void init();
+    void setup_pins();
     void print_status(short int cnum);
     void detect_controllers();
     void get();

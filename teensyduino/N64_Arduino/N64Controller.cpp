@@ -13,31 +13,23 @@ short int N64_query(uint8_t cmask) {
   return inbit;
 }
 
-N64Controller::N64Controller(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins) {
-    this->JoyStatus = JoyStatus;
-    this->globalmask = global_pins;
-}
-
 void N64Controller::init() {
-    Serial.println("Initiating N64 controllers");
-
-    this->detect_controllers();
-
-    //For our pins, set N64 flag low (=N64)
-    N64_PORT &= ~(this->pinmask << N64_SHIFT);
+    BaseController::init();
 
     // Query for the gamecube controller's status. We do this
     // to get the 0 point for the control stick.
     // TODO: Does this actually...do anything?
     this->read_state();
-
-    snprintf(msg, MSG_LEN, "N64 Pinmask: %X", this->pinmask);
-    Serial.println(msg);
+}
+void N64Controller::setup_pins() {
+    //For our pins, set N64 flag low (=N64)
+    N64_PORT &= ~(this->pinmask << N64_SHIFT);
+    //We don't care about S/NES
 }
 
 void N64Controller::clear_dump() {
   for(int i=0;i<33;i++) {
-    this->N64_raw_dump[i] = 0;
+    this->raw_dump[i] = 0;
   }
 }
 
@@ -114,7 +106,7 @@ void N64Controller::read_state() {
             uint8_t command = 0x01;
             clear_dump();
             this->send(&command, 1);
-            // read in data and dump it to N64_raw_dump
+            // read in data and dump it to raw_dump
             this->get();
 
             interrupts();
@@ -274,14 +266,14 @@ inner_loop:
 
 void N64Controller::get() {
     // listen for the expected 8 bytes of data back from the controller and
-    // blast it out to the N64_raw_dump array, one bit per byte for extra speed.
+    // blast it out to the raw_dump array, one bit per byte for extra speed.
     // Afterwards, call translate_raw_data() to interpret the raw data and pack
     // it into the N64_status struct.
 
     asm volatile (";Starting to listen");
     uint8_t timeout;
     uint8_t bitcount = 32;
-    uint8_t *bitbin = this->N64_raw_dump;
+    uint8_t *bitbin = this->raw_dump;
     
     //uint8_t cmask = this->pinmask;
     short int cmask = this->pinmask << DATA_SHIFT;
@@ -353,12 +345,12 @@ void N64Controller::fillStatus(struct JoystickStatusStruct *joylist) {
             // line 1
             // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
             for (i=0; i<8; i++) {
-                sprintf(msg, "%X%X%X%X", this->N64_raw_dump[i],this->N64_raw_dump[i+8],this->N64_raw_dump[i+16],this->N64_raw_dump[i+24]);
+                sprintf(msg, "%X%X%X%X", this->raw_dump[i],this->raw_dump[i+8],this->raw_dump[i+16],this->raw_dump[i+24]);
                 Serial.println(msg);
-                joylist[cnum].buttonset[0] |= (this->N64_raw_dump[i] & datamask) ? (0x80 >> i) : 0;
-                joylist[cnum].buttonset[1] |= (this->N64_raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
-                xaxis |= (this->N64_raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
-                yaxis |= (this->N64_raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].buttonset[0] |= (this->raw_dump[i] & datamask) ? (0x80 >> i) : 0;
+                joylist[cnum].buttonset[1] |= (this->raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
+                xaxis |= (this->raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
+                yaxis |= (this->raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
             }
        
             // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]

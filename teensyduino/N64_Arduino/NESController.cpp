@@ -1,28 +1,16 @@
 #include "NESController.h"
 #include <stdio.h>
 
-NESController::NESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins) {
-    this->JoyStatus = JoyStatus;
-    this->globalmask = global_pins;
-}
-
-void NESController::init() {
-    Serial.println("Initiating NES controllers");
-
-    this->detect_controllers();
-
+void NESController::setup_pins() {
     //For our pins, set N64 flag high (=NES)
     N64_PORT |= this->pinmask << N64_SHIFT;
     //And set SNES flag to low (=NES)
     SNES_PORT &= ~(this->pinmask << SNES_SHIFT);
-
-    snprintf(msg, MSG_LEN, "NES Pinmask: %X", this->pinmask);
-    Serial.println(msg);
 }
 
 void NESController::clear_dump() {
   for(int i=0;i<8;i++) {
-    this->NES_raw_dump[i] = 0;
+    this->raw_dump[i] = 0;
   }
 }
 
@@ -59,7 +47,7 @@ void NESController::read_state() {
     
     //digitalWrite(PIN_TRIGGER, HIGH);
 
-    // read in data and dump it to NES_raw_dump
+    // read in data and dump it to raw_dump
     this->get();
     delay(1);
 
@@ -69,7 +57,7 @@ void NESController::read_state() {
 
 void NESController::get() {
     uint8_t curbit = 8;
-    uint8_t *bitbin = this->NES_raw_dump;
+    uint8_t *bitbin = this->raw_dump;
 
     //Send a 12-us pulse to the latch pin
     LATCH_PORT |= LATCH_MASK;
@@ -159,10 +147,10 @@ void NESController::fillStatus(struct JoystickStatusStruct *joylist) {
             // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
             // (reversed)
             for (i=0; i<8; i++) {
-                snprintf(msg, MSG_LEN, "%X", this->NES_raw_dump[i]);
+                snprintf(msg, MSG_LEN, "%X", this->raw_dump[i]);
                 Serial.println(msg);
                 //If the button is pressed, set the bit
-                if(NES_raw_dump[i] & datamask) {
+                if(raw_dump[i] & datamask) {
                     joylist[cnum].buttonset[0] |= (0x80 >> i);
 
                     //Emulate a joystick as well, because why not?

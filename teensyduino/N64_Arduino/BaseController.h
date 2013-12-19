@@ -7,6 +7,8 @@
 #include "pin_config.h"
 #include "common.h"
 
+#define CNAME_LEN 10
+
 // 8 bytes of data that we get from the controller
 struct JoystickStatusStruct {
     signed short int axis[3];
@@ -15,12 +17,19 @@ struct JoystickStatusStruct {
 
 class BaseController {
 public:
+    uint8_t raw_dump[]; // Temp dump location
+
     uint8_t pinmask;
     uint8_t* globalmask;
+    char controller_name[CNAME_LEN];
 
-    //virtual void init(uint8_t pins_avail);
+    struct JoystickStatusStruct *JoyStatus;
+
+    BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name);
+    virtual void init();
+    virtual void setup_pins() = 0;
     //virtual void print_status(short int cnum);
-    //virtual void detect_controllers();
+    virtual void detect_controllers() = 0;
     //virtual void read_state();
     //virtual void fillStatus(struct JoystickStatusStruct *joylist);
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);

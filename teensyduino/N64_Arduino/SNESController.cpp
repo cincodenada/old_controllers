@@ -1,28 +1,16 @@
 #include "SNESController.h"
 #include <stdio.h>
 
-SNESController::SNESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins) {
-    this->JoyStatus = JoyStatus;
-    this->globalmask = global_pins;
-}
-
-void SNESController::init() {
-    Serial.println("Initiating SNES controllers");
-
-    this->detect_controllers();
-
+void SNESController::setup_pins() {
     //For our pins, set N64 flag high (=S/NES)
     N64_PORT |= this->pinmask << N64_SHIFT;
     //And set SNES flag to high (=SNES)
     SNES_PORT |= this->pinmask << SNES_SHIFT;
-
-    snprintf(msg, MSG_LEN, "SNES Pinmask: %X", this->pinmask);
-    Serial.println(msg);
 }
 
 void SNESController::clear_dump() {
   for(int i=0;i<16;i++) {
-    this->SNES_raw_dump[i] = 0;
+    this->raw_dump[i] = 0;
   }
 }
 
@@ -59,7 +47,7 @@ void SNESController::read_state() {
     
     //digitalWrite(PIN_TRIGGER, HIGH);
 
-    // read in data and dump it to SNES_raw_dump
+    // read in data and dump it to raw_dump
     this->get();
     delay(1);
 
@@ -69,7 +57,7 @@ void SNESController::read_state() {
 
 void SNESController::get() {
     short int curbit = 16;
-    uint8_t *bitbin = this->SNES_raw_dump;
+    uint8_t *bitbin = this->raw_dump;
 
     //Send a 12-us pulse to the latch pin
     LATCH_PORT |= LATCH_MASK;
@@ -160,10 +148,10 @@ void SNESController::fillStatus(struct JoystickStatusStruct *joylist) {
             // bits2: A, X, L, R, NCx4
             // (reversed)
             for (i=0; i<8; i++) {
-                snprintf(msg, MSG_LEN, "%X %X", this->SNES_raw_dump[i], this->SNES_raw_dump[i+8]);
+                snprintf(msg, MSG_LEN, "%X %X", this->raw_dump[i], this->raw_dump[i+8]);
                 Serial.println(msg);
                 //If the button is pressed, set the bit
-                if(SNES_raw_dump[i] & datamask) {
+                if(raw_dump[i] & datamask) {
                     joylist[cnum].buttonset[0] |= (0x80 >> i);
 
                     //Emulate a joystick as well, because why not?
@@ -176,7 +164,7 @@ void SNESController::fillStatus(struct JoystickStatusStruct *joylist) {
                         joylist[cnum].axis[axisnum] = axisdir;
                     }
                 }
-                if((i < 4) && (SNES_raw_dump[i+8] & datamask)) {
+                if((i < 4) && (raw_dump[i+8] & datamask)) {
                     //If it's the others, we've got the 
                     //SNES buttons to deal with
                     joylist[cnum].buttonset[1] |= (0x80 >> i);

@@ -18,14 +18,13 @@
 
 class N64Controller : public BaseController {
 public:
-    uint8_t N64_raw_dump[33]; // Temp dump location
+    uint8_t raw_dump[33]; // Temp dump location
 
-    struct JoystickStatusStruct *JoyStatus;
-
-    N64Controller() {};
-    N64Controller(struct JoystickStatusStruct *, uint8_t *);
+    N64Controller(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name)
+        : BaseController(JoyStatus, global_pins, controller_name) {};
 
     void init();
+    void setup_pins();
     void print_status(short int cnum);
     void detect_controllers();
     void send(uint8_t *buffer, uint8_t length);

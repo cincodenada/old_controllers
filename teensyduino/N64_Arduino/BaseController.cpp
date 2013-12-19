@@ -1,5 +1,22 @@
 #include "BaseController.h"
 
+BaseController::BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name) {
+    this->JoyStatus = JoyStatus;
+    this->globalmask = global_pins;
+    strncpy(this->controller_name, controller_name, CNAME_LEN);
+}
+
+void BaseController::init() {
+    snprintf(msg, MSG_LEN, "Initiating %s controllers", this->controller_name);
+    Serial.println(msg);
+
+    this->detect_controllers();
+    this->setup_pins();
+
+    snprintf(msg, MSG_LEN, "NES Pinmask: %X", this->pinmask);
+    Serial.println(msg);
+}
+
 uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     int x, resets = 0;
     uint8_t inpins, exp_mask;
