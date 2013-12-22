@@ -21,48 +21,47 @@
 #include "SNESController.h"
 #include "NESController.h"
 
+#define NUMCTL 3
+
 struct JoystickStatusStruct JoyStatus[4];
-NESController* c1;
-SNESController* c2;
-N64Controller* c3;
+BaseController* clist[NUMCTL];
 char msg[MSG_LEN];
 uint8_t pins_used = 0;
 
 void setup() {
-  Serial.begin(9600);
-  
-  Serial.println("Initiating controllers");
-  
-  DualJoystick.setJoyNum(1);
+    Serial.begin(9600);
 
-  DualJoystick.useManualSend(true); 
+    Serial.println("Initiating controllers");
 
-  //Do some port setup
-  //Set N64 to output (high)
-  //And initialize as NES for safety
-  N64_PORT |= IO_MASK << N64_SHIFT;
-  N64_DIR |= IO_MASK << N64_SHIFT;
-  //Set up SNES DIR
-  //Initialize to low (NES)
-  SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
-  SNES_DIR |= IO_MASK << SNES_SHIFT;
-  //Set up clock/latch
-  CLOCK_DIR |= CLOCK_MASK;
-  LATCH_DIR |= LATCH_MASK;
+    MultiJoystick.setJoyNum(0);
+    MultiJoystick.useManualSend(true); 
 
-  //Set up data port to be input, pull-up
-  DATA_PORT |= IO_MASK << DATA_SHIFT;
-  DATA_DIR &= ~(IO_MASK << DATA_SHIFT);
+    //Do some port setup
+    //Set N64 to output (high)
+    //And initialize as NES for safety
+    N64_PORT |= IO_MASK << N64_SHIFT;
+    N64_DIR |= IO_MASK << N64_SHIFT;
+    //Set up SNES DIR
+    //Initialize to low (NES)
+    SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
+    SNES_DIR |= IO_MASK << SNES_SHIFT;
+    //Set up clock/latch
+    CLOCK_DIR |= CLOCK_MASK;
+    LATCH_DIR |= LATCH_MASK;
 
-  DDRC |= 0xC0;
+    //Set up data port to be input, pull-up
+    DATA_PORT |= IO_MASK << DATA_SHIFT;
+    DATA_DIR &= ~(IO_MASK << DATA_SHIFT);
 
-  c1 = new NESController(JoyStatus, &pins_used, "NES");
-  c2 = new SNESController(JoyStatus, &pins_used, "SNES");
-  c3 = new N64Controller(JoyStatus, &pins_used, "N64");
+    DDRC |= 0xC0;
 
-  c3->init();
-  c2->init();
-  c1->init();
+    clist[2] = new NESController(JoyStatus, &pins_used, "NES");
+    clist[1] = new SNESController(JoyStatus, &pins_used, "SNES");
+    clist[0] = new N64Controller(JoyStatus, &pins_used, "N64");
+
+    for(int i=0;i<NUMCTL;i++) { 
+        clist[i]->init();
+    }
 }
 
 void loop()
@@ -71,20 +70,24 @@ void loop()
     uint8_t joynum, joypos;
 
     Serial.println("Polling Controllers...");
-    c1->read_state();
-    c2->read_state();
-    c3->read_state();
+    for(i=0;i<NUMCTL;i++) { 
+        clist[i]->read_state();
+    }
     for(short int cnum=0; cnum < 4; cnum++) {
       //Set joystick parameters
       joynum = cnum % 2;
       joypos = cnum / 2;
-      
-      DualJoystick.setJoyNum(joynum);
+      joynum = cnum % 2 + 2;
+
+    sprintf(msg, "Setting joystick number to %d", joynum);
+        Serial.println(msg);
+
+      MultiJoystick.setJoyNum(joynum);
       //Update each button
       uint8_t mask = 0x01;
       for (i=0; i<8; i++) {
-          DualJoystick.button(8-i+joypos*16,JoyStatus[cnum].buttonset[0] & mask ? 1 : 0);
-          DualJoystick.button(16-i+joypos*16,JoyStatus[cnum].buttonset[1] & mask ? 1 : 0);
+          MultiJoystick.button(8-i+joypos*16,JoyStatus[cnum].buttonset[0] & mask ? 1 : 0);
+          MultiJoystick.button(16-i+joypos*16,JoyStatus[cnum].buttonset[1] & mask ? 1 : 0);
           mask = mask << 1;
       }
     
@@ -96,19 +99,19 @@ void loop()
 
       switch(joypos) {
         case 0:
-          DualJoystick.X(joyx);
-          DualJoystick.Y(joyy);
+          MultiJoystick.X(joyx);
+          MultiJoystick.Y(joyy);
           break;
         case 1:
-          DualJoystick.Z(joyx);
-          DualJoystick.Zrotate(joyy);
+          MultiJoystick.Z(joyx);
+          MultiJoystick.Zrotate(joyy);
           break;
         case 2:
-          DualJoystick.sliderLeft(joyx);
-          DualJoystick.sliderRight(joyy);
+          MultiJoystick.sliderLeft(joyx);
+          MultiJoystick.sliderRight(joyy);
           break;
       }
-      DualJoystick.send_now();
+      MultiJoystick.send_now();
     }
 
     // DEBUG: print it
