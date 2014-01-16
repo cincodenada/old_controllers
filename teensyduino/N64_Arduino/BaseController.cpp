@@ -25,8 +25,8 @@ void BaseController::fillStatus(struct JoystickStatusStruct *joylist) {
 
     while(pinlist) {
         if(pinlist & 0x01) {
-            Serial.println("Filling status: ");
-            snprintf(msg, MSG_LEN, "%X %X %X %d", pinlist, allpins, datamask, cnum);
+            snprintf(msg, MSG_LEN, "Filling status for %s:\n%X %X %X %d", 
+                    this->controller_name, pinlist, allpins, datamask, cnum);
             Serial.println(msg);
 
             this->fillJoystick(&joylist[cnum], datamask);
