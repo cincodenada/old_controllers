@@ -97,20 +97,8 @@ void loop()
       joyx = JoyStatus[cnum].axis[0]/JOY_FACT + JOY_OFFSET;
       joyy = JoyStatus[cnum].axis[1]/JOY_FACT + JOY_OFFSET;
 
-      switch(joypos) {
-        case 0:
-          MultiJoystick.X(joyx);
-          MultiJoystick.Y(joyy);
-          break;
-        case 1:
-          MultiJoystick.Z(joyx);
-          MultiJoystick.Zrotate(joyy);
-          break;
-        case 2:
-          MultiJoystick.sliderLeft(joyx);
-          MultiJoystick.sliderRight(joyy);
-          break;
-      }
+      MultiJoystick.axis(joypos*2,joyx);
+      MultiJoystick.axis(joypos*2+1,joyy);
       MultiJoystick.send_now();
     }
 
