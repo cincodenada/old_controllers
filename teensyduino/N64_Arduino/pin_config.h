@@ -18,13 +18,15 @@
 //D7 = clock, D6 = latch
 #define CLOCK_DIR DDRD
 #define CLOCK_PORT PORTD
+#define CLOCK_IN PIND
 #define CLOCK_MASK 0x80
 #define LATCH_DIR DDRD
 #define LATCH_PORT PORTD
+#define LATCH_IN PIND
 #define LATCH_MASK 0x40
 
 //For now, just the ports I have populated...
-#define IO_MASK 0x0A
+#define IO_MASK 0x0F
 
 //C6/7 = 9/10
 #define PIN_TRIGGER 10
