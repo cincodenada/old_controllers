@@ -6,15 +6,24 @@ BaseController::BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* 
     strncpy(this->controller_name, controller_name, CNAME_LEN);
 }
 
+void BaseController::printMsg(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    if(true) {
+        vsnprintf(msg, MSG_LEN, format, args);
+        Serial.flush();
+        Serial.println(msg);
+    }
+    va_end(args);
+}
+
 void BaseController::init() {
-    snprintf(msg, MSG_LEN, "Initiating %s controllers", this->controller_name);
-    Serial.println(msg);
+    printMsg("Initiating %s controllers", this->controller_name);
 
     this->detect_controllers();
     this->setup_pins();
 
-    snprintf(msg, MSG_LEN, "NES Pinmask: %X", this->pinmask);
-    Serial.println(msg);
+    printMsg("%s Pinmask: %X", this->controller_name, this->pinmask);
 }
 
 void BaseController::fillStatus(struct JoystickStatusStruct *joylist) {
@@ -25,9 +34,8 @@ void BaseController::fillStatus(struct JoystickStatusStruct *joylist) {
 
     while(pinlist) {
         if(pinlist & 0x01) {
-            snprintf(msg, MSG_LEN, "Filling status for %s:\n%X %X %X %d", 
+            printMsg("%lu: Filling status for %s:\r\n%X %X %X %d", millis(), 
                     this->controller_name, pinlist, allpins, datamask, cnum);
-            Serial.println(msg);
 
             this->fillJoystick(&joylist[cnum], datamask);
         }
@@ -56,8 +64,7 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
             resets++;
             if(resets > 10) { break; }
         }
-        snprintf(msg, MSG_LEN, "Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
-        Serial.println(msg);
+        printMsg("Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
     }
     return pinmask; 
 }

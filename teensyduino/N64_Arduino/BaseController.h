@@ -34,6 +34,7 @@ public:
     virtual void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) = 0;
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
     void blink_binary(int num, uint8_t bits);
+    void printMsg(const char* format, ...);
 };
 
 #endif /* BASECONTROLLER_H */

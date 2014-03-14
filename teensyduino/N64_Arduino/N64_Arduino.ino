@@ -28,10 +28,21 @@ BaseController* clist[NUMCTL];
 char msg[MSG_LEN];
 uint8_t pins_used = 0;
 
+void printMsg(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    if(true) {
+        vsnprintf(msg, MSG_LEN, format, args);
+        Serial.flush();
+        Serial.println(msg);
+    }
+    va_end(args);
+}
+
 void setup() {
     Serial.begin(9600);
 
-    Serial.println("Initiating controllers");
+    printMsg("Initiating controllers");
 
     MultiJoystick.setJoyNum(0);
     MultiJoystick.useManualSend(true); 
@@ -69,7 +80,7 @@ void loop()
     int i;
     uint8_t joynum, joypos;
 
-    Serial.println("Polling Controllers...");
+    printMsg("%lu: Polling Controllers...", millis());
     for(i=0;i<NUMCTL;i++) { 
         clist[i]->read_state();
     }
@@ -79,8 +90,7 @@ void loop()
       joypos = cnum / 2;
       joynum = cnum % 2 + 2;
 
-    sprintf(msg, "Setting joystick number to %d", joynum);
-        Serial.println(msg);
+      printMsg("Setting joystick number to %d", joynum);
 
       MultiJoystick.setJoyNum(joynum);
       //Update each button

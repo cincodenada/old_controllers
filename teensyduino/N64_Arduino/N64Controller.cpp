@@ -333,8 +333,7 @@ void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
     // line 1
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
     for (i=0; i<8; i++) {
-        sprintf(msg, "%X%X%X%X", this->raw_dump[i],this->raw_dump[i+8],this->raw_dump[i+16],this->raw_dump[i+24]);
-        Serial.println(msg);
+        printMsg("%X%X%X%X", this->raw_dump[i],this->raw_dump[i+8],this->raw_dump[i+16],this->raw_dump[i+24]);
         joystick->buttonset[0] |= (this->raw_dump[i] & datamask) ? (0x80 >> i) : 0;
         joystick->buttonset[1] |= (this->raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
         xaxis |= (this->raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;

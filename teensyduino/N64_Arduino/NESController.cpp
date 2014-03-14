@@ -134,8 +134,7 @@ void NESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
     // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
     // (reversed)
     for (i=0; i<8; i++) {
-        snprintf(msg, MSG_LEN, "%X", this->raw_dump[i]);
-        Serial.println(msg);
+        printMsg("%X", this->raw_dump[i]);
         //If the button is pressed, set the bit
         if(raw_dump[i] & datamask) {
             joystick->buttonset[0] |= (0x80 >> i);
