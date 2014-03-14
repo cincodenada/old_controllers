@@ -18,11 +18,8 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
     //Try setting all ports to SNES
     //For our pins, set N64 flag high (=S/NES)
     N64_PORT |= pins_avail << N64_SHIFT;
-    //And set SNES flag to high (=SNES)
-    SNES_PORT |= pins_avail << SNES_SHIFT;
-
-    this->get();
-    delay(1);
+    //And set SNES flag to low (=NES)
+    SNES_PORT &= ~(pins_avail << SNES_SHIFT);
 
     //Lines pulled low are SNES controllers
     //So invert and mask

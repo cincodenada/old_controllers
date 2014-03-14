@@ -21,12 +21,9 @@ void NESController::detect_controllers(uint8_t pins_avail) {
     //And set SNES flag to low (=NES)
     SNES_PORT &= ~(pins_avail << SNES_SHIFT);
 
-    this->get();
-    delay(1);
-
-    //Lines pulled low are NES controllers
+    //Lines pulled high are NES controllers
     //So invert and mask
-    this->pinmask = this->get_deviants(pins_avail, 1);
+    this->pinmask = this->get_deviants(pins_avail, 0);
 }
 
 void NESController::read_state() {

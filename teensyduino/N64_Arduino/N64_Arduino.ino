@@ -88,7 +88,8 @@ void loop()
       //Set joystick parameters
       joynum = cnum % 2;
       joypos = cnum / 2;
-      joynum = cnum % 2 + 2;
+      joynum = 3 - cnum;
+      joypos = 0;
 
       printMsg("Setting joystick number to %d", joynum);
 

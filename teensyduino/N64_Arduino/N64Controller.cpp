@@ -69,9 +69,6 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
             this->pinmask |= ((~inpins) & IO_MASK);
         }
     }
-
-    //Put data ports back to pull-up
-    DATA_PORT |= (~this->pinmask & IO_MASK) << DATA_SHIFT;
 }
 
 void N64Controller::read_state() {
