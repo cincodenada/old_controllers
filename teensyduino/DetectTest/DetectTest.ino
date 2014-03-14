@@ -18,6 +18,14 @@ void printMsg(const char* format, ...) {
     va_end(args);
 }
 
+char states[4][6] = {
+    "NES",
+    "SNES",
+    "???",
+    "Empty"
+};
+
+
 int curval;
 int mode;
 int cycle = 0;
@@ -31,13 +39,14 @@ void setup() {
     //Initialize to low (NES)
     SNES_PORT &= ~(TESTCTL << SNES_SHIFT);
     SNES_DIR |= TESTCTL << SNES_SHIFT;
-    //Set up clock/latch
-    CLOCK_DIR &= ~CLOCK_MASK;
-    LATCH_DIR &= ~LATCH_MASK;
 
-    //Set up data port to be input, pull-up
-    DATA_PORT |= TESTCTL << DATA_SHIFT;
     DATA_DIR &= ~(TESTCTL << DATA_SHIFT);
+    DATA_PORT |= TESTCTL << DATA_SHIFT;
+
+    LATCH_DIR &= ~LATCH_MASK;
+    LATCH_PORT |= ~LATCH_MASK;
+    CLOCK_DIR &= ~CLOCK_MASK;
+    CLOCK_PORT |= ~CLOCK_MASK;
 }
 
 void loop() {
@@ -71,3 +80,19 @@ void loop() {
 
     delay(1000); 
 }
+
+/*
+void loop() {
+    SNES_PORT &= ~(TESTCTL << SNES_SHIFT);
+
+    LATCH_DIR &= ~LATCH_MASK;
+    LATCH_PORT |= LATCH_MASK;
+
+    int latchval = !!(LATCH_IN & LATCH_MASK);
+    int dataval = !!(DATA_IN & TESTCTL);
+
+    printMsg(states[dataval | (latchval << 1)]);
+
+    delay(1000); 
+}
+*/
