@@ -14,16 +14,7 @@ void SNESController::clear_dump() {
   }
 }
 
-void SNESController::detect_controllers() {
-    //NES and SNES pull low on idle, so check for that
-    //(N64 maintains high, and we use pull-up)
-    uint8_t N64_prev, SNES_prev;
-    uint8_t pins_avail = ~(*globalmask) & IO_MASK;
-
-    //Save the states
-    N64_prev = N64_PORT;
-    SNES_prev = SNES_PORT;
-
+void SNESController::detect_controllers(uint8_t pins_avail) {
     //Try setting all ports to SNES
     //For our pins, set N64 flag high (=S/NES)
     N64_PORT |= pins_avail << N64_SHIFT;
@@ -36,11 +27,6 @@ void SNESController::detect_controllers() {
     //Lines pulled low are SNES controllers
     //So invert and mask
     this->pinmask = this->get_deviants(pins_avail, 1);
-    *globalmask |= this->pinmask;
-
-    //Restore states
-    N64_PORT = N64_prev;
-    SNES_PORT = SNES_prev;
 }
 
 void SNESController::read_state() {

@@ -33,24 +33,14 @@ void N64Controller::clear_dump() {
   }
 }
 
-void N64Controller::detect_controllers() {
+void N64Controller::detect_controllers(uint8_t pins_avail) {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
-    uint8_t N64_prev;
-    uint8_t pins_avail = ~(*globalmask) & IO_MASK;
-    snprintf(msg, MSG_LEN, "Searching for N64 on %X...", pins_avail);
-    Serial.println(msg);
-
-    //Save the states
-    N64_prev = N64_PORT;
-
+    
     //For our pins, set N64 flag low (=N64)
     N64_PORT &= ~(pins_avail << N64_SHIFT);
     //SNES/NES port doesn't matter
     
-    //Need to set pinmask in order to send
-    this->pinmask = pins_avail;
-
     //Just send the ID command and see who answers
     //This also initializes some controllers (Wavebird, I guess?)
     uint8_t command;
@@ -79,10 +69,6 @@ void N64Controller::detect_controllers() {
             this->pinmask |= ((~inpins) & IO_MASK);
         }
     }
-    *globalmask |= this->pinmask;
-
-    //Restore states
-    N64_PORT = N64_prev;
 
     //Put data ports back to pull-up
     DATA_PORT |= (~this->pinmask & IO_MASK) << DATA_SHIFT;

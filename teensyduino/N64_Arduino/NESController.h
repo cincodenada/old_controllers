@@ -12,7 +12,7 @@ public:
 
     void setup_pins();
     void print_status(short int cnum);
-    void detect_controllers();
+    void detect_controllers(uint8_t pins_avail);
     void get();
     void translate_raw_data();
     void clear_dump();

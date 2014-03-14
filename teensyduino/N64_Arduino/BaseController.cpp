@@ -20,10 +20,30 @@ void BaseController::printMsg(const char* format, ...) {
 void BaseController::init() {
     printMsg("Initiating %s controllers", this->controller_name);
 
-    this->detect_controllers();
+    this->safe_detect_controllers();
     this->setup_pins();
 
     printMsg("%s Pinmask: %X", this->controller_name, this->pinmask);
+}
+
+void BaseController::safe_detect_controllers() {
+    uint8_t N64_prev, SNES_prev;
+    uint8_t pins_avail = ~(*globalmask) & IO_MASK;
+
+    printMsg("Searching for %s on %X...", this->controller_name, pins_avail);
+
+    //Save the states
+    N64_prev = N64_PORT;
+    SNES_prev = SNES_PORT;
+
+    this->detect_controllers(pins_avail);
+    *globalmask |= this->pinmask;
+
+    printMsg("Pinmasks: N64=%X SNES=%X", N64_PORT, SNES_PORT);
+
+    //Restore states
+    N64_PORT = N64_prev;
+    SNES_PORT = SNES_prev;
 }
 
 void BaseController::fillStatus(struct JoystickStatusStruct *joylist) {
