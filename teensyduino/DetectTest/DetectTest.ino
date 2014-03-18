@@ -3,7 +3,7 @@
 
 #include "pin_config.h"
 
-#define TESTCTL 0x04
+#define TESTCTL 0x0F
 #define MSG_LEN 100
 
 char msg[MSG_LEN];
@@ -26,8 +26,6 @@ char states[4][6] = {
 };
 
 
-int curval;
-int mode;
 int cycle = 0;
 void setup() {
     //Do some port setup
@@ -50,8 +48,22 @@ void setup() {
 }
 
 void loop() {
-    curval = cycle/2;
-    mode = cycle%2;
+    int curval = cycle & 0x01;
+
+    if(curval) {
+        N64_PORT |= TESTCTL << N64_SHIFT;
+    } else {
+        N64_PORT &= ~TESTCTL << N64_SHIFT;
+    }
+    printMsg("Set for %s", curval ? "SNES/NES" : "N64");
+    delay(1000);
+
+    cycle++;
+}
+/*
+void loop() {
+    int curval = cycle & 0x01;
+    int mode = cycle & 0x02;
 
     if(curval) {
         SNES_PORT |= TESTCTL << SNES_SHIFT;
@@ -81,7 +93,6 @@ void loop() {
     delay(1000); 
 }
 
-/*
 void loop() {
     SNES_PORT &= ~(TESTCTL << SNES_SHIFT);
 
