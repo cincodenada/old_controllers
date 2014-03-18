@@ -27,6 +27,7 @@ struct JoystickStatusStruct JoyStatus[4];
 BaseController* clist[NUMCTL];
 char msg[MSG_LEN];
 uint8_t pins_used = 0;
+uint8_t num_joys;
 
 void printMsg(const char* format, ...) {
     va_list args;
@@ -46,6 +47,7 @@ void setup() {
 
     MultiJoystick.setJoyNum(0);
     MultiJoystick.useManualSend(true); 
+    num_joys = MultiJoystick.num_joys();
 
     //Do some port setup
     //Set N64 to output (high)
@@ -86,12 +88,17 @@ void loop()
     }
     for(short int cnum=0; cnum < 4; cnum++) {
       //Set joystick parameters
-      joynum = cnum % 2;
-      joypos = cnum / 2;
-      joynum = 3 - cnum;
-      joypos = 0;
+      if(cnum < numjoys) {
+        joypos = 0;
+        joynum = cnum;
+      } else if(cnum < numjoys*2) {
+        joypos = 1;
+        joynum = cnum - numjoys;
+      } else {
+        continue;
+      }
 
-      printMsg("Setting joystick number to %d", joynum);
+      printMsg("Setting joystick to %d pos %d", joynum, joypos);
 
       MultiJoystick.setJoyNum(joynum);
       //Update each button
