@@ -112,12 +112,13 @@ void NESController::get() {
 void NESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
     int i;
     signed short int axisnum, axisdir;
+    char ctldata[50] = "";
     memset(joystick, 0, sizeof(JoystickStatusStruct));
     // line 1
     // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
     // (reversed)
     for (i=0; i<8; i++) {
-        printMsg("%X", this->raw_dump[i]);
+        snprintf(ctldata,50,"%s%X ",ctldata,this->raw_dump[i]);
         //If the button is pressed, set the bit
         if(raw_dump[i] & datamask) {
             joystick->buttonset[0] |= (0x80 >> i);
@@ -133,4 +134,5 @@ void NESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
             }
         }
     }
+    printMsg(ctldata);
 }
