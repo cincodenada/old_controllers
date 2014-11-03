@@ -2,9 +2,7 @@
 #include <stdio.h>
 
 void SNESController::setup_pins() {
-    //For our pins, set N64 flag high (=S/NES)
-    N64_PORT |= this->pinmask << N64_SHIFT;
-    //And set SNES flag to high (=SNES)
+    //For our pins, set SNES flag to high (=SNES)
     SNES_PORT |= this->pinmask << SNES_SHIFT;
 }
 
@@ -16,9 +14,7 @@ void SNESController::clear_dump() {
 
 void SNESController::detect_controllers(uint8_t pins_avail) {
     //Try setting all ports to SNES
-    //For our pins, set N64 flag high (=S/NES)
-    N64_PORT |= pins_avail << N64_SHIFT;
-    //And set SNES flag to low (=NES)
+    //For our pins, set SNES flag to low (=NES)
     SNES_PORT &= ~(pins_avail << SNES_SHIFT);
 
     //Lines pulled low are SNES controllers
@@ -110,7 +106,7 @@ void SNESController::get() {
     //Record response
     while(curbit) {
         //Read value
-        *bitbin = (~DATA_IN & (this->pinmask << DATA_SHIFT)) >> DATA_SHIFT;
+        *bitbin = (~5V_IN & (this->pinmask << 5V_SHIFT)) >> 5V_SHIFT;
         ++bitbin;
         --curbit;
         pulse_clock();

@@ -8,7 +8,7 @@ short int N64_query(uint8_t cmask) {
   asm volatile ("in %[inbits], %[port]\n"
                 "and %[inbits], %[cmask]\n"
                 :[inbits] "=r"(inbit)
-                :[port] "I" (_SFR_IO_ADDR(DATA_IN)), [cmask] "r" (cmask)
+                :[port] "I" (_SFR_IO_ADDR(3V_IN)), [cmask] "r" (cmask)
                 );
   return inbit;
 }
@@ -16,15 +16,15 @@ short int N64_query(uint8_t cmask) {
 void N64Controller::init() {
     BaseController::init();
 
+    this->use_3V = true;
+
     // Query for the gamecube controller's status. We do this
     // to get the 0 point for the control stick.
     // TODO: Does this actually...do anything?
     this->read_state();
 }
 void N64Controller::setup_pins() {
-    //For our pins, set N64 flag low (=N64)
-    N64_PORT &= ~(this->pinmask << N64_SHIFT);
-    //We don't care about S/NES
+    //Don't need to do anything, we don't care about S/NES
 }
 
 void N64Controller::clear_dump() {
@@ -37,8 +37,6 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     //NES and SNES pull low on idle, so check for that
     //(N64 maintains high, and we use pull-up)
     
-    //For our pins, set N64 flag low (=N64)
-    N64_PORT &= ~(pins_avail << N64_SHIFT);
     //SNES/NES port doesn't matter
     
     //Just send the ID command and see who answers
@@ -60,7 +58,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     short int inpins;
     this->pinmask = 0;
     for (x=0; x<64; x++) {
-        inpins = N64_query(pins_avail << DATA_SHIFT) >> DATA_SHIFT;
+        inpins = N64_query(pins_avail << 3V_SHIFT) >> 3V_SHIFT;
         //If any of the lines fall low
         if (inpins != pins_avail) {
             //Reset the counter
@@ -117,12 +115,12 @@ void N64Controller::send(uint8_t *buffer, uint8_t length) {
     register uint8_t cmask asm("r3");
     register uint8_t invmask asm("r4");
     
-    cmask = this->pinmask << DATA_SHIFT;
+    cmask = this->pinmask << 3V_SHIFT;
     invmask = ~cmask;
 
     //Set input to Hi-Z
     //Since we're using N64_HIGH/LOW macros
-    DATA_PORT &= invmask;
+    3V_PORT &= invmask;
 
     // This routine is very carefully timed by examining the assembly output.
     // Do not change any statements, it could throw the timings off
@@ -259,11 +257,11 @@ void N64Controller::get() {
     uint8_t *bitbin = this->raw_dump;
     
     //uint8_t cmask = this->pinmask;
-    short int cmask = this->pinmask << DATA_SHIFT;
+    short int cmask = this->pinmask << 3V_SHIFT;
     short int invmask = ~cmask;
 
     //Ensure we're in Hi-Z
-    DATA_DIR &= invmask;
+    3V_DIR &= invmask;
 
     // Again, using gotos here to make the assembly more predictable and
     // optimization easier (please don't kill me)
@@ -274,7 +272,7 @@ read_loop:
     timeout = 0x3f;
     // wait for line to go low
 
-    while((DATA_IN & cmask) > 0) {
+    while((3V_IN & cmask) > 0) {
         if (!--timeout)
             return;
     }
@@ -288,7 +286,7 @@ read_loop:
                   //"nop\nnop\nnop\nnop\nnop\n"  
                   "nop\n"
             );
-    *bitbin = DATA_IN & cmask;
+    *bitbin = 3V_IN & cmask;
     ++bitbin;
     --bitcount;
     if (bitcount == 0)
@@ -297,7 +295,7 @@ read_loop:
     // wait for line to go high again
     // it may already be high, so this should just drop through
     timeout = 0x3f;
-    while ((DATA_IN & cmask) == 0) {
+    while ((3V_IN & cmask) == 0) {
         if (!--timeout)
             return;
     }

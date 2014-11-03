@@ -23,6 +23,8 @@ public:
     uint8_t* globalmask;
     char controller_name[CNAME_LEN];
 
+    bool use_3V;
+
     struct JoystickStatusStruct *JoyStatus;
 
     BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name);

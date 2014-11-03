@@ -3,6 +3,7 @@
 BaseController::BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
+    this->use_3V = false;   //By default, use 5V
     strncpy(this->controller_name, controller_name, CNAME_LEN);
 }
 
@@ -42,7 +43,11 @@ void BaseController::safe_detect_controllers() {
     printMsg("Pinmasks: N64=%X SNES=%X", N64_PORT, SNES_PORT);
 
     //Put data ports back to pull-up (for N64)
-    DATA_PORT |= IO_MASK << DATA_SHIFT;
+    if(use_3V) {
+        3V_PORT |= IO_MASK << 3V_SHIFT;
+    } else {
+        5V_PORT |= IO_MASK << 5V_SHIFT;
+    }
 
     //Restore states
     N64_PORT = N64_prev;
@@ -76,7 +81,9 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     uint8_t pinmask = 0;
     exp_mask = expected ? pins_avail : 0;
     for (x=0; x<64; x++) {
-        inpins = (DATA_IN & (pins_avail << DATA_SHIFT)) >> DATA_SHIFT;
+        inpins = use_3V
+            ? (3V_IN & (pins_avail << 3V_SHIFT)) >> 3V_SHIFT;
+            : (5V_IN & (pins_avail << 5V_SHIFT)) >> 5V_SHIFT;
         //If any of the lines fall low
         if (inpins != exp_mask) {
             //Reset the counter

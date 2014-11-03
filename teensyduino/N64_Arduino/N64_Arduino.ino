@@ -68,10 +68,6 @@ void setup() {
     num_joys = MultiJoystick.num_joys();
 
     //Do some port setup
-    //Set N64 to output (high)
-    //And initialize as NES for safety
-    N64_PORT |= IO_MASK << N64_SHIFT;
-    N64_DIR |= IO_MASK << N64_SHIFT;
     //Set up SNES DIR
     //Initialize to low (NES)
     SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
@@ -80,9 +76,13 @@ void setup() {
     CLOCK_DIR |= CLOCK_MASK;
     LATCH_DIR |= LATCH_MASK;
 
-    //Set up data port to be input, pull-up
-    DATA_PORT |= IO_MASK << DATA_SHIFT;
-    DATA_DIR &= ~(IO_MASK << DATA_SHIFT);
+    //Set up 5V out port to be input, pull-up (for detection)
+    5V_PORT |= IO_MASK << 5V_SHIFT;
+    5V_DIR &= ~(IO_MASK << 5V_SHIFT);
+
+    //Set up 3V out port to be input, pull-up (for detection and data)
+    3V_PORT |= IO_MASK << 3V_SHIFT;
+    3V_DIR &= ~(IO_MASK << 3V_SHIFT);
 
     DDRC |= 0xC0;
 
