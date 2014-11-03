@@ -38,10 +38,7 @@ void SNESController::read_state() {
     //digitalWrite(PIN_TRIGGER, LOW);
 }
 
-void SNESController::get() {
-    short int curbit = 16;
-    uint8_t *bitbin = this->raw_dump;
-
+void SNESController::pulse_latch() {
     //Send a 12-us pulse to the latch pin
     LATCH_PORT |= LATCH_MASK;
     asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
@@ -70,6 +67,45 @@ void SNESController::get() {
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   ); //8*12 = 6us
     LATCH_PORT &= ~LATCH_MASK;
+}
+
+void SNESController::pulse_clock() {
+    //Send a 12-us 50% duty cycle clock pulse
+    asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  ); //8*12 = 6us
+    CLOCK_PORT |= CLOCK_MASK;
+    asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                  ); //6*5 - 1 = 29 nops
+    CLOCK_PORT &= ~CLOCK_MASK;
+}
+
+void SNESController::get() {
+    short int curbit = 16;
+    uint8_t *bitbin = this->raw_dump;
+
+    pulse_latch();
 
     //Record response
     while(curbit) {
@@ -77,35 +113,7 @@ void SNESController::get() {
         *bitbin = ~DATA_IN & this->pinmask;
         ++bitbin;
         --curbit;
-        //Send a 12-us 50% duty cycle clock pulse
-        asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      ); //8*12 = 6us
-        CLOCK_PORT |= CLOCK_MASK;
-        asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                      ); //6*5 - 1 = 29 nops
-        CLOCK_PORT &= ~CLOCK_MASK;
+        pulse_clock();
     }
 }
 
