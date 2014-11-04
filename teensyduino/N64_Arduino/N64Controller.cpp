@@ -118,7 +118,7 @@ void N64Controller::send(uint8_t *buffer, uint8_t length) {
     cmask = this->pinmask << DATA3_SHIFT;
     invmask = ~cmask;
 
-    //Set input to Hi-Z
+    //Disable pullup, just for safety
     //Since we're using N64_HIGH/LOW macros
     DATA3_PORT &= invmask;
 

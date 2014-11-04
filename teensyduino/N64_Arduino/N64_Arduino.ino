@@ -70,7 +70,8 @@ void setup() {
     //Do some port setup
     //Set up SNES DIR
     //Initialize to low (NES)
-    SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
+    //SNES_PORT &= ~(IO_MASK << SNES_SHIFT);
+    SNES_PORT |= IO_MASK << SNES_SHIFT;
     SNES_DIR |= IO_MASK << SNES_SHIFT;
     //Set up clock/latch
     CLOCK_DIR |= CLOCK_MASK;
@@ -80,19 +81,27 @@ void setup() {
     DATA5_PORT |= IO_MASK << DATA5_SHIFT;
     DATA5_DIR &= ~(IO_MASK << DATA5_SHIFT);
 
-    //Set up 3V out port to be input, pull-up (for detection and data)
-    DATA3_PORT |= IO_MASK << DATA3_SHIFT;
+    //Set up 3V out port to be input, no pull-up (use the 3.3V pull-up on-board)
+    DATA3_PORT &= ~(IO_MASK << DATA3_SHIFT);
     DATA3_DIR &= ~(IO_MASK << DATA3_SHIFT);
 
     DDRC |= 0xC0;
 
-    clist[2] = new NESController(JoyStatus, &pins_used, "NES");
+    //We have to detect SNES before NES 
+    //(see NESController::detect_controllers)
+    //But read NES before SNES 
+    //(otherwise SNES will still be responding to our 
+    //NES pulse when we try to query it, because
+    //SNES sends 16 bits but NES only sends 8)
+    //Hence the weird ordering
+    //N64 doesn't matter, it's separate lines altogether
     clist[1] = new SNESController(JoyStatus, &pins_used, "SNES");
+    clist[2] = new NESController(JoyStatus, &pins_used, "NES");
     clist[0] = new N64Controller(JoyStatus, &pins_used, "N64");
 
-    for(int i=0;i<NUMCTL;i++) { 
-        clist[i]->init();
-    }
+    clist[1]->init();
+    clist[2]->init();
+    clist[0]->init();
 }
 
 void loop()

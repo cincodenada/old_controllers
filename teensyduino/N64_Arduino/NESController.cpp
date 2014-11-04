@@ -12,12 +12,24 @@ void NESController::clear_dump() {
   }
 }
 
+//Warning! SNES detection must be run *before* this,
+//otherwise it wil gobble up SNES controllers as well
+//Also: it seems NES controllers will be high until after
+//the first query cycle, so we have to send clock pulses
+//And that's probably not great for "disabled" 
+//SNES controllers anyway
 void NESController::detect_controllers(uint8_t pins_avail) {
-    //Try setting all ports to SNES
+    //Try setting remaining ports to NES
     //For our pins, set SNES flag to low (=NES)
     SNES_PORT &= ~(pins_avail << SNES_SHIFT);
 
-    //Lines pulled high are NES controllers
+    //Send clock pulses to clear out the shift registers
+    //9 to be safe, and allow time to fall
+    for(int i=0;i<9;i++) { this->pulse_clock(); }
+
+    //Lines pulled high are either SNES or NES controllers
+    //We assume SNES are already eliminated, so
+    //the remaining controllers are NES controllers
     //So invert and mask
     this->pinmask = this->get_deviants(pins_avail, 0);
 }

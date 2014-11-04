@@ -41,13 +41,6 @@ void BaseController::safe_detect_controllers() {
 
     printMsg("Pinmasks: SNES=%X", SNES_PORT);
 
-    //Put data ports back to pull-up (for N64)
-    if(use_3V) {
-        DATA3_PORT |= IO_MASK << DATA3_SHIFT;
-    } else {
-        DATA5_PORT |= IO_MASK << DATA5_SHIFT;
-    }
-
     //Restore states
     SNES_PORT = SNES_prev;
 }
