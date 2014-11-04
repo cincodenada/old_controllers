@@ -1,14 +1,14 @@
 #ifndef PIN_CONFIG_H
 #define PIN_CONFIG_H
 
-#define 3V_DIR DDRD
-#define 3V_PORT PORTD
-#define 3V_IN PIND
-#define 3V_SHIFT 0
-#define 5V_DIR DDRB
-#define 5V_PORT PORTB
-#define 5V_IN PINB
-#define 5V_SHIFT 0
+#define DATA3_DIR DDRD
+#define DATA3_PORT PORTD
+#define DATA3_IN PIND
+#define DATA3_SHIFT 0
+#define DATA5_DIR DDRB
+#define DATA5_PORT PORTB
+#define DATA5_IN PINB
+#define DATA5_SHIFT 0
 //+5V = SNES, GND = NES
 #define SNES_DIR DDRF
 #define SNES_PORT PORTF

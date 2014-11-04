@@ -28,29 +28,27 @@ void BaseController::init() {
 }
 
 void BaseController::safe_detect_controllers() {
-    uint8_t N64_prev, SNES_prev;
+    uint8_t SNES_prev;
     uint8_t pins_avail = ~(*globalmask) & IO_MASK;
 
     printMsg("Searching for %s on %X...", this->controller_name, pins_avail);
 
     //Save the states
-    N64_prev = N64_PORT;
     SNES_prev = SNES_PORT;
 
     this->detect_controllers(pins_avail);
     *globalmask |= this->pinmask;
 
-    printMsg("Pinmasks: N64=%X SNES=%X", N64_PORT, SNES_PORT);
+    printMsg("Pinmasks: SNES=%X", SNES_PORT);
 
     //Put data ports back to pull-up (for N64)
     if(use_3V) {
-        3V_PORT |= IO_MASK << 3V_SHIFT;
+        DATA3_PORT |= IO_MASK << DATA3_SHIFT;
     } else {
-        5V_PORT |= IO_MASK << 5V_SHIFT;
+        DATA5_PORT |= IO_MASK << DATA5_SHIFT;
     }
 
     //Restore states
-    N64_PORT = N64_prev;
     SNES_PORT = SNES_prev;
 }
 
@@ -82,8 +80,8 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     exp_mask = expected ? pins_avail : 0;
     for (x=0; x<64; x++) {
         inpins = use_3V
-            ? (3V_IN & (pins_avail << 3V_SHIFT)) >> 3V_SHIFT;
-            : (5V_IN & (pins_avail << 5V_SHIFT)) >> 5V_SHIFT;
+            ? (DATA3_IN & (pins_avail << DATA3_SHIFT)) >> DATA3_SHIFT
+            : (DATA5_IN & (pins_avail << DATA5_SHIFT)) >> DATA5_SHIFT;
         //If any of the lines fall low
         if (inpins != exp_mask) {
             //Reset the counter

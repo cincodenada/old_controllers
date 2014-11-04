@@ -106,7 +106,7 @@ void NESController::get() {
     //Record response
     while(curbit) {
         //Read value
-        *bitbin = (~5V_IN & (this->pinmask << 5V_SHIFT)) >> 5V_SHIFT;
+        *bitbin = (~DATA5_IN & (this->pinmask << DATA5_SHIFT)) >> DATA5_SHIFT;
         ++bitbin;
         --curbit;
         pulse_clock();

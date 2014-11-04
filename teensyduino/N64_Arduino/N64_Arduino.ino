@@ -77,12 +77,12 @@ void setup() {
     LATCH_DIR |= LATCH_MASK;
 
     //Set up 5V out port to be input, pull-up (for detection)
-    5V_PORT |= IO_MASK << 5V_SHIFT;
-    5V_DIR &= ~(IO_MASK << 5V_SHIFT);
+    DATA5_PORT |= IO_MASK << DATA5_SHIFT;
+    DATA5_DIR &= ~(IO_MASK << DATA5_SHIFT);
 
     //Set up 3V out port to be input, pull-up (for detection and data)
-    3V_PORT |= IO_MASK << 3V_SHIFT;
-    3V_DIR &= ~(IO_MASK << 3V_SHIFT);
+    DATA3_PORT |= IO_MASK << DATA3_SHIFT;
+    DATA3_DIR &= ~(IO_MASK << DATA3_SHIFT);
 
     DDRC |= 0xC0;
 
