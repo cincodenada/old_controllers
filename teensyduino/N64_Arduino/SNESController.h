@@ -17,6 +17,9 @@ public:
     void translate_raw_data();
     void clear_dump();
 
+    void pulse_latch();
+    void pulse_clock();
+
     void read_state();
     void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask);
 };

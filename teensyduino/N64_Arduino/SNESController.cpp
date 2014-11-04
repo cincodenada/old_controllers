@@ -65,7 +65,7 @@ void SNESController::pulse_latch() {
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  ); //8*12 = 6us
+                  ); //8*24 = 12us
     LATCH_PORT &= ~LATCH_MASK;
 }
 
@@ -83,7 +83,7 @@ void SNESController::pulse_clock() {
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  ); //8*12 = 6us
+                  ); //8*12 = 3us
     CLOCK_PORT |= CLOCK_MASK;
     asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
@@ -97,7 +97,7 @@ void SNESController::pulse_clock() {
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
                   "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  ); //6*5 - 1 = 29 nops
+                  ); //8*12 = 3us
     CLOCK_PORT &= ~CLOCK_MASK;
 }
 
@@ -110,7 +110,7 @@ void SNESController::get() {
     //Record response
     while(curbit) {
         //Read value
-        *bitbin = ~DATA_IN & this->pinmask;
+        *bitbin = (~DATA_IN & (this->pinmask << DATA_SHIFT)) >> DATA_SHIFT;
         ++bitbin;
         --curbit;
         pulse_clock();
