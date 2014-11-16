@@ -303,9 +303,6 @@ read_loop:
 }
 
 void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
-    int mult = AXIS_MAX/90;
-    //TODO: Figure out why higher numbers are going negative
-
     int i;
     int8_t xaxis = 0;
     int8_t yaxis = 0;
@@ -321,7 +318,13 @@ void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
         yaxis |= (this->raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
     }
 
-    // Safely translate the axis values from [-82, 82] to [AXIS_MIN, AXIS_MAX]
-    joystick->axis[0] = max(min((int)xaxis * (mult), AXIS_MAX), AXIS_MIN);
-    joystick->axis[1] = max(min((int)yaxis * (-mult), AXIS_MAX), AXIS_MIN);
+    // Safely translate the axis values from [-N64_AXIS_MAX, N64_AXIS_MAX] to [AXIS_MIN, AXIS_MAX]
+    joystick->axis[0] = this->safe_axis(xaxis);
+    joystick->axis[1] = -this->safe_axis(yaxis);
+}
+
+signed short int N64Controller::safe_axis(int8_t rawval) {
+    return max(min(
+        max(min(rawval, N64_AXIS_MAX), -N64_AXIS_MAX) * (AXIS_MAX/N64_AXIS_MAX), 
+    AXIS_MAX), AXIS_MIN);
 }

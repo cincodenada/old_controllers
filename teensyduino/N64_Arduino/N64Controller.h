@@ -16,6 +16,8 @@
 #define N64_HIGH asm volatile ("in __tmp_reg__, %[port]\nand __tmp_reg__, %[invmask]\nout %[port], __tmp_reg__\n"::[invmask] "r" (invmask), [port] "I" (_SFR_IO_ADDR(DATA3_DIR)))
 #define N64_LOW asm volatile ("in __tmp_reg__, %[port]\nor __tmp_reg__, %[cmask]\nout %[port], __tmp_reg__\n"::[cmask] "r" (cmask), [port] "I" (_SFR_IO_ADDR(DATA3_DIR)))
 
+#define N64_AXIS_MAX (85)
+
 class N64Controller : public BaseController {
 public:
     uint8_t raw_dump[33]; // Temp dump location
@@ -34,6 +36,8 @@ public:
 
     void read_state();
     void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask);
+
+    signed short int safe_axis(int8_t rawval);
 };
 
 #endif /* N64CONTROLLER_H */
