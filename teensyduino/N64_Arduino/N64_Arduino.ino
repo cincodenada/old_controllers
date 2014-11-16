@@ -94,14 +94,14 @@ void setup() {
     //NES pulse when we try to query it, because
     //SNES sends 16 bits but NES only sends 8)
     //Hence the weird ordering
-    //N64 doesn't matter, it's separate lines altogether
-    clist[1] = new SNESController(JoyStatus, &pins_used, "SNES");
-    clist[2] = new NESController(JoyStatus, &pins_used, "NES");
+    //N64 are separate lines, so it doesn't matter
     clist[0] = new N64Controller(JoyStatus, &pins_used, "N64");
+    clist[2] = new SNESController(JoyStatus, &pins_used, "SNES");
+    clist[1] = new NESController(JoyStatus, &pins_used, "NES");
 
-    clist[1]->init();
-    clist[2]->init();
     clist[0]->init();
+    clist[2]->init();
+    clist[1]->init();
 }
 
 void loop()

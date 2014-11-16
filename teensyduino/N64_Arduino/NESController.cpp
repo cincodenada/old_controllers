@@ -27,11 +27,11 @@ void NESController::detect_controllers(uint8_t pins_avail) {
     //9 to be safe, and allow time to fall
     for(int i=0;i<9;i++) { this->pulse_clock(); }
 
-    //Lines pulled high are either SNES or NES controllers
+    //Lines pulled low are either SNES or NES controllers
     //We assume SNES are already eliminated, so
     //the remaining controllers are NES controllers
     //So invert and mask
-    this->pinmask = this->get_deviants(pins_avail, 0);
+    this->pinmask = this->get_deviants(pins_avail, 1);
 }
 
 void NESController::read_state() {

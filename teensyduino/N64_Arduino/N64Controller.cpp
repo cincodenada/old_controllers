@@ -43,6 +43,8 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     //This also initializes some controllers (Wavebird, I guess?)
     uint8_t command;
     command = 0x00;
+    //Set pinmask so we send to all candidates
+    this->pinmask = pins_avail;
 
     //Ports are set to Hi-Z here
     noInterrupts();
@@ -55,7 +57,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     //We don't care what they're actually saying
 
     int x;
-    short int inpins;
+    uint8_t inpins;
     this->pinmask = 0;
     for (x=0; x<64; x++) {
         inpins = N64_query(pins_avail << DATA3_SHIFT) >> DATA3_SHIFT;
@@ -64,7 +66,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
             //Reset the counter
             x = 0; 
             //And take note of which ones talked back
-            this->pinmask |= ((~inpins) & IO_MASK);
+            this->pinmask |= ((~inpins) & pins_avail);
         }
     }
 }

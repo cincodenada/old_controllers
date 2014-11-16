@@ -13,13 +13,13 @@ void SNESController::clear_dump() {
 }
 
 void SNESController::detect_controllers(uint8_t pins_avail) {
-    //Try setting remaining ports to SNES
-    //For our pins, set SNES flag to high (=SNES)
-    SNES_PORT |= pins_avail << SNES_SHIFT;
+    //Try setting remaining ports to NES
+    //For our pins, set SNES flag to low (=NES)
+    SNES_PORT &= ~(pins_avail << SNES_SHIFT);
 
     //Lines pulled low are SNES controllers
     //So invert and mask
-    this->pinmask = this->get_deviants(pins_avail, 0);
+    this->pinmask = this->get_deviants(pins_avail, 1);
 }
 
 void SNESController::read_state() {
