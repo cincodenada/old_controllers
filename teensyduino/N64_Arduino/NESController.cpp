@@ -1,6 +1,19 @@
 #include "NESController.h"
 #include <stdio.h>
 
+uint8_t NESController::init_button_map[NUM_BUTTONS] = {
+    2,1,7,8,
+    AXIS(1,1),AXIS(1,-1),
+    AXIS(0,-1),AXIS(0,1),
+    3,4,5,6,0,0,0,0
+};
+
+void NESController::init() {
+    BaseController::init();
+
+    memcpy(this->button_map, init_button_map, NUM_BUTTONS);
+}
+
 void NESController::setup_pins() {
     //For our pins, set SNES flag to low (=NES)
     SNES_PORT &= ~(this->pinmask << SNES_SHIFT);

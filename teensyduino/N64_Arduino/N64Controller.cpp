@@ -1,6 +1,11 @@
 #include "N64Controller.h"
 #include <stdio.h>
 
+uint8_t N64Controller::init_button_map[NUM_BUTTONS] = {
+    1,2,9,10,13,15,16,14,
+    0,0,7,8,4,5,11,12
+};
+
 //Assembly stub functions
 //This function queries and masks the N64 ports
 short int N64_query(uint8_t cmask) {
@@ -15,6 +20,8 @@ short int N64_query(uint8_t cmask) {
 
 void N64Controller::init() {
     BaseController::init();
+
+    memcpy(this->button_map, init_button_map, NUM_BUTTONS);
 
     this->use_3V = true;
 
@@ -305,7 +312,7 @@ read_loop:
 }
 
 void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
-    int i;
+    int i, offset;
     int8_t xaxis = 0;
     int8_t yaxis = 0;
 
@@ -314,8 +321,17 @@ void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
     for (i=0; i<8; i++) {
         printMsg("%X%X%X%X", this->raw_dump[i],this->raw_dump[i+8],this->raw_dump[i+16],this->raw_dump[i+24]);
-        joystick->buttonset[0] |= (this->raw_dump[i] & datamask) ? (0x80 >> i) : 0;
-        joystick->buttonset[1] |= (this->raw_dump[8+i] & datamask) ? (0x80 >> i) : 0;
+        // Run through the first 16 bits (buttons)
+        for (offset=0; offset<=8; offset+=8) {
+            //If the button is pressed, set the bit
+            int btn_num = button_map[i + offset];
+            if(btn_num && (raw_dump[i + offset] & datamask)) {
+                btn_num -= 1;
+                int byte_num = btn_num/8;
+                int bit_num = btn_num%8;
+                joystick->buttonset[byte_num] |= (0x80 >> bit_num);
+            }
+        }
         xaxis |= (this->raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
         yaxis |= (this->raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
     }

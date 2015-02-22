@@ -8,6 +8,10 @@
 #include "common.h"
 
 #define CNAME_LEN 10
+#define PN(n) ((n+1)/2) //Converts -1/1 to 0/1
+#define AXIS(n,d) (129+n*2+PN(d))
+
+#define NUM_BUTTONS 16
 
 // 8 bytes of data that we get from the controller
 struct JoystickStatusStruct {
@@ -17,7 +21,7 @@ struct JoystickStatusStruct {
 
 class BaseController {
 public:
-    uint8_t raw_dump[]; // Temp dump location
+    uint8_t button_map[NUM_BUTTONS];
 
     uint8_t pinmask;
     uint8_t* globalmask;
