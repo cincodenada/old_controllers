@@ -7,3 +7,6 @@
 *.sym
 *.o
 .dep
+*.cpp.asm*
+*.sw?
+*.orig
