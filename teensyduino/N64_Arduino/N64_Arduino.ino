@@ -80,25 +80,20 @@ void setup() {
 
     //We have to detect SNES before NES 
     //(see NESController::detect_controllers)
-    //But read NES before SNES 
-    //(otherwise SNES will still be responding to our 
-    //NES pulse when we try to query it, because
-    //SNES sends 16 bits but NES only sends 8)
-    //Hence the weird ordering
-    //N64 are separate lines, so it doesn't matter
-    clist[0] = new N64Controller(JoyStatus, &pins_used, "N64");
-    clist[2] = new SNESController(JoyStatus, &pins_used, "SNES");
-    clist[1] = new NESController(JoyStatus, &pins_used, "NES");
+    clist[N64] = new N64Controller(JoyStatus, &pins_used, "N64");
+    clist[SNES] = new SNESController(JoyStatus, &pins_used, "SNES");
+    clist[NES] = new NESController(JoyStatus, &pins_used, "NES");
 
-    clist[0]->init();
-    clist[2]->init();
-    clist[1]->init();
+    clist[N64]->init();
+    clist[SNES]->init();
+    clist[NES]->init();
 }
 
 void loop()
 {
     int i;
     uint8_t joynum, joypos;
+    struct JoystickStatusStruct curStatus;
 
     printBin(binstr, pins_used);
     printMsg("Pins used: 0x%X (%s)\n", pins_used, binstr);
@@ -120,27 +115,30 @@ void loop()
         continue;
       }
 
+      BaseController::translate_buttons(curStatus, JoyStatus[cnum], clist[JoyStatus[cnum]->controller_type]);
+
       printMsg("Setting joystick to %d pos %d", joynum, joypos);
-      printMsg("Joystick button data: %X %X", JoyStatus[cnum].buttonset[0], JoyStatus[cnum].buttonset[1]);
+      printMsg("Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
 
       MultiJoystick.setJoyNum(joynum);
       //Update each button
       uint8_t mask = 0x01;
       for (i=0; i<8; i++) {
-          MultiJoystick.button(8-i+joypos*16,JoyStatus[cnum].buttonset[0] & mask ? 1 : 0);
-          MultiJoystick.button(16-i+joypos*16,JoyStatus[cnum].buttonset[1] & mask ? 1 : 0);
+          MultiJoystick.button(8-i+joypos*16,curStatus.buttonset[0] & mask ? 1 : 0);
+          MultiJoystick.button(16-i+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
           mask = mask << 1;
       }
     
       //The array is given as AXIS_MIN to AXIS_MAX
       //Joystick funcitons need 0 to 1023
       unsigned int joyx, joyy;
-      joyx = JoyStatus[cnum].axis[0]/JOY_FACT + JOY_OFFSET;
-      joyy = JoyStatus[cnum].axis[1]/JOY_FACT + JOY_OFFSET;
+      joyx = curStatus.axis[0]/JOY_FACT + JOY_OFFSET;
+      joyy = curStatus.axis[1]/JOY_FACT + JOY_OFFSET;
 
       MultiJoystick.axis(joypos*2+1,joyx);
       MultiJoystick.axis(joypos*2+2,joyy);
       MultiJoystick.send_now();
+
     }
     send_bt(&JoyStatus[0]);
 

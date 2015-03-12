@@ -11,6 +11,8 @@ void SNESController::init() {
     BaseController::init();
 
     memcpy(this->button_map, init_button_map, NUM_BUTTONS);
+
+    this->controller_type = SNES;
 }
 
 void SNESController::setup_pins() {

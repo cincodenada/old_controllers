@@ -10,6 +10,7 @@
 #define CNAME_LEN 10
 #define PN(n) ((n+1)/2) //Converts -1/1 to 0/1
 #define AXIS(n,d) (129+n*2+PN(d))
+#define HAT(x,y) (192+(y+1)*3+(x+1))
 
 #define NUM_BUTTONS 16
 
@@ -20,8 +21,7 @@ public:
     uint8_t pinmask;
     uint8_t* globalmask;
     char controller_name[CNAME_LEN];
-
-    bool use_3V;
+    controller_type_t controller_type;
 
     struct JoystickStatusStruct *JoyStatus;
 

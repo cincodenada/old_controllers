@@ -23,7 +23,7 @@ void N64Controller::init() {
 
     memcpy(this->button_map, init_button_map, NUM_BUTTONS);
 
-    this->use_3V = true;
+    this->controller_type = N64;
 
     // Query for the gamecube controller's status. We do this
     // to get the 0 point for the control stick.
@@ -312,7 +312,7 @@ read_loop:
 }
 
 void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
-    int i, offset;
+    int i, setnum;
     int8_t xaxis = 0;
     int8_t yaxis = 0;
 
@@ -329,17 +329,14 @@ void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
             this->raw_dump[i+16],
             this->raw_dump[i+24]
         );
-        // Run through the first 16 bits (buttons)
-        for (offset=0; offset<=8; offset+=8) {
+        // Fill the buttonsets with the first two bites
+        for (setnum=0; setnum<2; setnum++) {
             //If the button is pressed, set the bit
-            int btn_num = button_map[i + offset];
-            if(btn_num && (raw_dump[i + offset] & datamask)) {
-                btn_num -= 1;
-                int byte_num = btn_num/8;
-                int bit_num = btn_num%8;
-                joystick->buttonset[byte_num] |= (0x80 >> bit_num);
+            if(raw_dump[i + setnum*8] & datamask) {
+                joystick->buttonset[setnum] |= (0x80 >> i);
             }
         }
+        // Fill the axes with the next two
         xaxis |= (this->raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
         yaxis |= (this->raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
     }

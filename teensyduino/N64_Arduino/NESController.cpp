@@ -12,6 +12,8 @@ void NESController::init() {
     BaseController::init();
 
     memcpy(this->button_map, init_button_map, NUM_BUTTONS);
+
+    this->controller_type = NES;
 }
 
 void NESController::setup_pins() {
@@ -133,6 +135,14 @@ void NESController::get() {
         //Read value
         *bitbin = (~DATA5_IN & (this->pinmask << DATA5_SHIFT)) >> DATA5_SHIFT;
         ++bitbin;
+        --curbit;
+        pulse_clock();
+    }
+
+    //Clear out any SNES registers
+    //TODO: Just read SNES/NES at the same time?
+    curbit = 8;
+    while(curbit) {
         --curbit;
         pulse_clock();
     }

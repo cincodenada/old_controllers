@@ -11,11 +11,18 @@ extern char msg[MSG_LEN];
 
 #include "Arduino.h"
 
+enum controller_type_t {
+    NES = 0,
+    SNES,
+    N64
+}
+
 // 8 bytes of data that we get from the controller
 struct JoystickStatusStruct {
     signed short int axis[3];
     signed short int hat;
     uint8_t buttonset[2];
+    controller_type_t controller_type;
 };
 
 void printMsg(const char* format, ...);
