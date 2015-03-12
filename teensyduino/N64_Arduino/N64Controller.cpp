@@ -316,11 +316,19 @@ void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
     int8_t xaxis = 0;
     int8_t yaxis = 0;
 
+    // Shift the datamask for our data ports
+    datamask <<= DATA3_SHIFT;
+
     memset(joystick, 0, sizeof(JoystickStatusStruct));
     // line 1
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
     for (i=0; i<8; i++) {
-        printMsg("%X%X%X%X", this->raw_dump[i],this->raw_dump[i+8],this->raw_dump[i+16],this->raw_dump[i+24]);
+        printMsg("%X%X%X%X",
+            this->raw_dump[i],
+            this->raw_dump[i+8],
+            this->raw_dump[i+16],
+            this->raw_dump[i+24]
+        );
         // Run through the first 16 bits (buttons)
         for (offset=0; offset<=8; offset+=8) {
             //If the button is pressed, set the bit

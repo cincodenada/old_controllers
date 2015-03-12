@@ -32,17 +32,6 @@ uint8_t num_joys;
 
 char binstr[BITS+1];
 
-void printMsg(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    if(true) {
-        vsnprintf(msg, MSG_LEN, format, args);
-        Serial.flush();
-        Serial.println(msg);
-    }
-    va_end(args);
-}
-
 void printBin(char* dest, char input) {
     unsigned char mask = 0x80;
 
@@ -59,7 +48,7 @@ void printBin(char* dest, char input) {
 }
 
 void setup() {
-    Serial.begin(9600);
+    init_bt();
 
     printMsg("Initiating controllers");
 

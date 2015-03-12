@@ -130,6 +130,10 @@ void SNESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t
     signed short int axisnum, axisdir;
     char ctldata[100] = "";
     memset(joystick, 0, sizeof(JoystickStatusStruct));
+
+    // Shift the datamask for our data ports
+    datamask <<= DATA5_SHIFT;
+
     // line 1
     // bits: B, Y, Select, Start, Dup, Ddown, Dleft, Dright
     // bits2: A, X, L, R, NCx4

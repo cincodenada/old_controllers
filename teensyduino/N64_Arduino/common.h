@@ -9,4 +9,15 @@
 #define MSG_LEN 100
 extern char msg[MSG_LEN];
 
+#include "Arduino.h"
+
+// 8 bytes of data that we get from the controller
+struct JoystickStatusStruct {
+    signed short int axis[3];
+    signed short int hat;
+    uint8_t buttonset[2];
+};
+
+void printMsg(const char* format, ...);
+
 #endif /* COMMON_H */

@@ -13,12 +13,6 @@
 
 #define NUM_BUTTONS 16
 
-// 8 bytes of data that we get from the controller
-struct JoystickStatusStruct {
-    signed short int axis[3];
-    uint8_t buttonset[2];
-};
-
 class BaseController {
 public:
     uint8_t button_map[NUM_BUTTONS];
@@ -41,7 +35,6 @@ public:
     void safe_detect_controllers();
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
     void blink_binary(int num, uint8_t bits);
-    void printMsg(const char* format, ...);
 };
 
 #endif /* BASECONTROLLER_H */

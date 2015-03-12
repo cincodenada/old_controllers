@@ -7,17 +7,6 @@ BaseController::BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* 
     strncpy(this->controller_name, controller_name, CNAME_LEN);
 }
 
-void BaseController::printMsg(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    if(true) {
-        vsnprintf(msg, MSG_LEN, format, args);
-        Serial.flush();
-        Serial.println(msg);
-    }
-    va_end(args);
-}
-
 void BaseController::init() {
     printMsg("Initiating %s controllers", this->controller_name);
 
@@ -104,4 +93,3 @@ void BaseController::blink_binary(int num, uint8_t bits) {
     delay(300);
     digitalWrite(PIN_TRIGGER, HIGH);
 }
-
