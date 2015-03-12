@@ -1,10 +1,10 @@
 #ifndef PIN_CONFIG_H
 #define PIN_CONFIG_H
 
-#define DATA3_DIR DDRD
-#define DATA3_PORT PORTD
-#define DATA3_IN PIND
-#define DATA3_SHIFT 0
+#define DATA3_DIR DDRB
+#define DATA3_PORT PORTB
+#define DATA3_IN PINB
+#define DATA3_SHIFT 4
 #define DATA5_DIR DDRB
 #define DATA5_PORT PORTB
 #define DATA5_IN PINB

@@ -21,6 +21,8 @@
 #include "SNESController.h"
 #include "NESController.h"
 
+#include "bt_controller.h"
+
 #define NUMCTL 3
 #define BITS 8
 
@@ -140,6 +142,7 @@ void loop()
       MultiJoystick.axis(joypos*2+2,joyy);
       MultiJoystick.send_now();
     }
+    send_bt(&JoyStatus[0]);
 
     // DEBUG: print it
     //controllers.print_status(0);
