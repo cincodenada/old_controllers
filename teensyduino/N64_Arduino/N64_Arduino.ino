@@ -44,8 +44,8 @@ uint8_t button_map[3][NUM_BUTTONS] = {
         1,3,7,8,129,130,131,132,
         2,4,5,6,0,0,0,0
     },{ //N64
-        1,2,9,10,13,15,16,14,
-        0,0,7,8,4,5,11,12
+        1,2,3,4,11,12,13,14,
+        0,0,5,6,7,8,9,10
     }
 };
 
@@ -59,8 +59,8 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
         1,3,7,8,129,130,131,132,
         2,4,5,6,0,0,0,0
     },{ //N64
-        1,2,9,10,13,15,16,14,
-        0,0,7,8,4,5,11,12
+        1,2,4,11,0,0,0,0,
+        0,0,7,8,0,0,0,0
     }
 };
 
@@ -154,9 +154,9 @@ void loop()
       MultiJoystick.setJoyNum(joynum);
       //Update each button
       uint8_t mask = 0x01;
-      for (i=0; i<8; i++) {
-          MultiJoystick.button(8-i+joypos*16,curStatus.buttonset[0] & mask ? 1 : 0);
-          MultiJoystick.button(16-i+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
+      for (i=1; i<=8; i++) {
+          MultiJoystick.button(i+joypos*16,curStatus.buttonset[0] & mask ? 1 : 0);
+          MultiJoystick.button((i+8)+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
           mask = mask << 1;
       }
     
@@ -191,8 +191,8 @@ void remap_buttons(uint8_t cnum) {
     uint8_t new_map[NUM_BUTTONS];
     controller_type_t ctype;
     while(curbtn < NUM_BUTTONS) {
+        ctype=JoyStatus[cnum].controller_type;
         //Wait for a button
-        bool wait_lift = false;
         while(true) {
             clist[ctype]->read_state();
             if(JoyStatus[cnum].button_pressed()) {

@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdint.h>
+#include "common.h"
 #include "JoystickStatus.h"
 
 void JoystickStatus::translate_buttons(
@@ -22,10 +23,11 @@ void JoystickStatus::translate_buttons(
             if(btn_num > 128) {
                 // Deal with axes etc
             } else if(btn_num) {
-                if(this->buttonset[byte] && (0x01 << bit)) {
+                if(this->buttonset[byte] & (0x80 >> bit)) {
                     btn_num -= 1;
                     int dest_byte = btn_num/8;
                     int dest_bit = btn_num%8;
+                    printMsg("Mapping %d:%d to %d:%d...", byte, bit, dest_byte, dest_bit);
                     dest->buttonset[dest_byte] |= (0x01 << dest_bit);
                 }
             }
