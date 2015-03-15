@@ -6,7 +6,6 @@
 class NESController : public BaseController {
 public:
     uint8_t raw_dump[8]; // Temp dump location
-    static uint8_t init_button_map[NUM_BUTTONS];
 
     NESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name)
         : BaseController(JoyStatus, global_pins, controller_name) {};

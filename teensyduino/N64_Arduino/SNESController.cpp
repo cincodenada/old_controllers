@@ -1,16 +1,8 @@
 #include "SNESController.h"
 #include <stdio.h>
 
-// Joystick button, by bit position
-uint8_t SNESController::init_button_map[NUM_BUTTONS] = {
-    1,3,7,8,129,130,131,132,
-    2,4,5,6,0,0,0,0
-};
-
 void SNESController::init() {
     BaseController::init();
-
-    memcpy(this->button_map, init_button_map, NUM_BUTTONS);
 
     this->controller_type = SNES;
 }
@@ -128,8 +120,7 @@ void SNESController::get() {
 }
 
 void SNESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
-    int i, offset;
-    signed short int axisnum, axisdir;
+    int i, setnum;
     char ctldata[100] = "";
     memset(joystick, 0, sizeof(JoystickStatusStruct));
 
@@ -141,32 +132,18 @@ void SNESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t
     // bits2: A, X, L, R, NCx4
     // (reversed)
     for (i=0; i<8; i++) {
-        snprintf(ctldata, 100, "%s%X %X (", ctldata, this->raw_dump[i], this->raw_dump[i+8]);
+        printMsg(ctldata, 100, "%X %X",
+            ctldata,
+            this->raw_dump[i],
+            this->raw_dump[i+8]
+        );
 
         // Bit offset, 0 and then 8
-        for (offset=0; offset<=8; offset+=8) {
-            //If the button is pressed, set the bit
-            int btn_num = button_map[i + offset];
-            snprintf(ctldata, 100, "%s%d ", ctldata, btn_num);
-            if(btn_num && (raw_dump[i + offset] & datamask)) {
-                btn_num -= 1; // Adjust to 0-based
-                int byte_num = btn_num/8;
-                int bit_num = btn_num%8;
-                //Emulate a joystick as well, because why not?
-                if(btn_num >= 0x80) {
-                    int dir_num = btn_num & 0x0F;
-                    //x axis = 0, y axis = 1
-                    axisnum = (dir_num > 1) ? 0 : 1;
-                    //down and right = positive
-                    axisdir = (0 == dir_num%2) ? AXIS_MIN : AXIS_MAX;
-                    
-                    joystick->axis[axisnum] = axisdir;
-                } else {
-                    joystick->buttonset[byte_num] |= (0x80 >> bit_num);
-                }
+        for (setnum=0; setnum<2; setnum++) {
+            if(raw_dump[i + setnum*8] & datamask) {
+                joystick->buttonset[setnum] |= (0x80 >> i);
             }
         }
-        snprintf(ctldata, 100, "%s)", ctldata);
     }
     printMsg(ctldata);
 }

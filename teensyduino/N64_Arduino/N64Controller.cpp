@@ -1,11 +1,6 @@
 #include "N64Controller.h"
 #include <stdio.h>
 
-uint8_t N64Controller::init_button_map[NUM_BUTTONS] = {
-    1,2,9,10,13,15,16,14,
-    0,0,7,8,4,5,11,12
-};
-
 //Assembly stub functions
 //This function queries and masks the N64 ports
 short int N64_query(uint8_t cmask) {
@@ -20,8 +15,6 @@ short int N64_query(uint8_t cmask) {
 
 void N64Controller::init() {
     BaseController::init();
-
-    memcpy(this->button_map, init_button_map, NUM_BUTTONS);
 
     this->controller_type = N64;
 
@@ -323,7 +316,7 @@ void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
     // line 1
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
     for (i=0; i<8; i++) {
-        printMsg("%X%X%X%X",
+        printMsg("%.2X%.2X%.2X%.2X",
             this->raw_dump[i],
             this->raw_dump[i+8],
             this->raw_dump[i+16],

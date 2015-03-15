@@ -1,17 +1,8 @@
 #include "NESController.h"
 #include <stdio.h>
 
-uint8_t NESController::init_button_map[NUM_BUTTONS] = {
-    2,1,7,8,
-    AXIS(1,1),AXIS(1,-1),
-    AXIS(0,-1),AXIS(0,1),
-    3,4,5,6,0,0,0,0
-};
-
 void NESController::init() {
     BaseController::init();
-
-    memcpy(this->button_map, init_button_map, NUM_BUTTONS);
 
     this->controller_type = NES;
 }
@@ -149,8 +140,6 @@ void NESController::get() {
 }
 
 void NESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
-    int i;
-    signed short int axisnum, axisdir;
     char ctldata[50] = "";
     memset(joystick, 0, sizeof(JoystickStatusStruct));
 
@@ -160,21 +149,12 @@ void NESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t 
     // line 1
     // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
     // (reversed)
-    for (i=0; i<8; i++) {
+    for (int i=0; i<8; i++) {
         snprintf(ctldata, 50, "%s%X ", ctldata, this->raw_dump[i]);
         //If the button is pressed, set the bit
         if(raw_dump[i] & datamask) {
             joystick->buttonset[0] |= (0x80 >> i);
 
-            //Emulate a joystick as well, because why not?
-            if(i > 3) {
-                //x axis = 0, y axis = 1
-                axisnum = (i > 5) ? 0 : 1;
-                //down and right = positive
-                axisdir = (0 == i%2) ? AXIS_MIN : AXIS_MAX;
-                
-                joystick->axis[axisnum] = axisdir;
-            }
         }
     }
     printMsg(ctldata);

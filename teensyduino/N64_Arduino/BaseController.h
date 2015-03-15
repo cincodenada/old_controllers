@@ -12,12 +12,8 @@
 #define AXIS(n,d) (129+n*2+PN(d))
 #define HAT(x,y) (192+(y+1)*3+(x+1))
 
-#define NUM_BUTTONS 16
-
 class BaseController {
 public:
-    uint8_t button_map[NUM_BUTTONS];
-
     uint8_t pinmask;
     uint8_t* globalmask;
     char controller_name[CNAME_LEN];
@@ -33,8 +29,8 @@ public:
     virtual void fillStatus(struct JoystickStatusStruct *joylist);
     virtual void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) = 0;
     void safe_detect_controllers();
+    bool use_3V();
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
-    void blink_binary(int num, uint8_t bits);
 };
 
 #endif /* BASECONTROLLER_H */

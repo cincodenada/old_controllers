@@ -15,7 +15,7 @@ void BaseController::init() {
     printMsg("%s Pinmask: %X", this->controller_name, this->pinmask);
 }
 
-void BaseController::use_3V() {
+bool BaseController::use_3V() {
     // If newer than N64, use 3.3V
     return (this->controller_type >= N64);
 }
@@ -50,7 +50,7 @@ void BaseController::fillStatus(struct JoystickStatusStruct *joylist) {
                     this->controller_name, pinlist, allpins, datamask, cnum);
 
             this->fillJoystick(&joylist[cnum], datamask);
-            joylist[cnum]->controller_type = this->controller_type;
+            joylist[cnum].controller_type = this->controller_type;
         }
         if(allpins & 0x01) { cnum++; }
 
@@ -82,49 +82,4 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
         printMsg("Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
     }
     return pinmask; 
-}
-void BaseController::blink_binary(int num, uint8_t bits) {
-    int mask = 1 << (bits-1);
-    digitalWrite(PIN_TRIGGER, HIGH);
-    delay(300);
-    while(mask) {
-        digitalWrite(PIN_TRIGGER, LOW);
-        delay(100);
-        digitalWrite(PIN_TRIGGER, HIGH);
-        delay(100 + 200 * (num & mask));
-        mask >>= 1;
-    }
-    digitalWrite(PIN_TRIGGER, LOW);
-    delay(300);
-    digitalWrite(PIN_TRIGGER, HIGH);
-}
-
-void BaseController::translate_buttons(
-    struct JoystickStatusStruct *dest,
-    struct JoystickStatusStruct *source,
-    uint8_t *button_map
-) {
-    memcpy(dest, source, sizeof(struct JoystickStatusStruct));
-    // Reset the buttons
-    // Leave axes in place
-    // unless we specifically overwrite them
-    dest->buttonset[0] = 0;
-    dest->buttonset[1] = 0;
-
-    int num_bytes = NUM_BUTTONS/8;
-    for(int byte=0; byte < num_bytes; byte++) {
-        for(int bit=0; bit < 8; bit++) {
-            int btn_num = button_map[i + byte*8];
-            if(btn_num > 128) {
-                // Deal with axes etc
-            } else if(btn_num) {
-                if(source->buttonset[byte] && (0x01 << bit)) {
-                    btn_num -= 1;
-                    int dest_byte = btn_num/8;
-                    int dest_bit = btn_num%8;
-                    dest->buttonset[dest_byte] |= (0x01 << dest_bit);
-                }
-            }
-        }
-    }
 }
