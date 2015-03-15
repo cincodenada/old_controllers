@@ -24,6 +24,11 @@
 #define LATCH_IN PIND
 #define LATCH_MASK 0x40
 
+#define LED_DIR DDRD
+#define LED_PORT PORTD
+#define LED_IN PIND
+#define LED_MASK 0x40
+
 //For now, just the ports I have populated...
 #define IO_MASK 0x0F
 

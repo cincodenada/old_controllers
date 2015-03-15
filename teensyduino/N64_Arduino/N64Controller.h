@@ -22,7 +22,7 @@ class N64Controller : public BaseController {
 public:
     uint8_t raw_dump[33]; // Temp dump location
 
-    N64Controller(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name)
+    N64Controller(JoystickStatus *JoyStatus, uint8_t* global_pins, char* controller_name)
         : BaseController(JoyStatus, global_pins, controller_name) {};
 
     void init();
@@ -35,7 +35,7 @@ public:
     void clear_dump();
 
     void read_state();
-    void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask);
+    void fillJoystick(JoystickStatus *joystick, uint8_t datamask);
 
     signed short int safe_axis(int8_t rawval);
 };

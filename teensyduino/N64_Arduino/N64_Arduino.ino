@@ -15,6 +15,7 @@
 #include "pins_arduino.h"
 
 #include "common.h"
+#include "JoystickStatus.h"
 #include "crc_table.h"
 #include "N64Controller.h"
 #include "SNESController.h"
@@ -25,7 +26,7 @@
 #define NUMCTL 3
 #define BITS 8
 
-struct JoystickStatusStruct JoyStatus[4];
+JoystickStatus JoyStatus[4];
 BaseController* clist[NUMCTL];
 char msg[MSG_LEN];
 uint8_t pins_used = 0;
@@ -47,6 +48,22 @@ uint8_t button_map[3][NUM_BUTTONS] = {
         0,0,7,8,4,5,11,12
     }
 };
+
+uint8_t button_map_bt[3][NUM_BUTTONS] = {
+    { //NES
+        2,1,7,8,
+        AXIS(1,1),AXIS(1,-1),
+        AXIS(0,-1),AXIS(0,1),
+        3,4,5,6,0,0,0,0
+    },{ //SNES
+        1,3,7,8,129,130,131,132,
+        2,4,5,6,0,0,0,0
+    },{ //N64
+        1,2,9,10,13,15,16,14,
+        0,0,7,8,4,5,11,12
+    }
+};
+
 
 void printBin(char* dest, char input) {
     unsigned char mask = 0x80;
@@ -107,7 +124,7 @@ void loop()
 {
     int i;
     uint8_t joynum, joypos;
-    struct JoystickStatusStruct curStatus;
+    JoystickStatus curStatus;
 
     printBin(binstr, pins_used);
     printMsg("Pins used: 0x%X (%s)\n", pins_used, binstr);
@@ -129,7 +146,7 @@ void loop()
         continue;
       }
 
-      translate_buttons(&curStatus, &JoyStatus[cnum], button_map[JoyStatus[cnum].controller_type]);
+      JoyStatus[cnum].translate_buttons(&curStatus, button_map[JoyStatus[cnum].controller_type]);
 
       printMsg("Setting joystick to %d pos %d", joynum, joypos);
       printMsg("Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
@@ -152,9 +169,11 @@ void loop()
       MultiJoystick.axis(joypos*2+1,joyx);
       MultiJoystick.axis(joypos*2+2,joyy);
       MultiJoystick.send_now();
-
     }
-    send_bt(&JoyStatus[0]);
+    
+    //For now, just send controller 0 via BT
+    JoyStatus[0].translate_buttons(&curStatus, button_map_bt[JoyStatus[0].controller_type]);
+    send_bt(&curStatus);
 
     // DEBUG: print it
     //controllers.print_status(0);
@@ -165,4 +184,38 @@ void loop()
     Serial.print("[2J");    // clear screen command
     Serial.write(27);
     Serial.print("[H");     // cursor to home command
+}
+
+void remap_buttons(uint8_t cnum) {
+    int curbtn = 0;
+    uint8_t new_map[NUM_BUTTONS];
+    controller_type_t ctype;
+    while(curbtn < NUM_BUTTONS) {
+        //Wait for a button
+        bool wait_lift = false;
+        while(true) {
+            clist[ctype]->read_state();
+            if(JoyStatus[cnum].button_pressed()) {
+                int mask = 1;
+                for(int bit=1; bit <= 8; bit++) {
+                    if(JoyStatus[cnum].buttonset[0] & mask) {
+                        new_map[curbtn] = bit;
+                        break;
+                    } else if(JoyStatus[cnum].buttonset[1] & mask) {
+                        new_map[curbtn] = bit + 8;
+                        break;
+                    }
+                    mask <<= 1;
+                }
+                break;
+            } else if(JoyStatus[cnum].axis_pressed()) {
+                break;
+            } else if(JoyStatus[cnum].hat_pressed()) {
+                break;
+            }
+        }
+        while(JoyStatus[cnum].input_pressed()) {}
+
+        curbtn++;
+    }
 }

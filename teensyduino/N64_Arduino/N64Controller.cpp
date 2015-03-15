@@ -304,15 +304,15 @@ read_loop:
     goto read_loop;
 }
 
-void N64Controller::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
+void N64Controller::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
     int i, setnum;
     int8_t xaxis = 0;
     int8_t yaxis = 0;
+    joystick->clear();
 
     // Shift the datamask for our data ports
     datamask <<= DATA3_SHIFT;
 
-    memset(joystick, 0, sizeof(JoystickStatusStruct));
     // line 1
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
     for (i=0; i<8; i++) {

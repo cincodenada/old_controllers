@@ -7,7 +7,7 @@ class NESController : public BaseController {
 public:
     uint8_t raw_dump[8]; // Temp dump location
 
-    NESController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name)
+    NESController(JoystickStatus *JoyStatus, uint8_t* global_pins, char* controller_name)
         : BaseController(JoyStatus, global_pins, controller_name) {};
 
     void init();
@@ -22,7 +22,7 @@ public:
     void pulse_clock();
 
     void read_state();
-    void fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask);
+    void fillJoystick(JoystickStatus *joystick, uint8_t datamask);
 };
 
 #endif /* NESCONTROLLER_H */

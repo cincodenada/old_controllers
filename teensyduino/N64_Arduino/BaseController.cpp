@@ -1,6 +1,6 @@
 #include "BaseController.h"
 
-BaseController::BaseController(struct JoystickStatusStruct *JoyStatus, uint8_t* global_pins, char* controller_name) {
+BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, char* controller_name) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
     strncpy(this->controller_name, controller_name, CNAME_LEN);
@@ -38,7 +38,7 @@ void BaseController::safe_detect_controllers() {
     SNES_PORT = SNES_prev;
 }
 
-void BaseController::fillStatus(struct JoystickStatusStruct *joylist) {
+void BaseController::fillStatus(JoystickStatus *joylist) {
     uint8_t pinlist = this->pinmask;
     uint8_t datamask = 0x01;
     uint8_t allpins = *globalmask;

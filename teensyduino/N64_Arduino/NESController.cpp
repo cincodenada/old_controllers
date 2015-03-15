@@ -139,9 +139,9 @@ void NESController::get() {
     }
 }
 
-void NESController::fillJoystick(struct JoystickStatusStruct *joystick, uint8_t datamask) {
+void NESController::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
     char ctldata[50] = "";
-    memset(joystick, 0, sizeof(JoystickStatusStruct));
+    joystick->clear();
 
     // Shift the datamask for our data ports
     datamask <<= DATA5_SHIFT;

@@ -1,3 +1,6 @@
+#include <stdint.h>
+#include "common.h"
+#include "JoystickStatus.h"
 #include "bt_controller.h"
 
 #define PACKET_BYTES 8
@@ -29,7 +32,7 @@ void init_bt() {
     }
 }
 
-void send_bt(struct JoystickStatusStruct *JoyStatus) {
+void send_bt(JoystickStatus *JoyStatus) {
     btdata[0] = 0xFD;
     btdata[1] = 0x06;
     btdata[2] = JoyStatus->axis[0]/BT_FACT + BT_OFFSET;
