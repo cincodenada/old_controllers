@@ -22,7 +22,7 @@ class N64Controller : public BaseController {
 public:
     uint8_t raw_dump[33]; // Temp dump location
 
-    N64Controller(JoystickStatus *JoyStatus, uint8_t* global_pins, char* controller_name)
+    N64Controller(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
         : BaseController(JoyStatus, global_pins, controller_name) {};
 
     void init();

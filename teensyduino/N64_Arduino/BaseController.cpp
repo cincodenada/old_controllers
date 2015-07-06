@@ -1,6 +1,6 @@
 #include "BaseController.h"
 
-BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, char* controller_name) {
+BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
     strncpy(this->controller_name, controller_name, CNAME_LEN);
