@@ -11,6 +11,9 @@
 #define AXIS(n,d) (129+n*2+PN(d))
 #define HAT(x,y) (192+(y+1)*3+(x+1))
 
+#define AXIS_NUM(n) ((n-129)/2)
+#define AXIS_DIR(n) (((n-129) - (AXIS_NUM(n)*2))*2-1)
+
 #define NUM_BUTTONS 16
 
 enum controller_type_t {
