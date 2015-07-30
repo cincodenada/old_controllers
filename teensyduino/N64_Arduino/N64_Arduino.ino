@@ -25,6 +25,7 @@
 
 #define NUMCTL 3
 #define BITS 8
+#define NUMSLOTS 4
 
 JoystickStatus JoyStatus[4];
 BaseController* clist[NUMCTL];
@@ -128,6 +129,7 @@ void loop()
     uint8_t joynum, joypos;
     JoystickStatus curStatus;
 
+    // Determine how many controllers we're using
     printBin(binstr, pins_used);
     printMsg("Pins used: 0x%X (%s)\n", pins_used, binstr);
     printMsg("%lu: Polling Controllers...", millis());
@@ -136,8 +138,12 @@ void loop()
         printBin(binstr, clist[i]->pinmask);
         printMsg("%s: 0x%X (%s)\n", clist[i]->controller_name, clist[i]->pinmask, binstr);
     }
-    for(short int cnum=0; cnum < 4; cnum++) {
-      //Set joystick parameters
+    int cnum = 0;
+    for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
+      // Skip this slot if it's not used
+      if(!(pins_used & (0x01 << slotnum))) { continue; }
+
+      // Set joystick parameters
       if(cnum < num_joys) {
         joypos = 0;
         joynum = cnum;
@@ -171,6 +177,10 @@ void loop()
       MultiJoystick.axis(joypos*2+1,joyx);
       MultiJoystick.axis(joypos*2+2,joyy);
       MultiJoystick.send_now();
+
+      // Increment the controller number for next time
+      // (Separate from slot number)
+      cnum++;
     }
     
     //For now, just send controller 0 via BT

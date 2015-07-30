@@ -46,8 +46,8 @@ void BaseController::fillStatus(JoystickStatus *joylist) {
 
     while(pinlist) {
         if(pinlist & 0x01) {
-            printMsg("%lu: Filling status for %s:\r\n%X %X %X %d", millis(), 
-                    this->controller_name, pinlist, allpins, datamask, cnum);
+            printMsg("%lu: Filling status for %s:", millis(), this->controller_name);
+            printMsg("%X %X %X %d", pinlist, allpins, datamask, cnum);
 
             this->fillJoystick(&joylist[cnum], datamask);
             joylist[cnum].controller_type = this->controller_type;

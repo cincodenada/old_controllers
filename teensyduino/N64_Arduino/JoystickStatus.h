@@ -7,12 +7,15 @@
 #define JOY_FACT ((AXIS_MAX-AXIS_MIN+1)/1024)
 #define JOY_OFFSET (512)
 
-#define PN(n) ((n+1)/2) //Converts -1/1 to 0/1
-#define AXIS(n,d) (129+n*2+PN(d))
-#define HAT(x,y) (192+(y+1)*3+(x+1))
+#define AXIS_BASE 128
+#define HAT_BASE 192
 
-#define AXIS_NUM(n) ((n-129)/2)
-#define AXIS_DIR(n) (((n-129) - (AXIS_NUM(n)*2))*2-1)
+#define PN(n) ((n+1)/2) //Converts -1/1 to 0/1
+#define AXIS(n,d) (AXIS_BASE+n*2+PN(d))
+#define HAT(x,y) (HAT_BASE+(y+1)*3+(x+1))
+
+#define AXIS_NUM(n) ((n-AXIS_BASE)/2)
+#define AXIS_DIR(n) (((n-AXIS_BASE) - (AXIS_NUM(n)*2))*2-1)
 
 #define NUM_BUTTONS 16
 
