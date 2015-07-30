@@ -20,16 +20,17 @@ void JoystickStatus::translate_buttons(
     for(int byte=0; byte < num_bytes; byte++) {
         for(int bit=0; bit < 8; bit++) {
             int btn_num = button_map[bit + byte*8];
-            if(btn_num > 128) {
-                int axis_num = AXIS_NUM(btn_num);
-                int axis_dir = AXIS_DIR(btn_num);
-                if(axis_dir < 0) {
-                    dest->axis[axis_num] = AXIS_MIN;
-                } else {
-                    dest->axis[axis_num] = AXIS_MAX;
-                }
-            } else if(btn_num) {
-                if(this->buttonset[byte] & (0x80 >> bit)) {
+            if(this->buttonset[byte] & (0x80 >> bit)) {
+                if(btn_num >= AXIS_BASE) {
+                    int axis_num = AXIS_NUM(btn_num);
+                    int axis_dir = AXIS_DIR(btn_num);
+                    printMsg("%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
+                    if(axis_dir < 0) {
+                        dest->axis[axis_num] = AXIS_MIN;
+                    } else {
+                        dest->axis[axis_num] = AXIS_MAX;
+                    }
+                } else if(btn_num) {
                     btn_num -= 1;
                     int dest_byte = btn_num/8;
                     int dest_bit = btn_num%8;
