@@ -17,7 +17,7 @@ void init_bt() {
     while(HWSERIAL.available()) {
       Serial.print((char)HWSERIAL.read());  // Set as joystick
     }
-    HWSERIAL.print("SH,0217\r");  // Set as joystick
+    HWSERIAL.print("SH,0247\r");  // Set as joystick
     delay(100);  // Short delay, wait for the Mate to send back CMD
     while(HWSERIAL.available()) {
       Serial.print((char)HWSERIAL.read());  // Set as joystick
@@ -35,15 +35,17 @@ void init_bt() {
 void send_bt(JoystickStatus *JoyStatus) {
     btdata[0] = 0xFD;
     btdata[1] = 0x06;
-    btdata[2] = JoyStatus->axis[0]/BT_FACT + BT_OFFSET;
-    btdata[3] = JoyStatus->axis[1]/BT_FACT + BT_OFFSET;
-    btdata[4] = JoyStatus->axis[0]/BT_FACT + BT_OFFSET;
-    btdata[5] = JoyStatus->axis[1]/BT_FACT + BT_OFFSET;
+    btdata[2] = JoyStatus->axis[0] >> 8;
+    btdata[3] = JoyStatus->axis[1] >> 8;
+    btdata[4] = JoyStatus->axis[0] >> 8;
+    btdata[5] = JoyStatus->axis[1] >> 8;
     btdata[6] = JoyStatus->buttonset[0];
     btdata[7] = JoyStatus->buttonset[1];
+
+    printMsg("Axes: %d %d", JoyStatus->axis[0], JoyStatus->axis[1]);
     printMsg("Sending BT packet: ");
     for(int i=0;i<PACKET_BYTES;i++) {
-      HWSERIAL.write(btdata[i]);
+      HWSERIAL.write((byte)btdata[i]);
       printMsg("%.2X", btdata[i]);
     }
     printMsg("");

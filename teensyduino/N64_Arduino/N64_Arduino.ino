@@ -55,7 +55,7 @@ uint8_t button_map[3][NUM_BUTTONS] = {
 uint8_t button_map_bt[3][NUM_BUTTONS] = {
     { //NES
         2,1,7,8,
-        AXIS(1,1),AXIS(1,-1),
+        AXIS(1,-1),AXIS(1,1),
         AXIS(0,-1),AXIS(0,1),
         3,4,5,6,0,0,0,0
     },{ //SNES
@@ -154,7 +154,7 @@ void loop()
         continue;
       }
 
-      JoyStatus[cnum].translate_buttons(&curStatus, button_map[JoyStatus[cnum].controller_type]);
+      JoyStatus[slotnum].translate_buttons(&curStatus, button_map[JoyStatus[slotnum].controller_type]);
 
       printMsg("Setting joystick to %u pos %u", joynum, joypos);
       printMsg("Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);

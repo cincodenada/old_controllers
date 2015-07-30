@@ -25,10 +25,13 @@ void JoystickStatus::translate_buttons(
                     int axis_num = AXIS_NUM(btn_num);
                     int axis_dir = AXIS_DIR(btn_num);
                     printMsg("%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
+                    // TODO: Adjusted because Bluetooth seems to 
+                    // freak out if we're at the limits,
+                    // do some further testing here
                     if(axis_dir < 0) {
-                        dest->axis[axis_num] = AXIS_MIN;
+                        dest->axis[axis_num] = AXIS_MIN+512;
                     } else {
-                        dest->axis[axis_num] = AXIS_MAX;
+                        dest->axis[axis_num] = AXIS_MAX-512;
                     }
                 } else if(btn_num) {
                     btn_num -= 1;
