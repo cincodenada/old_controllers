@@ -15,7 +15,7 @@ void init_bt() {
     HWSERIAL.print("$");  // Enter command mode
     delay(100);  // Short delay, wait for the Mate to send back CMD
     while(HWSERIAL.available()) {
-      Serial.print((char)HWSERIAL.read());  // Set as joystick
+      Serial.print((char)HWSERIAL.read());
     }
     HWSERIAL.print("SH,0247\r");  // Set as joystick
     delay(100);  // Short delay, wait for the Mate to send back CMD
@@ -25,10 +25,10 @@ void init_bt() {
     HWSERIAL.print("-");  // Print three times individually
     HWSERIAL.print("-");
     HWSERIAL.print("-");  // Enter command mode
-    HWSERIAL.print("\r");  // Set as joystick
+    HWSERIAL.print("\r");
     delay(100);  // Short delay, wait for the Mate to send back CMD
     while(HWSERIAL.available()) {
-      Serial.print((char)HWSERIAL.read());  // Set as joystick
+      Serial.print((char)HWSERIAL.read());
     }
 }
 
@@ -37,8 +37,8 @@ void send_bt(JoystickStatus *JoyStatus) {
     btdata[1] = 0x06;
     btdata[2] = JoyStatus->axis[0] >> 8;
     btdata[3] = JoyStatus->axis[1] >> 8;
-    btdata[4] = JoyStatus->axis[0] >> 8;
-    btdata[5] = JoyStatus->axis[1] >> 8;
+    btdata[4] = JoyStatus->axis[2] >> 8;
+    btdata[5] = JoyStatus->axis[3] >> 8;
     btdata[6] = JoyStatus->buttonset[0];
     btdata[7] = JoyStatus->buttonset[1];
 
