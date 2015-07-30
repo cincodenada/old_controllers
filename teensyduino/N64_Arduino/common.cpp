@@ -1,11 +1,19 @@
 #include "pin_config.h"
 #include "common.h"
 
+int max_len = 0;
+
 void printMsg(const char* format, ...) {
     va_list args;
+    int cur_len, i;
     va_start(args, format);
     if(true) {
-        vsnprintf(msg, MSG_LEN, format, args);
+        cur_len = vsnprintf(msg, MSG_LEN, format, args);
+        if(cur_len > max_len) { max_len = cur_len; }
+        for(i=cur_len; i < max_len && i < MSG_LEN; i++) {
+            msg[i] = ' ';
+        }
+        msg[i] = '\0';
         Serial.flush();
         Serial.println(msg);
     }

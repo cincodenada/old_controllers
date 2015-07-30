@@ -41,10 +41,10 @@ void send_bt(JoystickStatus *JoyStatus) {
     btdata[5] = JoyStatus->axis[1]/BT_FACT + BT_OFFSET;
     btdata[6] = JoyStatus->buttonset[0];
     btdata[7] = JoyStatus->buttonset[1];
-    Serial.print("Sending BT packet: ");
+    printMsg("Sending BT packet: ");
     for(int i=0;i<PACKET_BYTES;i++) {
       HWSERIAL.write(btdata[i]);
       printMsg("%.2X", btdata[i]);
     }
-    Serial.println();
+    printMsg("");
 }

@@ -131,12 +131,12 @@ void loop()
 
     // Determine how many controllers we're using
     printBin(binstr, pins_used);
-    printMsg("Pins used: 0x%X (%s)\n", pins_used, binstr);
+    printMsg("Pins used: 0x%X (%s)", pins_used, binstr);
     printMsg("%lu: Polling Controllers...", millis());
     for(i=0;i<NUMCTL;i++) { 
         clist[i]->read_state();
         printBin(binstr, clist[i]->pinmask);
-        printMsg("%s: 0x%X (%s)\n", clist[i]->controller_name, clist[i]->pinmask, binstr);
+        printMsg("%s: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
     }
     int cnum = 0;
     for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
@@ -192,8 +192,6 @@ void loop()
     //controllers.print_status(1);
     delay(25);
 
-    Serial.write(27);       // ESC command
-    Serial.print("[2J");    // clear screen command
     Serial.write(27);
     Serial.print("[H");     // cursor to home command
 }
