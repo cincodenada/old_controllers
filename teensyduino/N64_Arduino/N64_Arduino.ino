@@ -177,6 +177,9 @@ void loop()
 
       MultiJoystick.axis(joypos*2+1,joyx);
       MultiJoystick.axis(joypos*2+2,joyy);
+
+      MultiJoystick.hat(curStatus.hat);
+
       MultiJoystick.send_now();
 
       // Increment the controller number for next time

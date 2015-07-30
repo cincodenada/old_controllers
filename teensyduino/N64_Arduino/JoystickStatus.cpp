@@ -15,13 +15,17 @@ void JoystickStatus::translate_buttons(
     // unless we specifically overwrite them
     dest->buttonset[0] = 0;
     dest->buttonset[1] = 0;
+    dest->hat = -1;
 
     int num_bytes = NUM_BUTTONS/8;
     for(int byte=0; byte < num_bytes; byte++) {
         for(int bit=0; bit < 8; bit++) {
             int btn_num = button_map[bit + byte*8];
             if(this->buttonset[byte] & (0x80 >> bit)) {
-                if(btn_num >= AXIS_BASE) {
+                if(btn_num >= HAT_BASE) {
+                    dest->hat = hat_map[HAT_Y(btn_num)+1][HAT_X(btn_num)+1];
+                    printMsg("%d: Setting hat to %d (%d, %d)", btn_num, dest->hat, HAT_X(btn_num), HAT_Y(btn_num));
+                } else if(btn_num >= AXIS_BASE) {
                     int axis_num = AXIS_NUM(btn_num);
                     int axis_dir = AXIS_DIR(btn_num);
                     printMsg("%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);

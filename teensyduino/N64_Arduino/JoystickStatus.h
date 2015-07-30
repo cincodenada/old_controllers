@@ -17,12 +17,21 @@
 #define AXIS_NUM(n) ((n-AXIS_BASE)/2)
 #define AXIS_DIR(n) (((n-AXIS_BASE) - (AXIS_NUM(n)*2))*2-1)
 
+#define HAT_Y(n) ((n-HAT_BASE)/3-1)
+#define HAT_X(n) ((n-HAT_BASE)-(HAT_Y(n)+1)*3-1)
+
 #define NUM_BUTTONS 16
 
 enum controller_type_t {
     NES = 0,
     SNES,
     N64
+};
+
+const signed short int hat_map[3][3] = {
+  {315,0,45},
+  {270,-1,90},
+  {225,180,135}
 };
 
 class JoystickStatus {
