@@ -154,7 +154,7 @@ void loop()
         continue;
       }
 
-      JoyStatus[slotnum].translate_buttons(&curStatus, button_map[JoyStatus[slotnum].controller_type]);
+      JoyStatus[cnum].translate_buttons(&curStatus, button_map[JoyStatus[cnum].controller_type]);
 
       printMsg("Setting joystick to %u pos %u", joynum, joypos);
       printMsg("Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
