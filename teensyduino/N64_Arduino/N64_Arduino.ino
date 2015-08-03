@@ -43,8 +43,8 @@ uint8_t button_map[3][NUM_BUTTONS] = {
         3,4,5,6,0,0,0,0
     },{ //SNES
         1,3,7,8,
-        AXIS(0,-1),AXIS(0,1),
         AXIS(1,-1),AXIS(1,1),
+        AXIS(0,-1),AXIS(0,1),
         2,4,5,6,0,0,0,0
     },{ //N64
         // A B Z St U D L R

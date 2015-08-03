@@ -36,7 +36,7 @@ const signed short int hat_map[3][3] = {
 
 class JoystickStatus {
 public:
-    signed short int axis[3];
+    signed short int axis[4];
     signed short int hat;
     uint8_t buttonset[2];
     controller_type_t controller_type;
