@@ -37,14 +37,17 @@ char binstr[BITS+1];
 
 uint8_t button_map[3][NUM_BUTTONS] = {
     { //NES
+        // A B Sel St U D L R
         2,1,7,8,
         AXIS(1,-1),AXIS(1,1),
         AXIS(0,-1),AXIS(0,1),
         3,4,5,6,0,0,0,0
     },{ //SNES
+        // B Y Sel St U D L R
         1,3,7,8,
         AXIS(1,-1),AXIS(1,1),
         AXIS(0,-1),AXIS(0,1),
+        // A X L R
         2,4,5,6,0,0,0,0
     },{ //N64
         // A B Z St U D L R
@@ -64,7 +67,9 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
         AXIS(0,-1),AXIS(0,1),
         3,4,5,6,0,0,0,0
     },{ //SNES
-        1,3,7,8,129,130,131,132,
+        1,3,7,8,
+        AXIS(1,-1),AXIS(1,1),
+        AXIS(0,-1),AXIS(0,1),
         2,4,5,6,0,0,0,0
     },{ //N64
         1,2,6,12,
@@ -185,6 +190,12 @@ void loop()
 
       MultiJoystick.axis(joypos*2+1,joyx);
       MultiJoystick.axis(joypos*2+2,joyy);
+
+      joyx = curStatus.axis[2]/JOY_FACT + JOY_OFFSET;
+      joyy = curStatus.axis[3]/JOY_FACT + JOY_OFFSET;
+
+      MultiJoystick.axis(joypos*2+3,joyx);
+      MultiJoystick.axis(joypos*2+4,joyy);
 
       MultiJoystick.hat(curStatus.hat);
 
