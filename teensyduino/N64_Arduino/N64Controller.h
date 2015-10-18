@@ -9,12 +9,11 @@
 
 //Sets the masked pins to input (HIGH) or output (LOW)
 //Which effectively pulls high or low
-//Original note recommended a 1K pull-up resistor to 3.3V
-//But relying on the controller to pull high seems to work fine
-//TODO: Perhaps add a pull-up to be safe?
 //These instructions are 1 cycle each, 3 cycles total
-#define N64_HIGH asm volatile ("in __tmp_reg__, %[port]\nand __tmp_reg__, %[invmask]\nout %[port], __tmp_reg__\n"::[invmask] "r" (invmask), [port] "I" (_SFR_IO_ADDR(DATA3_DIR)))
-#define N64_LOW asm volatile ("in __tmp_reg__, %[port]\nor __tmp_reg__, %[cmask]\nout %[port], __tmp_reg__\n"::[cmask] "r" (cmask), [port] "I" (_SFR_IO_ADDR(DATA3_DIR)))
+#define N64_HIGH asm volatile ("in __tmp_reg__, %[port]\nor __tmp_reg__, %[cmask]\nout %[port], __tmp_reg__\n"::[cmask] "r" (cmask), [port] "I" (_SFR_IO_ADDR(DATA3_PORT)))
+#define N64_LOW asm volatile ("in __tmp_reg__, %[port]\nand __tmp_reg__, %[invmask]\nout %[port], __tmp_reg__\n"::[invmask] "r" (invmask), [port] "I" (_SFR_IO_ADDR(DATA3_PORT)))
+#define N64_IN asm volatile ("in __tmp_reg__, %[port]\nand __tmp_reg__, %[invmask]\nout %[port], __tmp_reg__\n"::[invmask] "r" (invmask), [port] "I" (_SFR_IO_ADDR(DATA3_DIR)))
+#define N64_OUT asm volatile ("in __tmp_reg__, %[port]\nor __tmp_reg__, %[cmask]\nout %[port], __tmp_reg__\n"::[cmask] "r" (cmask), [port] "I" (_SFR_IO_ADDR(DATA3_DIR)))
 
 #define N64_AXIS_MAX (85)
 

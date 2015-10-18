@@ -120,9 +120,8 @@ void N64Controller::send(uint8_t *buffer, uint8_t length) {
     cmask = this->pinmask << DATA3_SHIFT;
     invmask = ~cmask;
 
-    //Disable pullup, just for safety
-    //Since we're using N64_HIGH/LOW macros
-    DATA3_PORT &= invmask;
+    N64_OUT;
+    N64_HIGH;
 
     // This routine is very carefully timed by examining the assembly output.
     // Do not change any statements, it could throw the timings off
@@ -243,8 +242,8 @@ inner_loop:
                   "nop\nnop\nnop\nnop\nnop\n"  
                   "nop\nnop\nnop\n");
 
-    //Set back to input
     N64_HIGH;
+    N64_IN;
 }
 
 void N64Controller::get() {
@@ -262,8 +261,9 @@ void N64Controller::get() {
     short int cmask = this->pinmask << DATA3_SHIFT;
     short int invmask = ~cmask;
 
-    //Ensure we're in Hi-Z
-    DATA3_DIR &= invmask;
+    //Set to input, pull-up
+    N64_HIGH;
+    N64_IN;
 
     // Again, using gotos here to make the assembly more predictable and
     // optimization easier (please don't kill me)
