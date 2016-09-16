@@ -9,19 +9,23 @@ void SNESController::init() {
 
 void SNESController::setup_pins() {
     //For our pins, set SNES flag to high (=SNES)
-    SNES_PORT |= this->pinmask << SNES_SHIFT;
+    for(int i=0; i<NUM_CONTROLLERS; i++) {
+        digitalWrite(this->slow_pins[i], HIGH);
+    }
 }
 
 void SNESController::clear_dump() {
-  for(int i=0;i<16;i++) {
-    this->raw_dump[i] = 0;
-  }
+    memset(this->raw_dump, 0, 16);
 }
 
 void SNESController::detect_controllers(uint8_t pins_avail) {
     //Try setting remaining ports to NES
     //For our pins, set SNES flag to low (=NES)
-    SNES_PORT &= ~(pins_avail << SNES_SHIFT);
+    for(int i=0; i<NUM_CONTROLLERS; i++) {
+        if(pins_avail & (0x01 << i)) {
+            digitalWrite(this->slow_pins[i], LOW);
+        }
+    }
 
     //Lines pulled low are SNES controllers
     //So invert and mask
@@ -29,93 +33,54 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
 }
 
 void SNESController::read_state() {
-    
     //digitalWrite(PIN_TRIGGER, HIGH);
 
     // read in data and dump it to raw_dump
     this->get();
-    delay(1);
 
     this->fillStatus(this->JoyStatus);
     //digitalWrite(PIN_TRIGGER, LOW);
 }
 
-void SNESController::pulse_latch() {
-    //Send a 12-us pulse to the latch pin
-    LATCH_PORT |= LATCH_MASK;
-    asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  ); //8*24 = 12us
-    LATCH_PORT &= ~LATCH_MASK;
-}
-
-void SNESController::pulse_clock() {
-    //Send a 12-us 50% duty cycle clock pulse
-    asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  ); //8*12 = 3us
-    CLOCK_PORT |= CLOCK_MASK;
-    asm volatile ("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"  
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
-                  ); //8*12 = 3us
-    CLOCK_PORT &= ~CLOCK_MASK;
-}
-
 void SNESController::get() {
-    short int curbit = 16;
-    uint8_t *bitbin = this->raw_dump;
+    this->reset_isr_data();
+    this->isr_data.pins = this->slow_pins;
+    this->isr_data.buf = this->raw_dump;
+    this->isr_data.end_byte = &this->isr_data.buf[16];
+    Timer1.initialize();
+    Timer1.attachInterrupt(&this->isr_read, 12);
 
-    pulse_latch();
+    // Wait for it to do its thing
+    delay(1);
+}
 
-    //Record response
-    while(curbit) {
-        //Read value
-        *bitbin = (~DATA5_IN & (this->pinmask << DATA5_SHIFT)) >> DATA5_SHIFT;
-        ++bitbin;
-        --curbit;
-        pulse_clock();
+void SNESController::isr_read() {
+    if(BaseController::isr_data.cur_stage < 2)  {
+        if(BaseController::isr_data.cur_stage == 0) {
+            digitalWriteFast(LATCH_PIN, HIGH);
+            digitalWriteFast(CLOCK_PIN, LOW);
+        } else if(BaseController::isr_data.cur_stage == 1) {
+            digitalWriteFast(LATCH_PIN, LOW);
+        }
+        BaseController::isr_data.cur_stage++;
+    } else {
+        if(BaseController::isr_data.cur_stage == 2) {
+            int mask = 0x01;
+            for(int i=0; i < NUM_CONTROLLERS; i++) {
+                if(digitalReadFast(BaseController::isr_data.pins[i])) {
+                    *BaseController::isr_data.cur_byte |= mask;
+                }
+                mask <<= 1;
+            }
+            digitalWriteFast(CLOCK_PIN, HIGH);
+            BaseController::isr_data.cur_stage++;
+        } else {
+            digitalWriteFast(CLOCK_PIN, LOW);
+            if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
+                Timer1.detachInterrupt();
+            }
+            BaseController::isr_data.cur_stage = 2;
+        }
     }
 }
 
@@ -123,9 +88,6 @@ void SNESController::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
     int i, setnum;
     char ctldata[100] = "";
     joystick->clear();
-
-    // Shift the datamask for our data ports
-    datamask <<= DATA5_SHIFT;
 
     // line 1
     // bits: B, Y, Select, Start, Dup, Ddown, Dleft, Dright

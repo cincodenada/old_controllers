@@ -60,26 +60,36 @@ void BaseController::fillStatus(JoystickStatus *joylist) {
     }
 }
 
+uint8_t BaseController::read_pin(uint8_t pin) {
+    return digitalReadFast((this->use_3V() ? this->fast_pins[pin] : this->slow_pins[pin]));
+}
+
 uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     int x, resets = 0;
-    uint8_t inpins, exp_mask;
+    uint8_t inpins;
     uint8_t pinmask = 0;
-    exp_mask = expected ? pins_avail : 0;
     for (x=0; x<64; x++) {
-        inpins = this->use_3V()
-            ? (DATA3_IN & (pins_avail << DATA3_SHIFT)) >> DATA3_SHIFT
-            : (DATA5_IN & (pins_avail << DATA5_SHIFT)) >> DATA5_SHIFT;
-        //If any of the lines fall low
-        if (inpins != exp_mask) {
-            //Reset the counter
-            x = 0; 
-            //And take note of which ones talked back
-            pinmask |= (expected ? (~inpins & pins_avail) : inpins);
-
+        int reset = 0;
+        for(int i=0; i < NUM_CONTROLLERS) {
+            curval = this->read_pin(i);
+            if(curval != expected) {
+                pinmask |= (0x01 << i);
+                reset = 1;
+            }
+        }
+        if(reset) {
+            x = 0;
             resets++;
             if(resets > 10) { break; }
         }
         printMsg("Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
     }
     return pinmask; 
+}
+
+static void BaseController::reset_isr_data() {
+    this->isr_data.cur_stage = 0;
+    memset(this->isr_data.buf, 0, TBUFSIZE);
+    this->isr_data.cur_byte = this->isr_data.buf;
+    this->isr_data.end_byte = buf + TBUFSIZE - 1;
 }

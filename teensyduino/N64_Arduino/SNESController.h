@@ -18,8 +18,7 @@ public:
     void translate_raw_data();
     void clear_dump();
 
-    void pulse_latch();
-    void pulse_clock();
+    static void isr_read();
 
     void read_state();
     void fillJoystick(JoystickStatus *joystick, uint8_t datamask);

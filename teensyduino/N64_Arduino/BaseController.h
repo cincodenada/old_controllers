@@ -7,8 +7,10 @@
 #include "pin_config.h"
 #include "common.h"
 #include "JoystickStatus.h"
+#include "TimerOne.h"
 
 #define CNAME_LEN 10
+#define TBUFSIZE 33
 
 class BaseController {
 public:
@@ -16,6 +18,8 @@ public:
     uint8_t* globalmask;
     char controller_name[CNAME_LEN];
     controller_type_t controller_type;
+    const uint8_t fast_pins[NUM_CONTROLLERS] = { FAST_PINS };
+    const uint8_t slow_pins[NUM_CONTROLLERS] = { SLOW_PINS };
 
     JoystickStatus *JoyStatus;
 
@@ -29,6 +33,17 @@ public:
     void safe_detect_controllers();
     bool use_3V();
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
+
+    static void reset_isr_data();
+
+    static struct interrupt_data_struct {
+        uint8_t *buf;
+        uint8_t *cur_byte;
+        uint8_t *end_byte;
+        uint8_t cur_stage;
+
+        const uint8_t *pins;
+    } isr_data;
 };
 
 #endif /* BASECONTROLLER_H */
