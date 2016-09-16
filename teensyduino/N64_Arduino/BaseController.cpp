@@ -27,15 +27,15 @@ void BaseController::safe_detect_controllers() {
     printMsg("Searching for %s on %X...", this->controller_name, pins_avail);
 
     //Save the states
-    SNES_prev = SNES_PORT;
+    //SNES_prev = SNES_PORT;
 
     this->detect_controllers(pins_avail);
     *globalmask |= this->pinmask;
 
-    printMsg("Pinmasks: SNES=%X", SNES_PORT);
+    //printMsg("Pinmasks: SNES=%X", SNES_PORT);
 
     //Restore states
-    SNES_PORT = SNES_prev;
+    //SNES_PORT = SNES_prev;
 }
 
 void BaseController::fillStatus(JoystickStatus *joylist) {
@@ -70,7 +70,8 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     uint8_t pinmask = 0;
     for (x=0; x<64; x++) {
         int reset = 0;
-        for(int i=0; i < NUM_CONTROLLERS) {
+        int curval;
+        for(int i=0; i < NUM_CONTROLLERS; i++) {
             curval = this->read_pin(i);
             if(curval != expected) {
                 pinmask |= (0x01 << i);
@@ -87,11 +88,11 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     return pinmask; 
 }
 
-static void BaseController::reset_isr_data() {
-    this->isr_data.cur_stage = 0;
-    memset(this->isr_data.buf, 0, TBUFSIZE);
-    this->isr_data.cur_byte = this->isr_data.buf;
-    this->isr_data.end_byte = buf + TBUFSIZE - 1;
-    this->isr_data.counter = 0;
-    this->isr_data.mode = 0;
+void BaseController::reset_isr_data() {
+    BaseController::isr_data.cur_stage = 0;
+    memset(BaseController::isr_data.buf, 0, TBUFSIZE);
+    BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
+    BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE - 1];
+    BaseController::isr_data.counter = 0;
+    BaseController::isr_data.mode = 0;
 }

@@ -32,6 +32,7 @@ public:
     virtual void fillJoystick(JoystickStatus *joystick, uint8_t datamask) = 0;
     void safe_detect_controllers();
     bool use_3V();
+    uint8_t read_pin(uint8_t pin);
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
 
     static void reset_isr_data();
