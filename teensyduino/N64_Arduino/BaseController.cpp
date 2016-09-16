@@ -92,4 +92,6 @@ static void BaseController::reset_isr_data() {
     memset(this->isr_data.buf, 0, TBUFSIZE);
     this->isr_data.cur_byte = this->isr_data.buf;
     this->isr_data.end_byte = buf + TBUFSIZE - 1;
+    this->isr_data.counter = 0;
+    this->isr_data.mode = 0;
 }

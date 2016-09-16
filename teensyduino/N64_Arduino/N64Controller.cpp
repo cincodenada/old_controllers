@@ -1,18 +1,6 @@
 #include "N64Controller.h"
 #include <stdio.h>
 
-//Assembly stub functions
-//This function queries and masks the N64 ports
-short int N64_query(uint8_t cmask) {
-  uint8_t inbit;
-  asm volatile ("in %[inbits], %[port]\n"
-                "and %[inbits], %[cmask]\n"
-                :[inbits] "=r"(inbit)
-                :[port] "I" (_SFR_IO_ADDR(DATA3_IN)), [cmask] "r" (cmask)
-                );
-  return inbit;
-}
-
 void N64Controller::init() {
     BaseController::init();
 
@@ -46,63 +34,101 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     //Set pinmask so we send to all candidates
     this->pinmask = pins_avail;
 
-    //Ports are set to Hi-Z here
-    noInterrupts();
-    this->send(&command, 1);
-    interrupts();
+    for(int i=0; i < NUM_CONTROLLERS; i++) {
+        if(!(this->pinmask & (0x01 << i))) { continue; }
 
-    //At this point we're pull-up input
-    //Wait for lines to remain high (quiet) for a bit (64 iterations) 
-    //And note which ones pull low at any point
-    //We don't care what they're actually saying
+        //Ports are set to Hi-Z here
+        this->send(i, &command, 1);
 
-    int x;
-    uint8_t inpins;
-    this->pinmask = 0;
-    for (x=0; x<64; x++) {
-        inpins = N64_query(pins_avail << DATA3_SHIFT) >> DATA3_SHIFT;
-        //If any of the lines fall low
-        if (inpins != pins_avail) {
-            //Reset the counter
-            x = 0; 
-            //And take note of which ones talked back
-            this->pinmask |= ((~inpins) & pins_avail);
+        int x;
+        uint8_t cur_pin = this->fast_pins[i];
+        for (x=0; x<64; x++) {
+            if(!digitalReadFast(cur_pin)) {
+                //Reset the counter
+                x = 0;
+                //And take note of which ones talked back
+                this->pinmask |= (0x01 << i);
+            }
         }
     }
 }
 
 void N64Controller::read_state() {
-    //Save the pinmask
-    short int old_mask = this->pinmask;
-
     //Run through our controllers one at a time
-    short int pinlist = old_mask;
-    short int datamask = 0x01;
+    for(int i=0; i<NUM_CONTROLLERS; i++) {
+        if(!(this->pinmask & (0x01 << i))) { continue; }
 
-    //This is hackish, but will work fine
-    while(pinlist) {
-        if(pinlist & 0x01) {
-            this->pinmask = datamask;
-            digitalWrite(PIN_TRIGGER, HIGH);
-            noInterrupts();
+        digitalWrite(PIN_TRIGGER, HIGH);
 
-            uint8_t command = 0x01;
-            clear_dump();
-            this->send(&command, 1);
-            // read in data and dump it to raw_dump
-            this->get();
+        clear_dump();
 
-            interrupts();
+        this->reset_isr_data();
+        this->isr_data.cur_pin = this->fast_pins[i];
+        this->isr_data.buf = this->raw_dump;
+        this->isr_data.end_byte = &this->isr_data.buf[33];
+        pinMode(this->isr_data.cur_pin, OUTPUT);
+        Timer1.initialize();
+        Timer1.attachInterrupt(&this->isr_read, 1);
+        delay(1);
 
-            this->fillStatus(this->JoyStatus);
-            digitalWrite(PIN_TRIGGER, LOW);
-        }
-        pinlist >>= 1;
-        datamask <<= 1;
+        this->fillStatus(this->JoyStatus);
+        digitalWrite(PIN_TRIGGER, LOW);
     }
+}
 
-    //Restore the pinmask
-    this->pinmask = old_mask;
+void N64Controller::isr_read() {
+    if(BaseController::isr_data.cur_stage == 0)  {
+        digitalWriteFast(BaseController::isr_data.cur_pin, LOW);
+        BaseController::isr_data.cur_stage++;
+    } else if(BaseController::isr_data.cur_stage == 1) {
+        if(BaseController::isr_data.mode == 0) {
+            // Write
+            if(BaseController::isr_data.counter >= 7) {
+                digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
+            }
+            BaseController::isr_data.counter++;
+        }
+        BaseController::isr_data.cur_stage++;
+    } else if(BaseController::isr_data.cur_stage == 2) {
+        if(BaseController::isr_data.mode == 0 && BaseController::isr_data.counter > 8) {
+            BaseController::isr_data.mode = 1;
+            BaseController::isr_data.counter = 0;
+            pinMode(BaseController::isr_data.cur_pin, INPUT);
+        } else {
+           *BaseController::isr_data.cur_byte = digitalReadFast(BaseController::isr_data.cur_pin);
+           BaseController::isr_data.cur_byte++;
+        }
+        BaseController::isr_data.cur_stage++;
+    } else if(BaseController::isr_data.cur_stage == 3) {
+        if(BaseController::isr_data.mode == 0) {
+            digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
+        } else {
+            if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
+                Timer1.detachInterrupt();
+            }
+        }
+        BaseController::isr_data.cur_stage = 0;
+    }
+}
+
+void N64Controller::isr_write() {
+    if(BaseController::isr_data.cur_stage == 0)  {
+        digitalWriteFast(BaseController::isr_data.cur_pin, LOW);
+        BaseController::isr_data.cur_stage++;
+    } else if(BaseController::isr_data.cur_stage == 1) {
+        digitalWriteFast(BaseController::isr_data.cur_pin, *BaseController::isr_data.cur_byte);
+        BaseController::isr_data.cur_stage++;
+    } else if(BaseController::isr_data.cur_stage == 2) {
+        BaseController::isr_data.cur_stage++;
+    } else if(BaseController::isr_data.cur_stage == 3) {
+        digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
+        if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
+            Timer1.detachInterrupt();
+            pinMode(BaseController::isr_data.cur_pin, INPUT);
+        }
+        BaseController::isr_data.cur_byte++;
+        BaseController::isr_data.cur_stage = 0;
+    }
 }
 
 /**
@@ -110,7 +136,17 @@ void N64Controller::read_state() {
  * length must be at least 1
  * Oh, it destroys the buffer passed in as it writes it
  */
-void N64Controller::send(uint8_t *buffer, uint8_t length) {
+void N64Controller::send(uint8_t pin, uint8_t *buffer, uint8_t length) {
+    this->reset_isr_data();
+    this->isr_data.cur_pin = this->fast_pins[pin];
+    this->isr_data.buf = buffer;
+    this->isr_data.end_byte = &this->isr_data.buf[length-1];
+    pinMode(this->isr_data.cur_pin, OUTPUT);
+    Timer1.initialize();
+    Timer1.attachInterrupt(&this->isr_write, 1);
+    delay(1);
+}
+/*
     // Send these bytes
     uint8_t bits;
     
@@ -303,15 +339,12 @@ read_loop:
     }
     goto read_loop;
 }
-
+*/
 void N64Controller::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
     int i, setnum;
     int8_t xaxis = 0;
     int8_t yaxis = 0;
     joystick->clear();
-
-    // Shift the datamask for our data ports
-    datamask <<= DATA3_SHIFT;
 
     // line 1
     // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright

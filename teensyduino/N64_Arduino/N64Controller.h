@@ -20,8 +20,6 @@
 class N64Controller : public BaseController {
 public:
     uint8_t raw_dump[33]; // Temp dump location
-    const uint8_t fast_pins[] = { FAST_PINS };
-    const uint8_t slow_pins[] = { SLOW_PINS };
 
     N64Controller(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
         : BaseController(JoyStatus, global_pins, controller_name) {};
@@ -30,10 +28,13 @@ public:
     void setup_pins();
     void print_status(short int cnum);
     void detect_controllers(uint8_t pins_avail);
-    void send(uint8_t *buffer, uint8_t length);
+    void send(uint8_t pin, uint8_t *buffer, uint8_t length);
     void get();
     void translate_raw_data();
     void clear_dump();
+
+    static void isr_read();
+    static void isr_write();
 
     void read_state();
     void fillJoystick(JoystickStatus *joystick, uint8_t datamask);

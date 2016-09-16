@@ -42,7 +42,11 @@ public:
         uint8_t *end_byte;
         uint8_t cur_stage;
 
+        uint8_t mode;
+        uint8_t counter;
+
         const uint8_t *pins;
+        uint8_t cur_pin;
     } isr_data;
 };
 
