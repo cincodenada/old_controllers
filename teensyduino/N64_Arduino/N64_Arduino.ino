@@ -34,6 +34,7 @@ BaseController* clist[NUMCTL];
 char msg[MSG_LEN];
 uint8_t pins_used = 0;
 uint8_t num_joys;
+uint8_t s_nes_pins[NUM_CONTROLLERS] = {S_NES_PINS};
 
 char binstr[BITS+1];
 
@@ -118,10 +119,9 @@ void setup() {
     clist[NES] = new NESController(JoyStatus, &pins_used, "NES");
 
     for(int i=0; i < NUM_CONTROLLERS; i++) {
-        pinMode(S_NES_PINS[i], OUTPUT);
-        pinMode(clist[N64]->pins[i], INPUT);
-        pinMode(clist[SNES]->pins[i], INPUT);
-        pinMode(clist[NES]->pins[i], INPUT);
+        pinMode(s_nes_pins[i], OUTPUT);
+        pinMode(clist[N64]->slow_pins[i], INPUT);
+        pinMode(clist[N64]->fast_pins[i], INPUT);
     }
 
     clist[N64]->init();
