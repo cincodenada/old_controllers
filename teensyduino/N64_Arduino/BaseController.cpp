@@ -23,7 +23,7 @@ bool BaseController::use_3V() {
 }
 
 void BaseController::safe_detect_controllers() {
-    uint8_t SNES_prev;
+    //uint8_t SNES_prev;
     uint8_t pins_avail = ~(*globalmask) & IO_MASK;
 
     printMsg("Searching for %s on %X...", this->controller_name, pins_avail);

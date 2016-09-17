@@ -8,7 +8,6 @@ uint8_t btdata[PACKET_BYTES];
 
 void init_bt() {
     delay(1000);
-    Serial.begin(9600);
     HWSERIAL.begin(115200);  // The Bluetooth Mate defaults to 115200bps
     HWSERIAL.print("$");  // Print three times individually
     HWSERIAL.print("$");

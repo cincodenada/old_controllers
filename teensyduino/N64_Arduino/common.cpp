@@ -20,6 +20,21 @@ void printMsg(const char* format, ...) {
     va_end(args);
 }
 
+void printBin(char* dest, char input) {
+    unsigned char mask = 0x80;
+
+    if(input > 255) { 
+        strncpy(dest, "ERR:>255", BIN_BITS+1); 
+        return; 
+    }
+    for(int i=0; i < BIN_BITS; i++) {
+        dest[i] = (input & mask) ? '1' : '0';
+        mask >>= 1;
+    }
+    //Terminate the string
+    dest[BIN_BITS] = 0;
+}
+
 void blink_binary(int num, uint8_t bits) {
     int mask = 1 << (bits-1);
     digitalWrite(PIN_TRIGGER, HIGH);

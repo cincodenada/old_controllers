@@ -26,7 +26,6 @@
 #include "bt_controller.h"
 
 #define NUMCTL 3
-#define BITS 8
 #define NUMSLOTS 4
 
 JoystickStatus JoyStatus[NUM_CONTROLLERS];
@@ -36,7 +35,7 @@ uint8_t pins_used = 0;
 uint8_t num_joys;
 uint8_t s_nes_pins[NUM_CONTROLLERS] = {S_NES_PINS};
 
-char binstr[BITS+1];
+char binstr[BIN_BITS+1];
 
 uint8_t button_map[3][NUM_BUTTONS] = {
     { //NES
@@ -84,23 +83,16 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
 };
 
 
-void printBin(char* dest, char input) {
-    unsigned char mask = 0x80;
-
-    if(input > 255) { 
-        strncpy(dest, "ERR:>255", BITS+1); 
-        return; 
-    }
-    for(int i=0; i < BITS; i++) {
-        dest[i] = (input & mask) ? '1' : '0';
-        mask >>= 1;
-    }
-    //Terminate the string
-    dest[BITS] = 0;
-}
-
 void setup() {
-    init_bt();
+    Serial.begin(9600);
+
+    //init_bt();
+
+    delay(1000);
+    Serial.println("Testing");
+
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH);
 
     printMsg("Initiating controllers");
 
@@ -108,9 +100,15 @@ void setup() {
     MultiJoystick.useManualSend(true); 
     num_joys = MultiJoystick.num_joys();
 
+    delay(500);
+    digitalWrite(LED_PIN, LOW);
+
     //Set up clock/latch
     pinMode(CLOCK_PIN, OUTPUT);
     pinMode(LATCH_PIN, OUTPUT);
+
+    delay(500);
+    digitalWrite(LED_PIN, HIGH);
 
     //We have to detect SNES before NES 
     //(see NESController::detect_controllers)
@@ -118,15 +116,28 @@ void setup() {
     clist[SNES] = new SNESController(JoyStatus, &pins_used, "SNES");
     clist[NES] = new NESController(JoyStatus, &pins_used, "NES");
 
+    delay(500);
+    digitalWrite(LED_PIN, LOW);
+
     for(int i=0; i < NUM_CONTROLLERS; i++) {
         pinMode(s_nes_pins[i], OUTPUT);
-        pinMode(clist[N64]->slow_pins[i], INPUT);
-        pinMode(clist[N64]->fast_pins[i], INPUT);
+        pinMode(clist[N64]->slow_pins[i], INPUT_PULLUP);
+        pinMode(clist[N64]->fast_pins[i], INPUT_PULLUP);
     }
 
+    delay(500);
+    digitalWrite(LED_PIN, HIGH);
+
     clist[N64]->init();
+
+    delay(500);
+    digitalWrite(LED_PIN, HIGH);
+
     clist[SNES]->init();
     clist[NES]->init();
+
+    delay(500);
+    digitalWrite(LED_PIN, LOW);
 }
 
 void loop()

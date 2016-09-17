@@ -93,7 +93,7 @@ void N64Controller::isr_read() {
         if(BaseController::isr_data.mode == 0 && BaseController::isr_data.counter > 8) {
             BaseController::isr_data.mode = 1;
             BaseController::isr_data.counter = 0;
-            pinMode(BaseController::isr_data.cur_pin, INPUT);
+            pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
         } else {
            *BaseController::isr_data.cur_byte = digitalReadFast(BaseController::isr_data.cur_pin);
            BaseController::isr_data.cur_byte++;
@@ -124,7 +124,7 @@ void N64Controller::isr_write() {
         digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
         if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
             Timer1.detachInterrupt();
-            pinMode(BaseController::isr_data.cur_pin, INPUT);
+            pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
         }
         BaseController::isr_data.cur_byte++;
         BaseController::isr_data.cur_stage = 0;
