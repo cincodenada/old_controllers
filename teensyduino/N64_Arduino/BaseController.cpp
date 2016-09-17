@@ -1,5 +1,7 @@
 #include "BaseController.h"
 
+interrupt_data_struct BaseController::isr_data;
+
 BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name) {
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;

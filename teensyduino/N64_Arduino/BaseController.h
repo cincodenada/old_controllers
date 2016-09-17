@@ -12,6 +12,19 @@
 #define CNAME_LEN 10
 #define TBUFSIZE 33
 
+struct interrupt_data_struct {
+    uint8_t *buf;
+    uint8_t *cur_byte;
+    uint8_t *end_byte;
+    uint8_t cur_stage;
+
+    uint8_t mode;
+    uint8_t counter;
+
+    const uint8_t *pins;
+    uint8_t cur_pin;
+};
+
 class BaseController {
 public:
     uint8_t pinmask;
@@ -37,18 +50,7 @@ public:
 
     static void reset_isr_data();
 
-    static struct interrupt_data_struct {
-        uint8_t *buf;
-        uint8_t *cur_byte;
-        uint8_t *end_byte;
-        uint8_t cur_stage;
-
-        uint8_t mode;
-        uint8_t counter;
-
-        const uint8_t *pins;
-        uint8_t cur_pin;
-    } isr_data;
+    static interrupt_data_struct isr_data;
 };
 
 #endif /* BASECONTROLLER_H */
