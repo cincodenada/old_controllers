@@ -21,6 +21,7 @@ struct interrupt_data_struct {
     uint8_t *end_byte;
     uint8_t cur_bit;
     uint8_t cur_stage;
+    uint8_t read_bits;
 
     // Mode: 0 = writing, 1 = reading, 2 = done
     uint8_t mode;

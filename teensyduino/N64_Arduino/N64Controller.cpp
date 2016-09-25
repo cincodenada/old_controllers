@@ -64,12 +64,11 @@ void N64Controller::read_state() {
 
         digitalWrite(PIN_TRIGGER, HIGH);
 
-        clear_dump();
-
         this->reset_isr_data();
         this->isr_data.cur_pin = this->fast_pins[i];
         this->isr_data.buf[0] = 0x01;
         this->isr_data.end_byte = this->isr_data.buf;
+        this->isr_data.read_bits = 32;
         pinMode(this->isr_data.cur_pin, OUTPUT);
         Timer1.initialize();
         Timer1.attachInterrupt(&this->isr_read, 1);
@@ -114,7 +113,7 @@ void N64Controller::isr_read() {
                 BaseController::isr_data.mode = 1;
                 // Reset byte pointers
                 BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
-                BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE-1];
+                BaseController::isr_data.end_byte = &BaseController::isr_data.buf[BaseController::isr_data.read_bits-1];
                 pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
             }
             BaseController::isr_data.cur_stage++;
