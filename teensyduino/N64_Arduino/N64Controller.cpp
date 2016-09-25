@@ -127,18 +127,34 @@ void N64Controller::isr_read() {
         }
     } else {
         switch(BaseController::isr_data.cur_stage) {
+        case 0:
+            // Wait for line to be pulled low
+            //if(digitalReadFast(BaseController::isr_data.cur_pin) == LOW) {
+                BaseController::isr_data.cur_stage++;
+            //}
+        case 1:
+            BaseController::isr_data.cur_stage++;
         case 2:
            *BaseController::isr_data.cur_byte = digitalReadFast(BaseController::isr_data.cur_pin);
            BaseController::isr_data.cur_byte++;
+           BaseController::isr_data.cur_stage++;
            break;
         case 3:
+           /*
+            printMsg("cur_byte: %x, end_byte: %x, value: %d",
+                BaseController::isr_data.cur_byte,
+                BaseController::isr_data.end_byte,
+                *(BaseController::isr_data.cur_byte-1)
+            );
+            */
             if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
                 Timer1.detachInterrupt();
                 // Declare done
                 BaseController::isr_data.mode = 2;
             }
+            BaseController::isr_data.cur_stage = 0;
+            break;
         }
-        BaseController::isr_data.cur_stage++;
     }
 }
 
