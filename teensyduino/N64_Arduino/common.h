@@ -4,7 +4,7 @@
 #define MSG_LEN 100
 extern char msg[MSG_LEN];
 
-#define BIN_BITS 8
+#define NUM_BITS 8
 
 #include "Arduino.h"
 

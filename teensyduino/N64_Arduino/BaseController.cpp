@@ -92,9 +92,8 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
 
 void BaseController::reset_isr_data() {
     BaseController::isr_data.cur_stage = 0;
-    memset(BaseController::isr_data.buf, 0, TBUFSIZE);
-    BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
-    BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE - 1];
     BaseController::isr_data.counter = 0;
     BaseController::isr_data.mode = 0;
+    BaseController::isr_data.cur_bit = 0;
+
 }

@@ -15,6 +15,7 @@
 struct interrupt_data_struct {
     uint8_t *buf;
     uint8_t *cur_byte;
+    uint8_t cur_bit;
     uint8_t *end_byte;
     uint8_t cur_stage;
 

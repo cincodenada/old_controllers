@@ -24,15 +24,15 @@ void printBin(char* dest, char input) {
     unsigned char mask = 0x80;
 
     if(input > 255) { 
-        strncpy(dest, "ERR:>255", BIN_BITS+1); 
+        strncpy(dest, "ERR:>255", NUM_BITS+1); 
         return; 
     }
-    for(int i=0; i < BIN_BITS; i++) {
+    for(int i=0; i < NUM_BITS; i++) {
         dest[i] = (input & mask) ? '1' : '0';
         mask >>= 1;
     }
     //Terminate the string
-    dest[BIN_BITS] = 0;
+    dest[NUM_BITS] = 0;
 }
 
 void blink_binary(int num, uint8_t bits) {

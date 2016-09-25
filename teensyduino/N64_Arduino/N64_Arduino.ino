@@ -35,7 +35,7 @@ uint8_t pins_used = 0;
 uint8_t num_joys;
 uint8_t s_nes_pins[NUM_CONTROLLERS] = {S_NES_PINS};
 
-char binstr[BIN_BITS+1];
+char binstr[NUM_BITS+1];
 
 uint8_t button_map[3][NUM_BUTTONS] = {
     { //NES
