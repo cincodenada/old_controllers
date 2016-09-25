@@ -6,6 +6,8 @@ BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, 
     this->JoyStatus = JoyStatus;
     this->globalmask = global_pins;
     strncpy(this->controller_name, controller_name, CNAME_LEN);
+
+    this->isr_data = interrupt_data_struct();
 }
 
 void BaseController::init() {
@@ -92,8 +94,10 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
 
 void BaseController::reset_isr_data() {
     BaseController::isr_data.cur_stage = 0;
-    BaseController::isr_data.counter = 0;
     BaseController::isr_data.mode = 0;
-    BaseController::isr_data.cur_bit = 0;
-
+    BaseController::isr_data.cur_bit = 0x80;
+    // Reset buffer pointers, fill with zeroes
+    BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
+    BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE-1];
+    memset(BaseController::isr_data.buf, 0, TBUFSIZE);
 }

@@ -55,7 +55,7 @@
 #define LED_PIN 13
 
 //C6/7 = 9/10
-#define PIN_TRIGGER CLOCK_PIN
+#define PIN_TRIGGER LED_PIN
 
 #define IO_MASK 0x0F
 

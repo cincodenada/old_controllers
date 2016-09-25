@@ -30,14 +30,15 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     //Just send the ID command and see who answers
     //This also initializes some controllers (Wavebird, I guess?)
     uint8_t command;
-    command = 0x04;
+    command = 0x01;
 
     for(int i=0; i < NUM_CONTROLLERS; i++) {
         if(!(pins_avail & (0x01 << i))) { continue; }
 
         printMsg("Sending command for controller %d...", i);
         while(1) {
-            this->send(i, &command, 1);
+            //this->send(i, &command, 1);
+            this->read_state();
             delay(1);
         }
 
@@ -58,7 +59,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
 
 void N64Controller::read_state() {
     //Run through our controllers one at a time
-    for(int i=0; i<NUM_CONTROLLERS; i++) {
+    for(int i=0; i<1 /*NUM_CONTROLLERS*/; i++) {
         if(!(this->pinmask & (0x01 << i))) { continue; }
 
         digitalWrite(PIN_TRIGGER, HIGH);
@@ -67,13 +68,15 @@ void N64Controller::read_state() {
 
         this->reset_isr_data();
         this->isr_data.cur_pin = this->fast_pins[i];
-        this->isr_data.buf = this->raw_dump;
-        this->isr_data.end_byte = &this->isr_data.buf[33];
+        this->isr_data.buf[0] = 0x01;
+        this->isr_data.end_byte = this->isr_data.buf;
         pinMode(this->isr_data.cur_pin, OUTPUT);
         Timer1.initialize();
         Timer1.attachInterrupt(&this->isr_read, 1);
         // Spin our wheels
-        while(this->isr_data.mode < 2);
+        volatile int j=0;
+        while(this->isr_data.mode < 2) { j++; delay(1); }
+        printMsg("Blooped for %d loops", j);
 
         this->fillStatus(this->JoyStatus);
         digitalWrite(PIN_TRIGGER, LOW);
@@ -81,39 +84,62 @@ void N64Controller::read_state() {
 }
 
 void N64Controller::isr_read() {
-    if(BaseController::isr_data.cur_stage == 0)  {
-        digitalWriteFast(BaseController::isr_data.cur_pin, LOW);
-        BaseController::isr_data.cur_stage++;
-    } else if(BaseController::isr_data.cur_stage == 1) {
-        if(BaseController::isr_data.mode == 0) {
-            // Write
-            if(BaseController::isr_data.counter >= 7) {
+    if(BaseController::isr_data.mode == 0) {
+        switch(BaseController::isr_data.cur_stage) {
+        case 0:
+            digitalWriteFast(BaseController::isr_data.cur_pin, LOW);
+            // Reset bit mask if we finished the previous byte
+            if(BaseController::isr_data.cur_bit == 0) {
+                BaseController::isr_data.cur_bit = 0x80;
+                BaseController::isr_data.cur_byte++;
+            }
+            BaseController::isr_data.cur_stage++;
+            break;
+        case 1:
+            /*
+            printMsg("cur_byte: %x, end_byte: %x, cur_bit: %.2x",
+                BaseController::isr_data.cur_byte,
+                BaseController::isr_data.end_byte,
+                BaseController::isr_data.cur_bit
+            );
+            */
+            if(BaseController::isr_data.cur_byte > BaseController::isr_data.end_byte
+                || (*BaseController::isr_data.cur_byte & BaseController::isr_data.cur_bit)) {
                 digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
             }
-            BaseController::isr_data.counter++;
+            BaseController::isr_data.cur_stage++;
+            break;
+        case 2:
+            if(BaseController::isr_data.cur_byte > BaseController::isr_data.end_byte) {
+                BaseController::isr_data.mode = 1;
+                // Reset byte pointers
+                BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
+                BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE-1];
+                pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
+            }
+            BaseController::isr_data.cur_stage++;
+            break;
+        case 3:
+            digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
+            // Set up to be back to zero after increment
+            BaseController::isr_data.cur_stage = 0;
+            BaseController::isr_data.cur_bit >>= 1;
+            break;
         }
-        BaseController::isr_data.cur_stage++;
-    } else if(BaseController::isr_data.cur_stage == 2) {
-        if(BaseController::isr_data.mode == 0 && BaseController::isr_data.counter > 8) {
-            BaseController::isr_data.mode = 1;
-            BaseController::isr_data.counter = 0;
-            pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
-        } else {
+    } else {
+        switch(BaseController::isr_data.cur_stage) {
+        case 2:
            *BaseController::isr_data.cur_byte = digitalReadFast(BaseController::isr_data.cur_pin);
            BaseController::isr_data.cur_byte++;
-        }
-        BaseController::isr_data.cur_stage++;
-    } else if(BaseController::isr_data.cur_stage == 3) {
-        if(BaseController::isr_data.mode == 0) {
-            digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
-        } else {
+           break;
+        case 3:
             if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
                 Timer1.detachInterrupt();
                 // Declare done
                 BaseController::isr_data.mode = 2;
             }
         }
-        BaseController::isr_data.cur_stage = 0;
+        BaseController::isr_data.cur_stage++;
     }
 }
 
@@ -156,9 +182,6 @@ void N64Controller::send(uint8_t pin, uint8_t *buffer, uint8_t length) {
     printMsg("Clearing ISR data...");
     this->reset_isr_data();
     this->isr_data.cur_pin = this->fast_pins[pin];
-    this->isr_data.buf = buffer;
-    this->isr_data.cur_byte = this->isr_data.buf;
-    this->isr_data.end_byte = &this->isr_data.buf[length-1];
     printMsg("Setting pin mode");
     pinMode(this->isr_data.cur_pin, OUTPUT);
     printMsg("Initializing timer...");
@@ -174,7 +197,7 @@ void N64Controller::send(uint8_t pin, uint8_t *buffer, uint8_t length) {
     //TODO: This only seems to work if we take a lot of time between loops?
     //Like do a printMsg or a delay()?
     //But we can't do that if we're watching for a response...
-    while(this->isr_data.mode < 2) { i++; }
+    while(this->isr_data.mode < 2) { i++; delay(1); }
     printMsg("Blooped for %d loops", i);
     //printMsg("ISR mode: %d", this->isr_data.mode);
 }

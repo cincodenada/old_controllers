@@ -45,7 +45,6 @@ void SNESController::read_state() {
 void SNESController::get() {
     this->reset_isr_data();
     this->isr_data.pins = this->slow_pins;
-    this->isr_data.buf = this->raw_dump;
     this->isr_data.end_byte = &this->isr_data.buf[16];
     Timer1.initialize();
     Timer1.attachInterrupt(&this->isr_read, 12);
