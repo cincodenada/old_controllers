@@ -100,5 +100,5 @@ void BaseController::reset_isr_data() {
     BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
     BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE-1];
     BaseController::isr_data.read_bits = TBUFSIZE;
-    memset(BaseController::isr_data.buf, 0, TBUFSIZE);
+    memset((void*)BaseController::isr_data.buf, 0, TBUFSIZE);
 }

@@ -80,7 +80,7 @@ void N64Controller::read_state() {
         while(this->isr_data.mode < 2) { j++; delay(1); }
         printMsg("Blooped for %d loops", j);
 
-        memcpy(raw_dump, this->isr_data.buf, TBUFSIZE);
+        memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
         this->fillStatus(this->JoyStatus);
         digitalWrite(PIN_TRIGGER, LOW);
     }

@@ -16,18 +16,18 @@
 struct interrupt_data_struct {
     // Add a pad byte cause we might try to
     // read one past the end sometimes
-    uint8_t buf[TBUFSIZE+1];
-    uint8_t *cur_byte;
-    uint8_t *end_byte;
-    uint8_t cur_bit;
-    uint8_t cur_stage;
-    uint8_t read_bits;
+    volatile uint8_t buf[TBUFSIZE+1];
+    volatile uint8_t *cur_byte;
+    volatile uint8_t *end_byte;
+    volatile uint8_t cur_bit;
+    volatile uint8_t cur_stage;
+    volatile uint8_t read_bits;
 
     // Mode: 0 = writing, 1 = reading, 2 = done
-    uint8_t mode;
+    volatile uint8_t mode;
 
-    const uint8_t *pins;
-    uint8_t cur_pin;
+    volatile const uint8_t *pins;
+    volatile uint8_t cur_pin;
 };
 
 class BaseController {
