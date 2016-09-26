@@ -129,13 +129,15 @@ void setup() {
     clist[N64]->init();
 
     printMsg("Initiated N64");
-    digitalWrite(LED_PIN, HIGH);
+    digitalWrite(LED_PIN, LOW);
+/*
 
     clist[SNES]->init();
     clist[NES]->init();
 
+*/
     printMsg("Initiated NES/SNES");
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(LED_PIN, HIGH);
 }
 
 void loop()
