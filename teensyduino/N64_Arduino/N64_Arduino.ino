@@ -88,26 +88,24 @@ void setup() {
 
     //init_bt();
 
-    delay(1000);
-    Serial.println("Testing");
+    //delay(1000);
 
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, HIGH);
 
-    printMsg("Initiating controllers");
 
     MultiJoystick.setJoyNum(0);
     MultiJoystick.useManualSend(true); 
     num_joys = MultiJoystick.num_joys();
 
-    delay(500);
+    printMsg("Initiated joystick lib");
     digitalWrite(LED_PIN, LOW);
 
     //Set up clock/latch
     pinMode(CLOCK_PIN, OUTPUT);
     pinMode(LATCH_PIN, OUTPUT);
 
-    delay(500);
+    printMsg("Set up pins");
     digitalWrite(LED_PIN, HIGH);
 
     //We have to detect SNES before NES 
@@ -116,7 +114,7 @@ void setup() {
     clist[SNES] = new SNESController(JoyStatus, &pins_used, "SNES");
     clist[NES] = new NESController(JoyStatus, &pins_used, "NES");
 
-    delay(500);
+    printMsg("Created controllers");
     digitalWrite(LED_PIN, LOW);
 
     for(int i=0; i < NUM_CONTROLLERS; i++) {
@@ -125,18 +123,18 @@ void setup() {
         pinMode(clist[N64]->fast_pins[i], INPUT_PULLUP);
     }
 
-    delay(500);
+    printMsg("Initiated controller pins");
     digitalWrite(LED_PIN, HIGH);
 
     clist[N64]->init();
 
-    delay(500);
+    printMsg("Initiated N64");
     digitalWrite(LED_PIN, HIGH);
 
     clist[SNES]->init();
     clist[NES]->init();
 
-    delay(500);
+    printMsg("Initiated NES/SNES");
     digitalWrite(LED_PIN, LOW);
 }
 

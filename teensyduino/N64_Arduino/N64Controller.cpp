@@ -40,7 +40,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
         printMsg("Sending command for controller %d...", i);
         while(1) {
             //this->send(i, &command, 1);
-            cls();
+            //cls();
             this->read_state();
             delay(1);
         }
@@ -65,7 +65,6 @@ void N64Controller::read_state() {
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(!(this->pinmask & (0x01 << i))) { continue; }
 
-        digitalWrite(PIN_TRIGGER, HIGH);
 
         this->reset_isr_data();
         this->isr_data.cur_pin = this->fast_pins[i];
@@ -73,15 +72,59 @@ void N64Controller::read_state() {
         this->isr_data.end_byte = this->isr_data.buf;
         this->isr_data.read_bits = 32;
         pinMode(this->isr_data.cur_pin, OUTPUT);
+        analogWriteResolution(3);
         Timer1.initialize();
+        digitalWrite(PIN_TRIGGER, HIGH);
         Timer1.attachInterrupt(&this->isr_read, 1);
         // Spin our wheels
-        volatile int j=0;
-        while(this->isr_data.mode < 2) { j++; }
+        volatile uint16_t j=0;
+        while(this->isr_data.mode == 0) { j++; }
+        Timer1.detachInterrupt();
         printMsg("Blooped for %d loops", j);
 
-        // Allow time to send serial!
-        delay(10);
+        uint8_t bits = 0;
+        uint8_t max_loops = 40;
+        noInterrupts();
+        while(bits <= this->isr_data.read_bits) {
+            volatile uint8_t val = HIGH;
+            int loops = 0;
+            long int low_len = 0, high_len = 0;
+            while(val == HIGH && loops < max_loops) {
+                val = digitalReadFast(BaseController::isr_data.cur_pin);
+                loops++;
+            }
+            if(loops == max_loops) {
+                digitalWrite(PIN_TRIGGER, LOW);
+                printMsg("No response from controller!");
+                break;
+            }
+            loops = 0;
+            while(val == LOW && loops < max_loops) {
+                val = digitalReadFast(BaseController::isr_data.cur_pin);
+                low_len++;
+                loops++;
+            }
+            if(loops == max_loops) {
+                digitalWrite(PIN_TRIGGER, LOW);
+                printMsg("Hung waiting for LOW");
+                break;
+            }
+            loops = 0;
+            while(val == HIGH && loops < max_loops) {
+                val = digitalReadFast(BaseController::isr_data.cur_pin);
+                high_len++;
+                loops++;
+            }
+            if(loops == max_loops) {
+                digitalWrite(PIN_TRIGGER, LOW);
+                printMsg("Hung waiting for HIGH");
+                break; 
+            }
+            *BaseController::isr_data.cur_byte = (high_len > low_len);
+            BaseController::isr_data.cur_byte++;
+            bits++;
+        }
+        interrupts();
 
         //memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
         //this->fillStatus(this->JoyStatus);
@@ -90,9 +133,18 @@ void N64Controller::read_state() {
 }
 
 void N64Controller::isr_read() {
+    noInterrupts();
+    analogWrite(A14, BaseController::isr_data.mode);
     if(BaseController::isr_data.mode == 0) {
         switch(BaseController::isr_data.cur_stage) {
         case 0:
+            /*
+            printMsg("cur_byte: %x, end_byte: %x, cur_bit: %.2x",
+                BaseController::isr_data.cur_byte,
+                BaseController::isr_data.end_byte,
+                BaseController::isr_data.cur_bit
+            );
+            */
             digitalWriteFast(BaseController::isr_data.cur_pin, LOW);
             // Reset bit mask if we finished the previous byte
             if(BaseController::isr_data.cur_bit == 0) {
@@ -102,13 +154,6 @@ void N64Controller::isr_read() {
             BaseController::isr_data.cur_stage++;
             break;
         case 1:
-            /*
-            printMsg("cur_byte: %x, end_byte: %x, cur_bit: %.2x",
-                BaseController::isr_data.cur_byte,
-                BaseController::isr_data.end_byte,
-                BaseController::isr_data.cur_bit
-            );
-            */
             if(BaseController::isr_data.cur_byte > BaseController::isr_data.end_byte
                 || (*BaseController::isr_data.cur_byte & BaseController::isr_data.cur_bit)) {
                 digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
@@ -117,12 +162,13 @@ void N64Controller::isr_read() {
             break;
         case 2:
             if(BaseController::isr_data.cur_byte > BaseController::isr_data.end_byte) {
-                BaseController::isr_data.mode = 1;
-                BaseController::isr_data.cur_stage = 0;
+                Timer1.detachInterrupt();
                 // Reset byte pointers
                 BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
                 BaseController::isr_data.end_byte = &BaseController::isr_data.buf[BaseController::isr_data.read_bits-1];
                 pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
+                // Declare done
+                BaseController::isr_data.mode = 1;
             }
             BaseController::isr_data.cur_stage++;
             break;
@@ -158,14 +204,12 @@ void N64Controller::isr_read() {
             );
             */
             if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
-                Timer1.detachInterrupt();
-                // Declare done
-                BaseController::isr_data.mode = 2;
             }
             BaseController::isr_data.cur_stage = 0;
             break;
         }
     }
+    interrupts();
 }
 
 void N64Controller::isr_write() {
