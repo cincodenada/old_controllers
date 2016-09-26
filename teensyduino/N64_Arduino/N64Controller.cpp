@@ -35,9 +35,12 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     for(int i=0; i < NUM_CONTROLLERS; i++) {
         if(!(pins_avail & (0x01 << i))) { continue; }
 
+        this->pinmask = 0x01;
+
         printMsg("Sending command for controller %d...", i);
         while(1) {
             //this->send(i, &command, 1);
+            cls();
             this->read_state();
             delay(1);
         }
@@ -59,7 +62,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
 
 void N64Controller::read_state() {
     //Run through our controllers one at a time
-    for(int i=0; i<1 /*NUM_CONTROLLERS*/; i++) {
+    for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(!(this->pinmask & (0x01 << i))) { continue; }
 
         digitalWrite(PIN_TRIGGER, HIGH);
@@ -77,6 +80,7 @@ void N64Controller::read_state() {
         while(this->isr_data.mode < 2) { j++; delay(1); }
         printMsg("Blooped for %d loops", j);
 
+        memcpy(raw_dump, this->isr_data.buf, TBUFSIZE);
         this->fillStatus(this->JoyStatus);
         digitalWrite(PIN_TRIGGER, LOW);
     }
@@ -111,6 +115,7 @@ void N64Controller::isr_read() {
         case 2:
             if(BaseController::isr_data.cur_byte > BaseController::isr_data.end_byte) {
                 BaseController::isr_data.mode = 1;
+                BaseController::isr_data.cur_stage = 0;
                 // Reset byte pointers
                 BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
                 BaseController::isr_data.end_byte = &BaseController::isr_data.buf[BaseController::isr_data.read_bits-1];
@@ -129,11 +134,13 @@ void N64Controller::isr_read() {
         switch(BaseController::isr_data.cur_stage) {
         case 0:
             // Wait for line to be pulled low
-            //if(digitalReadFast(BaseController::isr_data.cur_pin) == LOW) {
+            if(digitalReadFast(BaseController::isr_data.cur_pin) == LOW) {
                 BaseController::isr_data.cur_stage++;
-            //}
+            }
+            break;
         case 1:
             BaseController::isr_data.cur_stage++;
+            break;
         case 2:
            *BaseController::isr_data.cur_byte = digitalReadFast(BaseController::isr_data.cur_pin);
            BaseController::isr_data.cur_byte++;

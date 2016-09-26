@@ -20,6 +20,13 @@ void printMsg(const char* format, ...) {
     va_end(args);
 }
 
+void cls() {
+    Serial.write(27);       // ESC command
+    Serial.print("[2J");    // clear screen command
+    Serial.write(27);
+    Serial.print("[H");     // cursor to home command
+}
+
 void printBin(char* dest, char input) {
     unsigned char mask = 0x80;
 

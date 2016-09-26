@@ -9,6 +9,7 @@ extern char msg[MSG_LEN];
 #include "Arduino.h"
 
 void printMsg(const char* format, ...);
+void cls();
 void printBin(char* dest, char input);
 void blink_binary(int num, uint8_t bits);
 
