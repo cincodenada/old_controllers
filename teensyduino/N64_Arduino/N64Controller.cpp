@@ -77,11 +77,14 @@ void N64Controller::read_state() {
         Timer1.attachInterrupt(&this->isr_read, 1);
         // Spin our wheels
         volatile int j=0;
-        while(this->isr_data.mode < 2) { j++; delay(1); }
+        while(this->isr_data.mode < 2) { j++; }
         printMsg("Blooped for %d loops", j);
 
-        memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
-        this->fillStatus(this->JoyStatus);
+        // Allow time to send serial!
+        delay(10);
+
+        //memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
+        //this->fillStatus(this->JoyStatus);
         digitalWrite(PIN_TRIGGER, LOW);
     }
 }
@@ -134,9 +137,9 @@ void N64Controller::isr_read() {
         switch(BaseController::isr_data.cur_stage) {
         case 0:
             // Wait for line to be pulled low
-            if(digitalReadFast(BaseController::isr_data.cur_pin) == LOW) {
+            //if(digitalReadFast(BaseController::isr_data.cur_pin) == LOW) {
                 BaseController::isr_data.cur_stage++;
-            }
+            //}
             break;
         case 1:
             BaseController::isr_data.cur_stage++;
