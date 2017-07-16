@@ -32,7 +32,7 @@ struct interrupt_data_struct {
 
 class BaseController {
 public:
-    uint8_t pinmask;
+    uint8_t pinmask = 0;
     uint8_t* globalmask;
     char controller_name[CNAME_LEN];
     controller_type_t controller_type;

@@ -88,11 +88,22 @@ void setup() {
 
     //init_bt();
 
-    //delay(1000);
-
     pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, HIGH);
 
+    int pinval = HIGH;
+    int waitsecs = 5;
+    printMsg("Waiting %d seconds for serial connection");
+    for(int i=waitsecs; i>0; --i) {
+        Serial.print(i);
+        Serial.print("...");
+        Serial.flush();
+        digitalWrite(LED_PIN, pinval);
+        delay(1000);
+        pinval = (pinval == HIGH) ? LOW : HIGH;
+    }
+    Serial.println();
+
+    digitalWrite(LED_PIN, HIGH);
 
     MultiJoystick.setJoyNum(0);
     MultiJoystick.useManualSend(true); 
@@ -138,6 +149,10 @@ void setup() {
 */
     printMsg("Initiated NES/SNES");
     digitalWrite(LED_PIN, HIGH);
+
+    for(int i=0; i<50; i++) {
+        Serial.println();
+    }
 }
 
 void loop()

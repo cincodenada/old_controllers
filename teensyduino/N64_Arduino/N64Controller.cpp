@@ -36,7 +36,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     for(int i=0; i < NUM_CONTROLLERS; i++) {
         if(!(pins_avail & (0x01 << i))) { continue; }
 
-        printMsg("Sending command for controller %d...", i);
+        printMsg("Sending command for controller %d...", i+1);
         this->send(i, &command, 1);
 
         int x, responded = 0;
@@ -83,6 +83,7 @@ void N64Controller::read_state() {
         while(this->isr_data.mode == 0) { j++; }
         //printMsg("Blooped for %d loops", j);
 
+        int hung = 0;
         noInterrupts();
         // Wait for initial low...
         while(bits < this->isr_data.read_bits) {
@@ -93,7 +94,7 @@ void N64Controller::read_state() {
             }
             if(loops == max_loops) {
                 digitalWrite(PIN_TRIGGER, LOW);
-                printMsg("Hung waiting for LOW on bit %d!", bits);
+                hung = 1;
                 break;
             }
             low_len = 0;
@@ -106,7 +107,13 @@ void N64Controller::read_state() {
             bits++;
         }
         interrupts();
-        
+
+        if(hung) {
+            printMsg("Read %02d bits /!\\", bits);
+        } else {
+            printMsg("Read %02d bits     ", bits);
+        }
+
         // Find min/max
         uint8_t curval, min=255, max=0;
         uint8_t k;
