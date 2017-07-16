@@ -224,13 +224,14 @@ void N64Controller::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
         // Fill the buttonsets with the first two bites
         for (setnum=0; setnum<2; setnum++) {
             //If the button is pressed, set the bit
-            if(raw_dump[i + setnum*8] & datamask) {
+            //N64s happen one at a time, so no need to check a specific bit
+            if(raw_dump[i + setnum*8]) {
                 joystick->buttonset[setnum] |= (0x80 >> i);
             }
         }
         // Fill the axes with the next two
-        xaxis |= (this->raw_dump[16+i] & datamask) ? (0x80 >> i) : 0;
-        yaxis |= (this->raw_dump[24+i] & datamask) ? (0x80 >> i) : 0;
+        xaxis |= (this->raw_dump[16+i]) ? (0x80 >> i) : 0;
+        yaxis |= (this->raw_dump[24+i]) ? (0x80 >> i) : 0;
     }
 
     // Safely translate the axis values from [-N64_AXIS_MAX, N64_AXIS_MAX] to [AXIS_MIN, AXIS_MAX]
