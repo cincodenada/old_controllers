@@ -141,8 +141,11 @@ void N64Controller::read_state() {
             }
         }
 
-        memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
-        this->fillStatus(this->JoyStatus);
+        // Don't fill status if we got a bad read
+        if(!hung) {
+            memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
+            this->fillStatus(this->JoyStatus);
+        }
         delay(1);
         digitalWrite(PIN_TRIGGER, LOW);
     }
