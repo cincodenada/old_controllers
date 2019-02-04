@@ -151,6 +151,8 @@ void setup() {
     for(int i=0; i<50; i++) {
         Serial.println();
     }
+
+    enableMessages(false);
 }
 
 void loop()
@@ -250,9 +252,6 @@ void loop()
     //controllers.print_status(0);
     //controllers.print_status(1);
     delay(25);
-
-    Serial.write(27);
-    Serial.print("[H");     // cursor to home command
 }
 
 void remap_buttons(uint8_t cnum) {

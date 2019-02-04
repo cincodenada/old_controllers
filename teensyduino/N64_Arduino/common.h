@@ -1,13 +1,14 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define MSG_LEN 100
+#define MSG_LEN 70 
 extern char msg[MSG_LEN];
 
 #define NUM_BITS 8
 
 #include "Arduino.h"
 
+void enableMessages(bool enabled);
 void printMsg(const char* format, ...);
 void cls();
 void printBin(char* dest, char input);

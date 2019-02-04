@@ -3,12 +3,17 @@
 #include "pin_config.h"
 
 int max_len = 0;
+int messages_enabled = true;
+
+void enableMessages(bool enabled) {
+  messages_enabled = enabled;
+}
 
 void printMsg(const char* format, ...) {
     va_list args;
     int cur_len, i;
     va_start(args, format);
-    if(true) {
+    if(messages_enabled) {
         cur_len = vsnprintf(msg, MSG_LEN, format, args);
         if(cur_len > max_len) { max_len = cur_len; }
         for(i=cur_len; i < max_len && i < MSG_LEN; i++) {
@@ -22,16 +27,19 @@ void printMsg(const char* format, ...) {
 }
 
 void cls() {
-    Serial.write(27);       // ESC command
-    Serial.print("[2J");    // clear screen command
-    Serial.write(27);
-    Serial.print("[H");     // cursor to home command
+  if(messages_enabled) {
+    //Serial.print("\033[2J");    // clear screen command
+    Serial.print("\033[0;0H");     // cursor to home command
+    Serial.flush();
+  }
 }
 
 void printBin(char* dest, char input) {
     unsigned char mask = 0x80;
 
-    if(input > 255) { 
+    if(!messages_enabled) { return; }
+
+    if(input > 255) {
         strncpy(dest, "ERR:>255", NUM_BITS+1); 
         return; 
     }
