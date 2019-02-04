@@ -14,8 +14,7 @@
 
 #include "TimerOne.h"
 
-#include "pins_arduino.h"
-
+#include "pin_config.h"
 #include "common.h"
 #include "JoystickStatus.h"
 #include "crc_table.h"
@@ -33,7 +32,6 @@ BaseController* clist[NUMCTL];
 char msg[MSG_LEN];
 uint8_t pins_used = 0;
 uint8_t num_joys;
-uint8_t s_nes_pins[NUM_CONTROLLERS] = {S_NES_PINS};
 
 char binstr[NUM_BITS+1];
 
@@ -54,8 +52,8 @@ uint8_t button_map[3][NUM_BUTTONS] = {
     },{ //N64
         // A B Z St U D L R
         1,2,3,4,
-        AXIS(3,-1),AXIS(3,1),
-        AXIS(2,-1),AXIS(2,1),
+        AXIS(1,-1),AXIS(1,1),
+        AXIS(0,-1),AXIS(0,1),
         // X X L R U D L R <-(c)
         0,0,5,6,
         HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0)
@@ -165,7 +163,7 @@ void loop()
     printBin(binstr, pins_used);
     printMsg("Pins used: 0x%X (%s)", pins_used, binstr);
     printMsg("%lu: Polling Controllers...", millis());
-    for(i=0;i<NUMCTL;i++) { 
+    for(i=0;i<NUMCTL;i++) {
         clist[i]->read_state();
         printBin(binstr, clist[i]->pinmask);
         printMsg("%s: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
@@ -200,7 +198,7 @@ void loop()
           MultiJoystick.button((i+8)+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
           mask = mask << 1;
       }
-    
+
       //The array is given as AXIS_MIN to AXIS_MAX
       //Joystick funcitons need 0 to 1023
       unsigned int joyx, joyy;
@@ -213,8 +211,9 @@ void loop()
       joyx = curStatus.axis[2]/JOY_FACT + JOY_OFFSET;
       joyy = curStatus.axis[3]/JOY_FACT + JOY_OFFSET;
 
-      MultiJoystick.axis(joypos*2+3,joyx);
-      MultiJoystick.axis(joypos*2+4,joyy);
+      // Skip over 3 (Throttle/Z)
+      MultiJoystick.axis(joypos*2+4,joyx);
+      MultiJoystick.axis(joypos*2+5,joyy);
 
       MultiJoystick.hat(curStatus.hat);
 

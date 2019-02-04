@@ -1,5 +1,6 @@
-#include "pin_config.h"
 #include "common.h"
+
+#include "pin_config.h"
 
 int max_len = 0;
 

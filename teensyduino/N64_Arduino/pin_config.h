@@ -1,6 +1,8 @@
 #ifndef PIN_CONFIG_H
 #define PIN_CONFIG_H
 
+#include "core_pins.h"
+
 #define SLOW_PINS 0,1,2,3
 #define SLOW_MASKS \
     CORE_PIN0_BITMASK, \
@@ -58,5 +60,7 @@
 #define PIN_TRIGGER LED_PIN
 
 #define IO_MASK 0x0F
+
+const int s_nes_pins[] = {S_NES_PINS};
 
 #endif /* PIN_CONFIG_H */
