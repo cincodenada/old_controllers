@@ -10,7 +10,7 @@ void NESController::init() {
 void NESController::setup_pins() {
     //For our pins, set SNES flag to low (=NES)
     for(int i=0; i<NUM_CONTROLLERS; i++) {
-        digitalWrite(this->slow_pins[i], LOW);
+        digitalWrite(this->s_nes_pins[i], LOW);
     }
 }
 
@@ -29,7 +29,7 @@ void NESController::detect_controllers(uint8_t pins_avail) {
     //For our pins, set SNES flag to low (=NES)
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
-            digitalWrite(this->slow_pins[i], LOW);
+            digitalWrite(this->s_nes_pins[i], HIGH);
         }
     }
 
@@ -88,6 +88,7 @@ void NESController::isr_read() {
             BaseController::isr_data.cur_stage++;
         } else {
             digitalWriteFast(CLOCK_PIN, LOW);
+            BaseController::isr_data.cur_byte++;
             if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
                 Timer1.detachInterrupt();
             }
