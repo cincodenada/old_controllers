@@ -19,16 +19,20 @@ void SNESController::clear_dump() {
 }
 
 void SNESController::detect_controllers(uint8_t pins_avail) {
-    //Try setting remaining ports to NES
-    //For our pins, set SNES flag to low (=NES)
+    // This algorithm was after some experimentation.
+    // With a weak pull-down on DATA, we can divine things safely
+    // SNES must be detected/eliminated first
+
+    // Pin SNES controller Vdd to GND
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
             digitalWrite(this->s_nes_pins[i], LOW);
         }
     }
 
-    //Lines pulled low are SNES controllers
-    //So invert and mask
+    // SNES controllers will pull DATA lines to their Vdd,
+    // which is now our LOW. NES Controllers and empty slots
+    // are pulling to 5V, so anything LOW is an SNES controller
     this->pinmask = this->get_deviants(pins_avail, 1);
 }
 

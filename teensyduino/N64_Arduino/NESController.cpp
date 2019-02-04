@@ -25,24 +25,28 @@ void NESController::clear_dump() {
 //And that's probably not great for "disabled" 
 //SNES controllers anyway
 void NESController::detect_controllers(uint8_t pins_avail) {
-    //Try setting remaining ports to NES
-    //For our pins, set SNES flag to low (=NES)
+    // At this point any SNES controllers are out of the running
+    // Enable the rest as NES controllers, and see which ones
+    // pull the DATA line high (and are thus NES controllers)
+
+    // First, set all the remaining ports to NES
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
-            digitalWrite(this->s_nes_pins[i], HIGH);
+            // Set to hi-z input, so NES is responsible for pullup
+            pinMode(this->slow_pins[i], INPUT);
+            digitalWrite(this->s_nes_pins[i], LOW);
         }
     }
 
-    //Read to clear out any shift registers
-    Timer1.initialize();
-    Timer1.attachInterrupt(this->isr_read, 6);
-    delay(1);
-    Timer1.detachInterrupt();
+    // We're safe to use LATCH now, since SNES controllers
+    // are where they want to be
+    pinMode(LATCH_PIN, OUTPUT);
+    digitalWrite(LATCH_PIN, HIGH);
 
-    //Lines pulled low are either SNES or NES controllers
-    //We assume SNES are already eliminated, so
-    //the remaining controllers are NES controllers
+    // Anyone pulled high on latch is an NES controller
     this->pinmask = this->get_deviants(pins_avail, 1);
+
+    digitalWrite(LATCH_PIN, LOW); // Reset latch
 }
 
 void NESController::read_state() {

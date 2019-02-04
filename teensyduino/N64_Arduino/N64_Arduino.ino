@@ -107,10 +107,6 @@ void setup() {
     printMsg("Initiated joystick lib");
     digitalWrite(LED_PIN, LOW);
 
-    //Set up clock/latch
-    pinMode(CLOCK_PIN, OUTPUT);
-    pinMode(LATCH_PIN, OUTPUT);
-
     printMsg("Set up pins");
     digitalWrite(LED_PIN, HIGH);
 
@@ -136,16 +132,20 @@ void setup() {
 
     printMsg("Initiated N64");
     digitalWrite(LED_PIN, LOW);
-/*
 
     clist[SNES]->init();
     clist[NES]->init();
 
-*/
     printMsg("Initiated NES/SNES");
     digitalWrite(LED_PIN, HIGH);
 
-    for(int i=0; i<50; i++) {
+    // Now that we're done detecting, we can set
+    // CLOCK/LATCH to outputs. Doing so earlier
+    // would expose the controllers to odd voltages
+    pinMode(CLOCK_PIN, OUTPUT);
+    pinMode(LATCH_PIN, OUTPUT);
+
+    for(int i=0; i<10; i++) {
         Serial.println();
     }
 
