@@ -59,7 +59,7 @@ void JoystickStatus::copyFrom(JoystickStatus* source) {
 void JoystickStatus::clear() {
     memset(this->axis, 0, sizeof(this->axis));
     memset(this->buttonset, 0, sizeof(this->buttonset));
-    this->hat = 0;
+    this->hat = -1;
 }
 
 bool JoystickStatus::button_pressed() {
@@ -73,7 +73,7 @@ bool JoystickStatus::axis_pressed() {
     );
 }
 bool JoystickStatus::hat_pressed() {
-    return (this->hat > 0);
+    return (this->hat >= 0);
 }
 bool JoystickStatus::input_pressed() {
     return button_pressed() || axis_pressed() || hat_pressed();

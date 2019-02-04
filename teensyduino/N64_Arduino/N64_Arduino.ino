@@ -202,16 +202,21 @@ void loop()
       //The array is given as AXIS_MIN to AXIS_MAX
       //Joystick funcitons need 0 to 1023
       unsigned int joyx, joyy;
+
+      // X/Y
       joyx = curStatus.axis[0]/JOY_FACT + JOY_OFFSET;
       joyy = curStatus.axis[1]/JOY_FACT + JOY_OFFSET;
 
       MultiJoystick.axis(joypos*2+1,joyx);
       MultiJoystick.axis(joypos*2+2,joyy);
 
+      // Throttle/Z (constant center)
+      MultiJoystick.axis(joypos*2+3, JOY_OFFSET);
+
+      // X2/Y2
       joyx = curStatus.axis[2]/JOY_FACT + JOY_OFFSET;
       joyy = curStatus.axis[3]/JOY_FACT + JOY_OFFSET;
 
-      // Skip over 3 (Throttle/Z)
       MultiJoystick.axis(joypos*2+4,joyx);
       MultiJoystick.axis(joypos*2+5,joyy);
 
@@ -220,9 +225,22 @@ void loop()
       MultiJoystick.send_now();
 
       // Increment the controller number for next time
-      // (Separate from slot number)
+      // (Separate from slot number, cause we skip empty slots)
       cnum++;
     }
+
+    // If we have empty joysticks, set axes to centered
+    // Otherwise we might get axes all off to one corner which is bad
+    while(cnum < num_joys) {
+      MultiJoystick.setJoyNum(cnum);
+      for(int axis=1; axis <= 5; axis++) {
+        MultiJoystick.axis(axis, JOY_OFFSET);
+      }
+      MultiJoystick.hat(-1);
+      MultiJoystick.send_now();
+      cnum++;
+    }
+
     
     //For now, just send controller 0 via BT
     JoyStatus[0].translate_buttons(&curStatus, button_map_bt[JoyStatus[0].controller_type]);
