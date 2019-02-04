@@ -49,7 +49,7 @@ public:
     virtual void fillStatus(JoystickStatus *joylist);
     virtual void fillJoystick(JoystickStatus *joystick, uint8_t datamask) = 0;
     void safe_detect_controllers();
-    bool use_3V();
+    bool is_fast();
     uint8_t read_pin(uint8_t pin);
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
 

@@ -19,7 +19,7 @@ void BaseController::init() {
     printMsg("%s Pinmask: %X", this->controller_name, this->pinmask);
 }
 
-bool BaseController::use_3V() {
+bool BaseController::is_fast() {
     // If newer than N64, use 3.3V
     return (this->controller_type >= N64);
 }
@@ -65,7 +65,7 @@ void BaseController::fillStatus(JoystickStatus *joylist) {
 }
 
 uint8_t BaseController::read_pin(uint8_t pin) {
-    return digitalReadFast((this->use_3V() ? this->fast_pins[pin] : this->slow_pins[pin]));
+    return digitalReadFast((this->is_fast() ? this->fast_pins[pin] : this->slow_pins[pin]));
 }
 
 uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
