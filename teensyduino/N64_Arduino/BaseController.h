@@ -38,6 +38,7 @@ public:
     controller_type_t controller_type;
     const uint8_t fast_pins[NUM_CONTROLLERS] = { FAST_PINS };
     const uint8_t slow_pins[NUM_CONTROLLERS] = { SLOW_PINS };
+    const uint8_t s_nes_pins[NUM_CONTROLLERS] = { S_NES_PINS };
 
     JoystickStatus *JoyStatus;
 

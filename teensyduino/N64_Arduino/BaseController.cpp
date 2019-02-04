@@ -25,21 +25,13 @@ bool BaseController::is_fast() {
 }
 
 void BaseController::safe_detect_controllers() {
-    //uint8_t SNES_prev;
-    uint8_t pins_avail = ~(*globalmask) & IO_MASK;
+    uint8_t pins_avail = ~(*globalmask);
 
-    printMsg("Searching for %s on %X...", this->controller_name, pins_avail);
-
-    //Save the states
-    //SNES_prev = SNES_PORT;
+    printBin(binstr, pins_avail);
+    printMsg("Searching for %s on %s...", this->controller_name, binstr);
 
     this->detect_controllers(pins_avail);
     *globalmask |= this->pinmask;
-
-    //printMsg("Pinmasks: SNES=%X", SNES_PORT);
-
-    //Restore states
-    //SNES_PORT = SNES_prev;
 }
 
 void BaseController::fillStatus(JoystickStatus *joylist) {
@@ -70,17 +62,20 @@ uint8_t BaseController::read_pin(uint8_t pin) {
 
 uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
     int x, resets = 0;
-    uint8_t inpins;
     uint8_t pinmask = 0;
     for (x=0; x<64; x++) {
         int reset = 0;
         int curval;
+        uint8_t inpins = 0;
+        uint8_t curmask = 0x01;
         for(int i=0; i < NUM_CONTROLLERS; i++) {
             curval = this->read_pin(i);
-            if(curval != expected) {
-                pinmask |= (0x01 << i);
+            inpins |= (curval << i);
+            if((pins_avail & curmask) && curval != expected) {
+                pinmask |= curmask;
                 reset = 1;
             }
+            curmask <<= 1;
         }
         if(reset) {
             x = 0;
@@ -89,7 +84,7 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
         }
         printMsg("Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
     }
-    return pinmask; 
+    return pinmask;
 }
 
 void BaseController::reset_isr_data() {

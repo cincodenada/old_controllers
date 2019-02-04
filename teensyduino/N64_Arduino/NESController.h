@@ -18,7 +18,6 @@ public:
     void translate_raw_data();
     void clear_dump();
 
-    static void isr_setup();
     static void isr_read();
 
     void read_state();

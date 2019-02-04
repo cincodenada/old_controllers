@@ -29,11 +29,8 @@
 
 JoystickStatus JoyStatus[NUM_CONTROLLERS];
 BaseController* clist[NUMCTL];
-char msg[MSG_LEN];
 uint8_t pins_used = 0;
 uint8_t num_joys;
-
-char binstr[NUM_BITS+1];
 
 uint8_t button_map[3][NUM_BUTTONS] = {
     { //NES
@@ -117,8 +114,8 @@ void setup() {
     printMsg("Set up pins");
     digitalWrite(LED_PIN, HIGH);
 
-    //We have to detect SNES before NES 
-    //(see NESController::detect_controllers)
+    // We have to detect SNES before NES
+    // (see NESController::detect_controllers)
     clist[N64] = new N64Controller(JoyStatus, &pins_used, "N64");
     clist[SNES] = new SNESController(JoyStatus, &pins_used, "SNES");
     clist[NES] = new NESController(JoyStatus, &pins_used, "NES");

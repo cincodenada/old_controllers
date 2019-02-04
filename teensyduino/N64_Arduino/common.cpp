@@ -2,6 +2,9 @@
 
 #include "pin_config.h"
 
+char msg[MSG_LEN];
+char binstr[NUM_BITS+1];
+
 int max_len = 0;
 int messages_enabled = true;
 

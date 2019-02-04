@@ -1,10 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define MSG_LEN 70 
-extern char msg[MSG_LEN];
-
+#define MSG_LEN 70
 #define NUM_BITS 8
+
+extern char msg[MSG_LEN];
+extern char binstr[NUM_BITS+1];
 
 #include "Arduino.h"
 
