@@ -10,7 +10,11 @@ void NESController::init() {
 void NESController::setup_pins() {
     //For our pins, set SNES flag to low (=NES)
     for(int i=0; i<NUM_CONTROLLERS; i++) {
-        digitalWrite(this->s_nes_pins[i], LOW);
+        if(pinmask & (0x01 << i)) {
+            // Set to hi-z input, so NES is responsible for pullup
+            pinMode(this->slow_pins[i], INPUT_PULLUP);
+            digitalWrite(this->s_nes_pins[i], LOW);
+        }
     }
 }
 

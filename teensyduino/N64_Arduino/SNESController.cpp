@@ -10,7 +10,10 @@ void SNESController::init() {
 void SNESController::setup_pins() {
     //For our pins, set SNES flag to high (=SNES)
     for(int i=0; i<NUM_CONTROLLERS; i++) {
-        digitalWrite(this->s_nes_pins[i], HIGH);
+        if(pinmask & (0x01 << i)) {
+            pinMode(this->slow_pins[i], INPUT_PULLUP);
+            digitalWrite(this->s_nes_pins[i], HIGH);
+        }
     }
 }
 
@@ -26,6 +29,7 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
     // Pin SNES controller Vdd to GND
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
+            pinMode(this->slow_pins[i], INPUT);
             digitalWrite(this->s_nes_pins[i], LOW);
         }
     }
