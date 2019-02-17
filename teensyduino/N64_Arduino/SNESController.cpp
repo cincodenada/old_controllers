@@ -98,11 +98,10 @@ void SNESController::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
     // bits2: A, X, L, R, NCx4
     // (reversed)
     for (i=0; i<8; i++) {
-        snprintf(ctldata, 100, "%s%X %X ",
-            ctldata,
-            this->raw_dump[i],
-            this->raw_dump[i+8]
-        );
+        printBin(ctldata, this->raw_dump[i]);
+        ctldata[8] = ' ';
+        printBin(ctldata + 9, this->raw_dump[i+8]);
+        printMsg(ctldata);
 
         // Bit offset, 0 and then 8
         for (setnum=0; setnum<2; setnum++) {
@@ -111,5 +110,4 @@ void SNESController::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
             }
         }
     }
-    printMsg(ctldata);
 }

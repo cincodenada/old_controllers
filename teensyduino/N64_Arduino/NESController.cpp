@@ -102,19 +102,18 @@ void NESController::isr_read() {
 }
 
 void NESController::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
-    char ctldata[50] = "";
     joystick->clear();
 
     // line 1
     // bits: A, B, Select, Start, Dup, Ddown, Dleft, Dright
     // (reversed)
     for (int i=0; i<8; i++) {
-        snprintf(ctldata, 50, "%s%X ", ctldata, this->raw_dump[i]);
+        printBin(binstr, this->raw_dump[i]);
+        printMsg(binstr);
         //If the button is pressed, set the bit
         if(raw_dump[i] & datamask) {
             joystick->buttonset[0] |= (0x80 >> i);
 
         }
     }
-    printMsg(ctldata);
 }
