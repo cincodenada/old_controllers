@@ -12,11 +12,10 @@ void enableMessages(bool enabled) {
   messages_enabled = enabled;
 }
 
-void printMsg(const char* format, ...) {
-    va_list args;
-    int cur_len, i;
-    va_start(args, format);
+void vprintMsg(int level, const char* format, va_list args) {
+    if(level > LOG_LEVEL) { return; }
     if(messages_enabled) {
+        int cur_len, i;
         cur_len = vsnprintf(msg, MSG_LEN, format, args);
         if(cur_len > max_len) { max_len = cur_len; }
         for(i=cur_len; i < max_len && i < MSG_LEN; i++) {
@@ -25,7 +24,19 @@ void printMsg(const char* format, ...) {
         msg[i] = '\0';
         Serial.flush();
         Serial.println(msg);
+        Serial.flush();
     }
+}
+void printMsg(int level, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vprintMsg(level, format, args);
+    va_end(args);
+}
+void printMsg(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vprintMsg(3, format, args);
     va_end(args);
 }
 
@@ -37,21 +48,25 @@ void cls() {
   }
 }
 
-void printBin(char* dest, char input) {
-    unsigned char mask = 0x80;
+void printBin(char* dest, char input, unsigned char num_bits) {
+    unsigned char mask = 1 << (num_bits-1);
+    if(num_bits > NUM_BITS) {
+        strncpy(dest, "ERR:>8BT", NUM_BITS+1);
+        return;
+    }
 
     if(!messages_enabled) { return; }
 
     if(input > 255) {
-        strncpy(dest, "ERR:>255", NUM_BITS+1); 
-        return; 
+        strncpy(dest, "ERR:>255", NUM_BITS+1);
+        return;
     }
-    for(int i=0; i < NUM_BITS; i++) {
+    for(int i=0; i < num_bits; i++) {
         dest[i] = (input & mask) ? '1' : '0';
         mask >>= 1;
     }
     //Terminate the string
-    dest[NUM_BITS] = 0;
+    dest[num_bits] = 0;
 }
 
 void blink_binary(int num, uint8_t bits) {

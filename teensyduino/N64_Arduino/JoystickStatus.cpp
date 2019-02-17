@@ -24,11 +24,11 @@ void JoystickStatus::translate_buttons(
             if(this->buttonset[byte] & (0x80 >> bit)) {
                 if(btn_num >= HAT_BASE) {
                     dest->hat = hat_map[HAT_Y(btn_num)+1][HAT_X(btn_num)+1];
-                    printMsg("%d: Setting hat to %d (%d, %d)", btn_num, dest->hat, HAT_X(btn_num), HAT_Y(btn_num));
+                    printMsg(5,"%d: Setting hat to %d (%d, %d)", btn_num, dest->hat, HAT_X(btn_num), HAT_Y(btn_num));
                 } else if(btn_num >= AXIS_BASE) {
                     int axis_num = AXIS_NUM(btn_num);
                     int axis_dir = AXIS_DIR(btn_num);
-                    printMsg("%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
+                    printMsg(5,"%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
                     // TODO: Adjusted because Bluetooth seems to 
                     // freak out if we're at the limits,
                     // do some further testing here
@@ -41,7 +41,7 @@ void JoystickStatus::translate_buttons(
                     btn_num -= 1;
                     int dest_byte = btn_num/8;
                     int dest_bit = btn_num%8;
-                    printMsg("Mapping %d:%d to %d:%d...", byte, bit, dest_byte, dest_bit);
+                    printMsg(5, "Mapping %d:%d to %d:%d...", byte, bit, dest_byte, dest_bit);
                     dest->buttonset[dest_byte] |= (0x01 << dest_bit);
                 }
             }

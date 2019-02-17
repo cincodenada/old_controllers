@@ -27,7 +27,7 @@ bool BaseController::is_fast() {
 void BaseController::safe_detect_controllers() {
     uint8_t pins_avail = ~(*globalmask);
 
-    printBin(binstr, pins_avail);
+    printBin(binstr, pins_avail, 4);
     printMsg("Searching for %s on %s...", this->controller_name, binstr);
 
     this->detect_controllers(pins_avail);
@@ -43,7 +43,7 @@ void BaseController::fillStatus(JoystickStatus *joylist) {
     while(pinlist) {
         if(pinlist & 0x01) {
             printMsg("%lu: Filling status for %s:", millis(), this->controller_name);
-            printMsg("%X %X %X %d", pinlist, allpins, datamask, cnum);
+            printMsg("%X %X %d", allpins, datamask, cnum);
 
             this->fillJoystick(&joylist[cnum], datamask);
             joylist[cnum].controller_type = this->controller_type;

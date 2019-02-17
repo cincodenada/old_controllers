@@ -98,7 +98,7 @@ void SNESController::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
     // bits2: A, X, L, R, NCx4
     // (reversed)
     for (i=0; i<8; i++) {
-        printMsg(ctldata, 100, "%X %X",
+        snprintf(ctldata, 100, "%s%X %X ",
             ctldata,
             this->raw_dump[i],
             this->raw_dump[i+8]

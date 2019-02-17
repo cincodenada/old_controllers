@@ -165,7 +165,7 @@ void loop()
     for(i=0;i<NUMCTL;i++) {
         clist[i]->read_state();
         printBin(binstr, clist[i]->pinmask);
-        printMsg("%s: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
+        printMsg("%s mask: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
     }
     int cnum = 0;
     for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
