@@ -13,6 +13,7 @@ BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, 
 void BaseController::init() {
     printMsg("Initiating %s controllers", this->controller_name);
 
+    this->pinmask = 0;
     this->safe_detect_controllers();
     this->setup_pins();
 

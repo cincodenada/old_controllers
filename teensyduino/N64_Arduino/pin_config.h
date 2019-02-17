@@ -61,6 +61,7 @@
 
 #define IO_MASK 0x0F
 
+const int slow_pins[] = {SLOW_PINS};
 const int s_nes_pins[] = {S_NES_PINS};
 
 #endif /* PIN_CONFIG_H */
