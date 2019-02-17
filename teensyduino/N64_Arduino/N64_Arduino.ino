@@ -185,9 +185,9 @@ void loop()
 
       JoyStatus[cnum].translate_buttons(&curStatus, button_map[JoyStatus[cnum].controller_type]);
 
-      printMsg("Setting joystick to %u pos %u", joynum, joypos);
-      printMsg("Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
-      printMsg("Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
+      printMsg(5, "Setting joystick to %u pos %u", joynum, joypos);
+      printMsg(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
+      printMsg(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
 
       MultiJoystick.setJoyNum(joynum);
       //Update each button
