@@ -26,18 +26,23 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
     // With a weak pull-down on DATA, we can divine things safely
     // SNES must be detected/eliminated first
 
-    // Pin SNES controller Vdd to GND
+    // Limit SNES to slots 1/2
+    pins_avail &= 0b0011;
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
-            pinMode(this->slow_pins[i], INPUT);
-            digitalWrite(this->s_nes_pins[i], LOW);
+            pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
+            digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
+            digitalWrite(this->s_nes_pins[i], HIGH);
         }
     }
 
-    // SNES controllers will pull DATA lines to their Vdd,
-    // which is now our LOW. NES Controllers and empty slots
-    // are pulling to 5V, so anything LOW is an SNES controller
-    this->pinmask = this->get_deviants(pins_avail, 1);
+    // We're safe to use LATCH now, since SNES controllers
+    // are where they want to be
+    pinMode(LATCH_PIN, OUTPUT);
+    digitalWrite(LATCH_PIN, HIGH);
+
+    // Anyone that responds is an SNES controller
+    this->pinmask = this->get_deviants(pins_avail, 0);
 }
 
 void SNESController::read_state() {

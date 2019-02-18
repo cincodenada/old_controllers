@@ -11,7 +11,6 @@ void NESController::setup_pins() {
     //For our pins, set SNES flag to low (=NES)
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pinmask & (0x01 << i)) {
-            // Set to hi-z input, so NES is responsible for pullup
             pinMode(this->slow_pins[i], INPUT_PULLUP);
             digitalWrite(this->s_nes_pins[i], LOW);
         }
@@ -22,22 +21,18 @@ void NESController::clear_dump() {
     memset(this->raw_dump, 0, 16);
 }
 
-//Warning! SNES detection must be run *before* this,
-//otherwise it wil gobble up SNES controllers as well
-//Also: it seems NES controllers will be high until after
-//the first query cycle, so we have to send clock pulses
-//And that's probably not great for "disabled" 
-//SNES controllers anyway
 void NESController::detect_controllers(uint8_t pins_avail) {
     // At this point any SNES controllers are out of the running
     // Enable the rest as NES controllers, and see which ones
     // pull the DATA line high (and are thus NES controllers)
 
-    // First, set all the remaining ports to NES
+    // Limit NES to slots 3/4
+    pins_avail &= 0b1100;
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
-            // Set to hi-z input, so NES is responsible for pullup
-            pinMode(this->slow_pins[i], INPUT);
+            printMsg("Detecting NES on pin %d", i);
+            pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
+            digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
             digitalWrite(this->s_nes_pins[i], LOW);
         }
     }
@@ -47,8 +42,8 @@ void NESController::detect_controllers(uint8_t pins_avail) {
     pinMode(LATCH_PIN, OUTPUT);
     digitalWrite(LATCH_PIN, HIGH);
 
-    // Anyone pulled high on latch is an NES controller
-    this->pinmask = this->get_deviants(pins_avail, 1);
+    // Anyone that responds is an NES controller
+    this->pinmask = this->get_deviants(pins_avail, 0);
 
     digitalWrite(LATCH_PIN, LOW); // Reset latch
 }

@@ -190,9 +190,17 @@ void setup() {
 
     for(int i=0; i < NUM_CONTROLLERS; i++) {
         pinMode(s_nes_pins[i], OUTPUT);
+        //0/1 are SNES, 2/3 are NES
+        digitalWrite(s_nes_pins[i], i<2);
         pinMode(clist[N64]->slow_pins[i], INPUT_PULLUP);
         pinMode(clist[N64]->fast_pins[i], INPUT_PULLUP);
     }
+
+    // Now that S/NES mode is set, we can set
+    // CLOCK/LATCH to outputs. Doing so earlier
+    // would expose the controllers to odd voltages
+    pinMode(CLOCK_PIN, OUTPUT);
+    pinMode(LATCH_PIN, OUTPUT);
 
     printMsg("Initiated controller pins");
     digitalWrite(LED_PIN, HIGH);
@@ -207,12 +215,6 @@ void setup() {
 
     printMsg("Initiated NES/SNES");
     digitalWrite(LED_PIN, HIGH);
-
-    // Now that we're done detecting, we can set
-    // CLOCK/LATCH to outputs. Doing so earlier
-    // would expose the controllers to odd voltages
-    pinMode(CLOCK_PIN, OUTPUT);
-    pinMode(LATCH_PIN, OUTPUT);
 
     for(int i=0; i<10; i++) {
         Serial.println();
