@@ -174,6 +174,8 @@ void N64Controller::isr_write() {
             Timer1.detachInterrupt();
             BaseController::isr_data.mode = 1;
             pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
+            // Reset buf pointer for reading
+            BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
             break;
         }
         digitalWriteFast(BaseController::isr_data.cur_pin, BaseController::isr_data.cur_val);
