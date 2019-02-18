@@ -92,6 +92,7 @@ void BaseController::reset_isr_data() {
     BaseController::isr_data.cur_stage = 0;
     BaseController::isr_data.mode = 0;
     BaseController::isr_data.cur_bit = 0x80;
+    BaseController::isr_data.done = false;
     // Reset buffer pointers, fill with zeroes
     BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
     BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE-1];
