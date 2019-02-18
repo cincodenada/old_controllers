@@ -31,22 +31,29 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
     //This also initializes some controllers (Wavebird, I guess?)
     uint8_t command;
     command = 0x01;
+    int num_tries = 5;
     pinMode(PIN_TRIGGER, OUTPUT);
 
     for(int i=0; i < NUM_CONTROLLERS; i++) {
         if(!(pins_avail & (0x01 << i))) { continue; }
 
-        printMsg("Sending command for controller %d...", i+1);
-        this->send(i, &command, 1);
+        bool responded = false;
+        for(int t=0; t < num_tries; t++) {
+            printMsg("Sending command for controller %d...", i+1);
+            this->send(i, &command, 1);
 
-        int x, responded = 0;
-        uint8_t cur_pin = this->fast_pins[i];
-        printMsg("Waiting for response...");
-        for (x=0; x<200; x++) {
-            if(!digitalReadFast(cur_pin)) {
-                responded = 1;
-                break;
+            uint8_t cur_pin = this->fast_pins[i];
+            pinMode(cur_pin, INPUT_PULLUP);
+            printMsg("Waiting for response...");
+            for (int x=0; x<200; x++) {
+                if(!digitalReadFast(cur_pin)) {
+                    responded = true;
+                    // Reset so we keep going until we've
+                    // swallowed the whole response
+                    x = 0;
+                }
             }
+            if(responded) { break; }
         }
         if(responded) {
             printMsg("Controller found in port %d", i+1);
