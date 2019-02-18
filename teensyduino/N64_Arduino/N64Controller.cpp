@@ -152,43 +152,42 @@ void N64Controller::read_state() {
 }
 
 void N64Controller::isr_write() {
-    noInterrupts();
     switch(BaseController::isr_data.cur_stage) {
     case 0:
-        digitalWriteFast(PIN_TRIGGER, HIGH);
+        //digitalWriteFast(PIN_TRIGGER, HIGH);
         digitalWriteFast(BaseController::isr_data.cur_pin, LOW);
         // Reset bit mask if we finished the previous byte
-        if(BaseController::isr_data.cur_bit == 0) {
-            BaseController::isr_data.cur_bit = 0x80;
-            BaseController::isr_data.cur_byte++;
-        }
         BaseController::isr_data.cur_stage++;
         break;
     case 1:
         if(BaseController::isr_data.cur_byte > BaseController::isr_data.end_byte) {
-            Timer1.detachInterrupt();
-            // Reset byte pointers
-            BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
-            // Declare done
-            BaseController::isr_data.mode = 1;
+            // Send stop bit
             digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
+            // Finish up
+            Timer1.detachInterrupt();
+            BaseController::isr_data.mode = 1;
             pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
             break;
         }
-        digitalWriteFast(BaseController::isr_data.cur_pin, (*BaseController::isr_data.cur_byte & BaseController::isr_data.cur_bit));
+        digitalWriteFast(BaseController::isr_data.cur_pin, BaseController::isr_data.cur_val);
         BaseController::isr_data.cur_stage++;
         break;
     case 2:
+        BaseController::isr_data.cur_bit >>= 1;
+        if(BaseController::isr_data.cur_bit == 0) {
+            BaseController::isr_data.cur_bit = 0x80;
+            BaseController::isr_data.cur_byte++;
+        }
+        BaseController::isr_data.cur_val = 1;
+
+        BaseController::isr_data.cur_val = *BaseController::isr_data.cur_byte & BaseController::isr_data.cur_bit;
         BaseController::isr_data.cur_stage++;
         break;
     case 3:
         digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
-        // Set up to be back to zero after increment
         BaseController::isr_data.cur_stage = 0;
-        BaseController::isr_data.cur_bit >>= 1;
         break;
     }
-    interrupts();
 }
 
 /**

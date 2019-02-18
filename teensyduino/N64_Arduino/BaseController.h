@@ -21,12 +21,14 @@ struct interrupt_data_struct {
     volatile uint8_t *end_byte;
     volatile uint8_t cur_bit;
     volatile uint8_t cur_stage;
-    volatile uint8_t read_bits;
+    volatile uint8_t cur_val;
+    uint8_t read_bits;
 
+    // Mode: 0 = writing, 1 = reading, 2 = done
     volatile uint8_t mode;
 
-    volatile const uint8_t *pins;
-    volatile uint8_t cur_pin;
+    const uint8_t *pins;
+    uint8_t cur_pin;
 
     volatile bool done;
 };

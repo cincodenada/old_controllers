@@ -57,13 +57,14 @@ void SNESController::read_state() {
 
 void SNESController::get() {
     this->reset_isr_data();
+    this->isr_data.mode = 1;
     this->isr_data.pins = this->slow_pins;
     this->isr_data.end_byte = &this->isr_data.buf[16];
     Timer1.initialize();
     Timer1.attachInterrupt(&this->isr_read, 6);
 
     // Wait for it to do its thing
-    while(!this->isr_data.done) {}
+    while(this->isr_data.mode == 1) {}
 
     // Transfer to raw_dump
     for(int i=0; i < 16; i++) {
@@ -95,7 +96,7 @@ void SNESController::isr_read() {
             break;
         case 5:
             if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
-                BaseController::isr_data.done = true;
+                BaseController::isr_data.mode = 2;
                 Timer1.detachInterrupt();
             } else {
                 digitalWriteFast(CLOCK_PIN, HIGH);
