@@ -66,7 +66,9 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
 }
 
 void N64Controller::read_state() {
-    //Run through our controllers one at a time
+    // Clear raw_dump so we can set individual bits to it
+    memset(raw_dump, 0, TBUFSIZE);
+    // Run through our controllers one at a time
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(!(this->pinmask & (0x01 << i))) { continue; }
 
@@ -95,6 +97,7 @@ void N64Controller::read_state() {
         // Wait for initial low...
         while(bits < this->isr_data.read_bits) {
             loops = 0;
+            digitalWriteFast(PIN_TRIGGER, HIGH);
             while(val == HIGH && loops < max_loops) {
                 val = digitalReadFast(BaseController::isr_data.cur_pin);
                 loops++;
@@ -150,12 +153,15 @@ void N64Controller::read_state() {
 
         // Don't fill status if we got a bad read
         if(!hung) {
-            memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
-            this->fillStatus(this->JoyStatus);
+            for(int b=0; b<TBUFSIZE; b++) {
+                raw_dump[b] |= this->isr_data.buf[b] << i;
+            }
+            //memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
         }
         delay(1);
         digitalWrite(PIN_TRIGGER, LOW);
     }
+    this->fillStatus(this->JoyStatus);
 }
 
 void N64Controller::isr_write() {
