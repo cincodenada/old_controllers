@@ -52,7 +52,7 @@
 
 //D7 = clock, D6 = latch
 #define CLOCK_PIN 16
-#define LATCH_PIN 15
+#define LATCH_PINS 6,5,10,9
 
 #define LED_PIN 13
 
@@ -61,7 +61,8 @@
 
 #define IO_MASK 0x0F
 
-const int slow_pins[] = {SLOW_PINS};
-const int s_nes_pins[] = {S_NES_PINS};
+const uint8_t slow_pins[] = {SLOW_PINS};
+const uint8_t s_nes_pins[] = {S_NES_PINS};
+const uint8_t latch_pins[] = {LATCH_PINS};
 
 #endif /* PIN_CONFIG_H */

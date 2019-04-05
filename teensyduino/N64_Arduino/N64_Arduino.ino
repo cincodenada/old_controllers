@@ -80,16 +80,16 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
 
 
 void truth_table() {
+  pinMode(CLOCK_PIN, INPUT);
   for(int i=0; i < NUM_CONTROLLERS; i++) {
     pinMode(slow_pins[i], INPUT_PULLUP);
-    pinMode(CLOCK_PIN, INPUT);
     digitalWrite(s_nes_pins[i], LOW);
   }
   while(true) {
     for(int latch=0; latch <=1; latch++) {
       for(int snes=0; snes <=1; snes++) {
-        digitalWrite(LATCH_PIN, latch);
         for(int i=0; i<NUM_CONTROLLERS; i++) {
+          digitalWrite(latch_pins[i], latch);
           digitalWrite(s_nes_pins[i], snes);
         }
         for(int i=0; i<NUM_CONTROLLERS; i++) {
@@ -188,19 +188,21 @@ void setup() {
     printMsg("Created controllers");
     digitalWrite(LED_PIN, LOW);
 
+    debug_detect2();
+
     for(int i=0; i < NUM_CONTROLLERS; i++) {
         pinMode(s_nes_pins[i], OUTPUT);
         //0/1 are SNES, 2/3 are NES
         digitalWrite(s_nes_pins[i], i<2);
         pinMode(clist[N64]->slow_pins[i], INPUT_PULLUP);
         pinMode(clist[N64]->fast_pins[i], INPUT_PULLUP);
+        pinMode(latch_pins[i], OUTPUT);
     }
 
     // Now that S/NES mode is set, we can set
     // CLOCK/LATCH to outputs. Doing so earlier
     // would expose the controllers to odd voltages
     pinMode(CLOCK_PIN, OUTPUT);
-    pinMode(LATCH_PIN, OUTPUT);
 
     printMsg("Initiated controller pins");
     digitalWrite(LED_PIN, HIGH);

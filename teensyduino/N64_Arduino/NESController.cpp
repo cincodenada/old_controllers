@@ -26,26 +26,24 @@ void NESController::detect_controllers(uint8_t pins_avail) {
     // Enable the rest as NES controllers, and see which ones
     // pull the DATA line high (and are thus NES controllers)
 
-    // Limit NES to slots 3/4
-    pins_avail &= 0b1100;
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
             printMsg("Detecting NES on pin %d", i);
             pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
             digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
             digitalWrite(this->s_nes_pins[i], LOW);
+            // We're safe to use LATCH now, since SNES controllers
+            // are where they want to be
+            pinMode(latch_pins[i], OUTPUT);
+            digitalWrite(latch_pins[i], HIGH);
         }
     }
 
-    // We're safe to use LATCH now, since SNES controllers
-    // are where they want to be
-    pinMode(LATCH_PIN, OUTPUT);
-    digitalWrite(LATCH_PIN, HIGH);
 
     // Anyone that responds is an NES controller
     this->pinmask = this->get_deviants(pins_avail, 0);
 
-    digitalWrite(LATCH_PIN, LOW); // Reset latch
+    this->latch(LOW, pins_avail);
 }
 
 void NESController::read_state() {
@@ -79,7 +77,7 @@ void NESController::isr_read() {
     int mask = 0x01;
     switch(BaseController::isr_data.cur_stage) {
         case 0:
-            digitalWriteFast(LATCH_PIN, HIGH);
+            BaseController::latch(HIGH, 0xF);
             digitalWriteFast(CLOCK_PIN, LOW);
             break;
         case 1:
@@ -92,7 +90,7 @@ void NESController::isr_read() {
             }
             break;
         case 3:
-            digitalWriteFast(LATCH_PIN, LOW);
+            BaseController::latch(LOW, 0xF);
             break;
         case 4:
             // Do nothing

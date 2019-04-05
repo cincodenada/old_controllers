@@ -54,8 +54,10 @@ public:
     virtual void fillJoystick(JoystickStatus *joystick, uint8_t datamask) = 0;
     void safe_detect_controllers();
     bool is_fast();
-    uint8_t read_pin(uint8_t pin);
+    const uint8_t* data_pins();
+    static void latch(uint8_t val, uint8_t pins);
     uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
+    uint8_t get_deviants(const uint8_t* pins, uint8_t pins_avail, uint8_t expected);
 
     static void reset_isr_data();
 

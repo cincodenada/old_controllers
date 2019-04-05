@@ -57,11 +57,23 @@ void BaseController::fillStatus(JoystickStatus *joylist) {
     }
 }
 
-uint8_t BaseController::read_pin(uint8_t pin) {
-    return digitalReadFast((this->is_fast() ? this->fast_pins[pin] : this->slow_pins[pin]));
+const uint8_t* BaseController::data_pins() {
+    return this->is_fast() ? this->fast_pins : this->slow_pins;
+}
+
+void BaseController::latch(uint8_t val, uint8_t pins) {
+  for(int i=0; i<NUM_CONTROLLERS; i++) {
+    if(pins & 0x01) {
+      digitalWriteFast(latch_pins[i], val);
+    }
+    pins >>= 1;
+  }
 }
 
 uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
+    return this->get_deviants(this->data_pins(), pins_avail, expected);
+}
+uint8_t BaseController::get_deviants(const uint8_t* pins, uint8_t pins_avail, uint8_t expected) {
     int x, resets = 0;
     uint8_t pinmask = 0;
     for (x=0; x<64; x++) {
@@ -70,7 +82,7 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
         uint8_t inpins = 0;
         uint8_t curmask = 0x01;
         for(int i=0; i < NUM_CONTROLLERS; i++) {
-            curval = this->read_pin(i);
+            curval = digitalReadFast(pins[i]);
             inpins |= (curval << i);
             if((pins_avail & curmask) && curval != expected) {
                 pinmask |= curmask;

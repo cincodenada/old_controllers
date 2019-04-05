@@ -26,23 +26,17 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
     // With a weak pull-down on DATA, we can divine things safely
     // SNES must be detected/eliminated first
 
-    // Limit SNES to slots 1/2
-    pins_avail &= 0b0011;
     for(int i=0; i<NUM_CONTROLLERS; i++) {
         if(pins_avail & (0x01 << i)) {
+            printMsg("Detecting SNES on pin %d", i);
             pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
             digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
             digitalWrite(this->s_nes_pins[i], HIGH);
         }
     }
 
-    // We're safe to use LATCH now, since SNES controllers
-    // are where they want to be
-    pinMode(LATCH_PIN, OUTPUT);
-    digitalWrite(LATCH_PIN, HIGH);
-
-    // Anyone that responds is an SNES controller
-    this->pinmask = this->get_deviants(pins_avail, 0);
+    // Anyone that pulls LATCH high is SNES
+    this->pinmask = this->get_deviants(latch_pins, pins_avail, 0);
 }
 
 void SNESController::read_state() {
@@ -76,7 +70,7 @@ void SNESController::isr_read() {
     int mask = 0x01;
     switch(BaseController::isr_data.cur_stage) {
         case 0:
-            digitalWriteFast(LATCH_PIN, HIGH);
+            BaseController::latch(HIGH, 0xF);
             digitalWriteFast(CLOCK_PIN, LOW);
             break;
         case 1:
@@ -89,7 +83,7 @@ void SNESController::isr_read() {
             }
             break;
         case 3:
-            digitalWriteFast(LATCH_PIN, LOW);
+            BaseController::latch(LOW, 0xF);
             break;
         case 4:
             // Do nothing
