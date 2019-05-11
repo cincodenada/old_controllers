@@ -189,12 +189,13 @@ void setup() {
     printMsg("Created controllers");
     digitalWrite(LED_PIN, LOW);
 
+    for(int i=0; i < NUM_SLOTS; i++) {
+        pinMode(s_nes_pins[i], OUTPUT);
+    }
+
     debug_detect2();
 
     for(int i=0; i < NUM_SLOTS; i++) {
-        pinMode(s_nes_pins[i], OUTPUT);
-        //0/1 are SNES, 2/3 are NES
-        digitalWrite(s_nes_pins[i], i<2);
         pinMode(clist[N64]->slow_pins[i], INPUT_PULLUP);
         pinMode(clist[N64]->fast_pins[i], INPUT_PULLUP);
         pinMode(latch_pins[i], OUTPUT);
