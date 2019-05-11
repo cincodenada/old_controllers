@@ -22,8 +22,6 @@
 
 #define NUM_BUTTONS 16
 
-#define NUM_CONTROLLERS 4
-
 enum controller_type_t {
     NES = 0,
     SNES,

@@ -14,6 +14,9 @@
 
 #include "TimerOne.h"
 
+#define NUM_TYPES 3
+#define NUM_SLOTS 4
+
 #include "pin_config.h"
 #include "common.h"
 #include "JoystickStatus.h"
@@ -24,11 +27,9 @@
 
 #include "bt_controller.h"
 
-#define NUMCTL 3
-#define NUMSLOTS 4
-
-JoystickStatus JoyStatus[NUM_CONTROLLERS];
-BaseController* clist[NUMCTL];
+// We only use the first numjoys slots of this
+JoystickStatus JoyStatus[NUM_SLOTS];
+BaseController* clist[NUM_TYPES];
 uint8_t pins_used = 0;
 uint8_t num_joys;
 
@@ -81,18 +82,18 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
 
 void truth_table() {
   pinMode(CLOCK_PIN, INPUT);
-  for(int i=0; i < NUM_CONTROLLERS; i++) {
+  for(int i=0; i < NUM_SLOTS; i++) {
     pinMode(slow_pins[i], INPUT_PULLUP);
     digitalWrite(s_nes_pins[i], LOW);
   }
   while(true) {
     for(int latch=0; latch <=1; latch++) {
       for(int snes=0; snes <=1; snes++) {
-        for(int i=0; i<NUM_CONTROLLERS; i++) {
+        for(int i=0; i<NUM_SLOTS; i++) {
           digitalWrite(latch_pins[i], latch);
           digitalWrite(s_nes_pins[i], snes);
         }
-        for(int i=0; i<NUM_CONTROLLERS; i++) {
+        for(int i=0; i<NUM_SLOTS; i++) {
           printMsg("%d: %d%d%d%d",
             i,
             digitalRead(slow_pins[i]),
@@ -109,12 +110,12 @@ void truth_table() {
 }
 void debug_detect() {
   while(true) {
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
+    for(int i=0; i < NUM_SLOTS; i++) {
       pinMode(slow_pins[i], INPUT);
       digitalWrite(s_nes_pins[i], LOW);
     }
     delay(1);
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
+    for(int i=0; i < NUM_SLOTS; i++) {
       pinMode(slow_pins[i], INPUT);
       digitalWrite(s_nes_pins[i], HIGH);
     }
@@ -128,11 +129,11 @@ void debug_detect2() {
     clist[SNES]->init();
     clist[NES]->init();
 
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
+    for(int i=0; i < NUM_SLOTS; i++) {
       unsigned char mask = 1 << i;
       char controller[] = "None";
       bool matched = false;
-      for(int i=0; i < NUMCTL; i++) {
+      for(int i=0; i < NUM_TYPES; i++) {
         if(clist[i]->pinmask & mask) {
           if(matched) {
             printMsg("Duplicate pinmask! Also on %s", clist[i]->controller_name);
@@ -190,7 +191,7 @@ void setup() {
 
     debug_detect2();
 
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
+    for(int i=0; i < NUM_SLOTS; i++) {
         pinMode(s_nes_pins[i], OUTPUT);
         //0/1 are SNES, 2/3 are NES
         digitalWrite(s_nes_pins[i], i<2);
@@ -235,13 +236,13 @@ void loop()
     printBin(binstr, pins_used);
     printMsg("Pins used: 0x%X (%s)", pins_used, binstr);
     printMsg("%lu: Polling Controllers...", millis());
-    for(i=0;i<NUMCTL;i++) {
+    for(i=0;i<NUM_TYPES;i++) {
         clist[i]->read_state();
         printBin(binstr, clist[i]->pinmask);
         printMsg("%s mask: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
     }
     int cnum = 0;
-    for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
+    for(short int slotnum=0; slotnum < NUM_SLOTS; slotnum++) {
       // Skip this slot if it's not used
       if(!(pins_used & (0x01 << slotnum))) { continue; }
 
