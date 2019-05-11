@@ -9,7 +9,7 @@ void SNESController::init() {
 
 void SNESController::setup_pins() {
     //For our pins, set SNES flag to high (=SNES)
-    for(int i=0; i<NUM_CONTROLLERS; i++) {
+    for(int i=0; i<NUM_SLOTS; i++) {
         if(pinmask & (0x01 << i)) {
             pinMode(this->slow_pins[i], INPUT_PULLUP);
             digitalWrite(this->s_nes_pins[i], HIGH);
@@ -26,7 +26,7 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
     // With a weak pull-down on DATA, we can divine things safely
     // SNES must be detected/eliminated first
 
-    for(int i=0; i<NUM_CONTROLLERS; i++) {
+    for(int i=0; i<NUM_SLOTS; i++) {
         if(pins_avail & (0x01 << i)) {
             printMsg("Detecting SNES on pin %d", i);
             pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
@@ -75,7 +75,7 @@ void SNESController::isr_read() {
             break;
         case 1:
             // First bit is on latch, so read it
-            for(int i=0; i < NUM_CONTROLLERS; i++) {
+            for(int i=0; i < NUM_SLOTS; i++) {
                 if(digitalReadFast(BaseController::isr_data.pins[i])) {
                     *BaseController::isr_data.cur_byte |= mask;
                 }
@@ -98,7 +98,7 @@ void SNESController::isr_read() {
             }
             break;
         case 6:
-            for(int i=0; i < NUM_CONTROLLERS; i++) {
+            for(int i=0; i < NUM_SLOTS; i++) {
                 if(digitalReadFast(BaseController::isr_data.pins[i])) {
                     *BaseController::isr_data.cur_byte |= mask;
                 }

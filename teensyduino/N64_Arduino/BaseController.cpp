@@ -62,7 +62,7 @@ const uint8_t* BaseController::data_pins() {
 }
 
 void BaseController::latch(uint8_t val, uint8_t pins) {
-  for(int i=0; i<NUM_CONTROLLERS; i++) {
+  for(int i=0; i<NUM_SLOTS; i++) {
     if(pins & 0x01) {
       digitalWriteFast(latch_pins[i], val);
     }
@@ -81,7 +81,7 @@ uint8_t BaseController::get_deviants(const uint8_t* pins, uint8_t pins_avail, ui
         int curval;
         uint8_t inpins = 0;
         uint8_t curmask = 0x01;
-        for(int i=0; i < NUM_CONTROLLERS; i++) {
+        for(int i=0; i < NUM_SLOTS; i++) {
             curval = digitalReadFast(pins[i]);
             inpins |= (curval << i);
             if((pins_avail & curmask) && curval != expected) {

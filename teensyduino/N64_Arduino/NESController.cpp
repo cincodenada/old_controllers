@@ -9,7 +9,7 @@ void NESController::init() {
 
 void NESController::setup_pins() {
     //For our pins, set SNES flag to low (=NES)
-    for(int i=0; i<NUM_CONTROLLERS; i++) {
+    for(int i=0; i<NUM_SLOTS; i++) {
         if(pinmask & (0x01 << i)) {
             pinMode(this->slow_pins[i], INPUT_PULLUP);
             digitalWrite(this->s_nes_pins[i], LOW);
@@ -26,7 +26,7 @@ void NESController::detect_controllers(uint8_t pins_avail) {
     // Enable the rest as NES controllers, and see which ones
     // pull the DATA line high (and are thus NES controllers)
 
-    for(int i=0; i<NUM_CONTROLLERS; i++) {
+    for(int i=0; i<NUM_SLOTS; i++) {
         if(pins_avail & (0x01 << i)) {
             printMsg("Detecting NES on pin %d", i);
             pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
@@ -82,7 +82,7 @@ void NESController::isr_read() {
             break;
         case 1:
             // First bit is on latch, so read it
-            for(int i=0; i < NUM_CONTROLLERS; i++) {
+            for(int i=0; i < NUM_SLOTS; i++) {
                 if(digitalReadFast(BaseController::isr_data.pins[i])) {
                     *BaseController::isr_data.cur_byte |= mask;
                 }
@@ -105,7 +105,7 @@ void NESController::isr_read() {
             }
             break;
         case 6:
-            for(int i=0; i < NUM_CONTROLLERS; i++) {
+            for(int i=0; i < NUM_SLOTS; i++) {
                 if(digitalReadFast(BaseController::isr_data.pins[i])) {
                     *BaseController::isr_data.cur_byte |= mask;
                 }
