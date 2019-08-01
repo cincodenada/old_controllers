@@ -30,6 +30,21 @@ BaseController* clist[NUM_TYPES];
 uint8_t pins_used = 0;
 uint8_t num_joys;
 
+/* Switch controller notes:
+Axes: Lx, Ly, Rx, Ry, Dpad X, Dpad Y
+Buttons: Y B A X Lb Rb Lt Rt - + Ls Rs sq home
+
+[3062319.186226] usb 5-1.1: new full-speed USB device number 110 using xhci_hcd
+[3062319.563982] usb 5-1.1: New USB device found, idVendor=20d6, idProduct=a711
+[3062319.563985] usb 5-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[3062319.563986] usb 5-1.1: Product: Core (Plus) Wired Controller
+[3062319.563988] usb 5-1.1: Manufacturer: Bensussen Deutsch & Associates,Inc.(BDA)
+[3062319.563990] usb 5-1.1: SerialNumber: 000000000001
+[3062319.567203] input: Bensussen Deutsch & Associates,Inc.(BDA) Core (Plus) Wired Controller as /devices/pci0000:00/0000:00:1c.4/0000:06:00.0/usb5/5-1/5-1.1/5-1.1:1.0/0003:20D6:A711.007D/input/input153
+[3062319.567414] hid-generic 0003:20D6:A711.007D: input,hidraw3: USB HID v1.11 Gamepad [Bensussen Deutsch & Associates,Inc.(BDA) Core (Plus) Wired Controller] on usb-0000:06:00.0-1.1/input0
+
+*/
+
 uint8_t button_map[3][NUM_BUTTONS] = {
     { //NES
         // A B Sel St U D L R
@@ -225,16 +240,13 @@ void setup() {
     printMsg("Created controllers");
     digitalWrite(LED_PIN, LOW);
 
-    for(int i=0; i < NUM_SLOTS; i++) {
-        pinMode(s_nes_pins[i], OUTPUT);
-    }
-
-    debug_detect2();
+    //debug_detect2();
 
     for(int i=0; i < NUM_SLOTS; i++) {
         pinMode(clist[N64]->slow_pins[i], INPUT_PULLUP);
         pinMode(clist[N64]->fast_pins[i], INPUT_PULLUP);
         pinMode(latch_pins[i], OUTPUT);
+        pinMode(s_nes_pins[i], OUTPUT);
     }
 
     // Now that S/NES mode is set, we can set
@@ -250,8 +262,10 @@ void setup() {
     printMsg("Initiated N64");
     digitalWrite(LED_PIN, LOW);
 
-    clist[SNES]->init();
     clist[NES]->init();
+    clist[SNES]->init();
+
+    clist[SNES]->pinmask = pins_used = 0b1010;
 
     printMsg("Initiated NES/SNES");
     digitalWrite(LED_PIN, HIGH);
@@ -314,21 +328,10 @@ void loop()
       unsigned int joyx, joyy;
 
       // X/Y
-      joyx = curStatus.axis[0]/JOY_FACT + JOY_OFFSET;
-      joyy = curStatus.axis[1]/JOY_FACT + JOY_OFFSET;
-
-      MultiJoystick.axis(joypos*2+1,joyx);
-      MultiJoystick.axis(joypos*2+2,joyy);
-
-      // Throttle/Z (constant center)
-      MultiJoystick.axis(joypos*2+3, JOY_OFFSET);
-
-      // X2/Y2
-      joyx = curStatus.axis[2]/JOY_FACT + JOY_OFFSET;
-      joyy = curStatus.axis[3]/JOY_FACT + JOY_OFFSET;
-
-      MultiJoystick.axis(joypos*2+4,joyx);
-      MultiJoystick.axis(joypos*2+5,joyy);
+      for(int i=0; i<4; i++) {
+        unsigned int val = curStatus.axis[i]/JOY_FACT + JOY_OFFSET;
+        MultiJoystick.axis(joypos*2+i+1,val);
+      }
 
       MultiJoystick.hat(curStatus.hat);
 
