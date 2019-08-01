@@ -11,8 +11,8 @@ void SNESController::setup_pins() {
     //For our pins, set SNES flag to high (=SNES)
     for(int i=0; i<NUM_SLOTS; i++) {
         if(pinmask & (0x01 << i)) {
-            pinMode(this->slow_pins[i], INPUT_PULLUP);
-            digitalWrite(this->s_nes_pins[i], HIGH);
+            pinMode(slow_pins[i], INPUT_PULLUP);
+            digitalWrite(s_nes_pins[i], HIGH);
         }
     }
 }
@@ -28,15 +28,15 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
 
     for(int i=0; i<NUM_SLOTS; i++) {
         if(pins_avail & (0x01 << i)) {
-            printMsg("Detecting SNES on pin %d", i);
-            pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
-            digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
-            digitalWrite(this->s_nes_pins[i], HIGH);
+            pinMode(slow_pins[i], INPUT); // Hi-Z so the pulldown works
+            digitalWrite(slow_pins[i], LOW); // Hi-Z so the pulldown works
+            pinMode(s_nes_pins[i], OUTPUT);
+            digitalWrite(s_nes_pins[i], HIGH);
         }
     }
-
-    // Anyone that pulls LATCH high is SNES
-    this->pinmask = this->get_deviants(latch_pins, pins_avail, 0);
+    
+    // Anyone that pulls DATA high is SNES
+    this->pinmask = this->get_deviants(pins_avail, 0);
 }
 
 void SNESController::read_state() {
@@ -52,7 +52,7 @@ void SNESController::read_state() {
 void SNESController::get() {
     this->reset_isr_data();
     this->isr_data.mode = 1;
-    this->isr_data.pins = this->slow_pins;
+    this->isr_data.pins = slow_pins;
     this->isr_data.end_byte = &this->isr_data.buf[16];
     Timer1.initialize();
     Timer1.attachInterrupt(&this->isr_read, 6);

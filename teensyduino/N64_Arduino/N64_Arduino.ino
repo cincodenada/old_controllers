@@ -14,9 +14,6 @@
 
 #include "TimerOne.h"
 
-#define NUM_TYPES 3
-#define NUM_SLOTS 4
-
 #include "pin_config.h"
 #include "common.h"
 #include "JoystickStatus.h"
@@ -108,26 +105,63 @@ void truth_table() {
     cls();
   }
 }
+
+// Results:
+//          S/NES | LATCH | DATA
+// NES    |   0   |   0   |  1
+//        |   1   |   1   |  1
+// SNES   |   0   |   0   |  0
+//        |   1   |   1   |  1
+// EMPTY  |   0   |   0   |  0
+//        |   1   |   0   |  0
+// sensitive to timing??
+//
+// w/ pullup on LATCH
+//          S/NES | LATCH | DATA
+// NES    |   0   |   1   |  1
+//        |   1   |   1   |  1
+// SNES   |   0   |   0   |  0
+//        |   1   |   1   |  1
+// EMPTY  |   0   |   0   |  0
+//        |   1   |   0   |  0
+// 
 void debug_detect() {
+  for(int i=0; i < NUM_SLOTS; i++) {
+      pinMode(s_nes_pins[i], OUTPUT);
+      pinMode(latch_pins[i], INPUT);
+      pinMode(slow_pins[i], INPUT);
+  }
+
   while(true) {
     for(int i=0; i < NUM_SLOTS; i++) {
-      pinMode(slow_pins[i], INPUT);
       digitalWrite(s_nes_pins[i], LOW);
     }
     delay(1);
     for(int i=0; i < NUM_SLOTS; i++) {
-      pinMode(slow_pins[i], INPUT);
       digitalWrite(s_nes_pins[i], HIGH);
     }
     delay(1);
   }
 }
 void debug_detect2() {
+  for(int i=0; i < NUM_SLOTS; i++) {
+      pinMode(s_nes_pins[i], OUTPUT);
+  }
+
   while(true) {
+    printMsg("");
+    printMsg("");
+    printMsg("");
+    printMsg("");
+    cls();
     pins_used = 0;
+    digitalWrite(LED_PIN, LOW);
     clist[N64]->init();
-    clist[SNES]->init();
+    digitalWrite(LED_PIN, HIGH);
     clist[NES]->init();
+    digitalWrite(LED_PIN, LOW);
+    clist[SNES]->init();
+    digitalWrite(LED_PIN, HIGH);
 
     for(int i=0; i < NUM_SLOTS; i++) {
       unsigned char mask = 1 << i;
@@ -144,7 +178,7 @@ void debug_detect2() {
       }
       printMsg("Slot %d: %s", i+1, controller);
     }
-    delay(100);
+    delay(20);
   }
 }
 

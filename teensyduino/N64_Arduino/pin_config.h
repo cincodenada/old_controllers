@@ -61,6 +61,9 @@
 
 #define IO_MASK 0x0F
 
+#define NUM_TYPES 3
+#define NUM_SLOTS 4
+
 const uint8_t slow_pins[] = {SLOW_PINS};
 const uint8_t s_nes_pins[] = {S_NES_PINS};
 const uint8_t latch_pins[] = {LATCH_PINS};

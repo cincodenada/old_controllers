@@ -11,8 +11,8 @@ void NESController::setup_pins() {
     //For our pins, set SNES flag to low (=NES)
     for(int i=0; i<NUM_SLOTS; i++) {
         if(pinmask & (0x01 << i)) {
-            pinMode(this->slow_pins[i], INPUT_PULLUP);
-            digitalWrite(this->s_nes_pins[i], LOW);
+            pinMode(slow_pins[i], INPUT_PULLUP);
+            digitalWrite(s_nes_pins[i], LOW);
         }
     }
 }
@@ -28,22 +28,15 @@ void NESController::detect_controllers(uint8_t pins_avail) {
 
     for(int i=0; i<NUM_SLOTS; i++) {
         if(pins_avail & (0x01 << i)) {
-            printMsg("Detecting NES on pin %d", i);
-            pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
-            digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
-            digitalWrite(this->s_nes_pins[i], LOW);
-            // We're safe to use LATCH now, since SNES controllers
-            // are where they want to be
-            pinMode(latch_pins[i], OUTPUT);
-            digitalWrite(latch_pins[i], HIGH);
+            pinMode(slow_pins[i], INPUT_PULLUP); // Hi-Z so the pulldown works
+            pinMode(s_nes_pins[i], OUTPUT);
+            digitalWrite(s_nes_pins[i], LOW);
         }
     }
 
 
-    // Anyone that responds is an NES controller
+    // Anyone that pulls DATA high is an NES controller
     this->pinmask = this->get_deviants(pins_avail, 0);
-
-    this->latch(LOW, pins_avail);
 }
 
 void NESController::read_state() {
@@ -59,7 +52,7 @@ void NESController::read_state() {
 void NESController::get() {
     this->reset_isr_data();
     this->isr_data.mode = 1;
-    this->isr_data.pins = this->slow_pins;
+    this->isr_data.pins = slow_pins;
     this->isr_data.end_byte = &this->isr_data.buf[8];
     Timer1.initialize();
     Timer1.attachInterrupt(&this->isr_read, 6);
