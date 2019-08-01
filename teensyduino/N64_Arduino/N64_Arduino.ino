@@ -155,6 +155,7 @@ void setup() {
 
     pinMode(LED_PIN, OUTPUT);
 
+/*
     int pinval = HIGH;
     int waitsecs = 5;
     printMsg("Waiting %d seconds for serial connection");
@@ -167,6 +168,7 @@ void setup() {
         pinval = (pinval == HIGH) ? LOW : HIGH;
     }
     Serial.println();
+*/
 
     digitalWrite(LED_PIN, HIGH);
 

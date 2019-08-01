@@ -39,12 +39,12 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
 
         bool responded = false;
         for(int t=0; t < num_tries; t++) {
-            printMsg("Sending command for controller %d...", i+1);
+            //printMsg("Sending command for controller %d...", i+1);
             this->send(i, &command, 1);
 
             uint8_t cur_pin = this->fast_pins[i];
             pinMode(cur_pin, INPUT_PULLUP);
-            printMsg("Waiting for response...");
+            //printMsg("Waiting for response...");
             for (int x=0; x<200; x++) {
                 if(!digitalReadFast(cur_pin)) {
                     responded = true;

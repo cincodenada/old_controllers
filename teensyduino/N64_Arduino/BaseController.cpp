@@ -95,7 +95,7 @@ uint8_t BaseController::get_deviants(const uint8_t* pins, uint8_t pins_avail, ui
             resets++;
             if(resets > 10) { break; }
         }
-        printMsg("Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
+        //printMsg("Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
     }
     return pinmask;
 }
