@@ -3,49 +3,61 @@
 
 #include "core_pins.h"
 
-#define SLOW_PINS 0,1,2,3
-#define SLOW_MASKS \
-  CORE_PIN0_BITMASK, \
-  CORE_PIN1_BITMASK, \
-  CORE_PIN2_BITMASK, \
-  CORE_PIN3_BITMASK
-#define SLOW_READ \
-  CORE_PIN0_PINREG, \
-  CORE_PIN1_PINREG, \
-  CORE_PIN2_PINREG, \
-  CORE_PIN3_PINREG
-#define SLOW_SET \
-  CORE_PIN0_PORTSET, \
-  CORE_PIN1_PORTSET, \
-  CORE_PIN2_PORTSET, \
-  CORE_PIN3_PORTSET
-#define SLOW_CLEAR \
-  CORE_PIN0_PORTCLEAR, \
-  CORE_PIN1_PORTCLEAR, \
-  CORE_PIN2_PORTCLEAR, \
-  CORE_PIN3_PORTCLEAR
+#define PORT(p0,p1,p2,p3)
 
-#define FAST_PINS 17,18,19,4
+#define SP0 0
+#define SP1 1
+#define SP2 2
+#define SP3 3
+
+#define SLOW_PINS SP0,SP1,SP2,SP3
+#define SLOW_MASKS \
+  CORE_PIN ## SP0 ## _BITMASK, \
+  CORE_PIN ## SP1 ## _BITMASK, \
+  CORE_PIN ## SP2 ## _BITMASK, \
+  CORE_PIN ## SP3 ## _BITMASK
+#define SLOW_READ \
+  CORE_PIN ## SP0 ## _PINREG, \
+  CORE_PIN ## SP1 ## _PINREG, \
+  CORE_PIN ## SP2 ## _PINREG, \
+  CORE_PIN ## SP3 ## _PINREG
+#define SLOW_SET \
+  CORE_PIN ## SP0 ## _PORTSET, \
+  CORE_PIN ## SP1 ## _PORTSET, \
+  CORE_PIN ## SP2 ## _PORTSET, \
+  CORE_PIN ## SP3 ## _PORTSET
+#define SLOW_CLEAR \
+  CORE_PIN ## SP0 ## _PORTCLEAR, \
+  CORE_PIN ## SP1 ## _PORTCLEAR, \
+  CORE_PIN ## SP2 ## _PORTCLEAR, \
+  CORE_PIN ## SP3 ## _PORTCLEAR
+
+#define FP0 17
+#define FP1 18
+#define FP2 19
+#define FP3 4
+
+#define FAST_PINS FP0,FP1,FP2,FP3
 #define FAST_MASKS \
-  CORE_PIN17_BITMASK, \
-  CORE_PIN18_BITMASK, \
-  CORE_PIN19_BITMASK, \
-  CORE_PIN4_BITMASK
+  CORE_PIN ## FP0 ## _BITMASK, \
+  CORE_PIN ## FP1 ## _BITMASK, \
+  CORE_PIN ## FP2 ## _BITMASK, \
+  CORE_PIN ## FP3 ## _BITMASK
 #define FAST_READ \
-  CORE_PIN17_PINREG, \
-  CORE_PIN18_PINREG, \
-  CORE_PIN19_PINREG, \
-  CORE_PIN4_PINREG
+  CORE_PIN ## FP0 ## _PINREG, \
+  CORE_PIN ## FP1 ## _PINREG, \
+  CORE_PIN ## FP2 ## _PINREG, \
+  CORE_PIN ## FP3 ## _PINREG
 #define FAST_SET \
-  CORE_PIN17_PORTSET, \
-  CORE_PIN18_PORTSET, \
-  CORE_PIN19_PORTSET, \
-  CORE_PIN4_PORTSET
+  CORE_PIN ## FP0 ## _PORTSET, \
+  CORE_PIN ## FP1 ## _PORTSET, \
+  CORE_PIN ## FP2 ## _PORTSET, \
+  CORE_PIN ## FP3 ## _PORTSET
 #define FAST_CLEAR \
-  CORE_PIN17_PORTCLEAR, \
-  CORE_PIN18_PORTCLEAR, \
-  CORE_PIN19_PORTCLEAR, \
-  CORE_PIN4_PORTCLEAR
+  CORE_PIN ## FP0 ## _PORTCLEAR, \
+  CORE_PIN ## FP1 ## _PORTCLEAR, \
+  CORE_PIN ## FP2 ## _PORTCLEAR, \
+  CORE_PIN ## FP3 ## _PORTCLEAR
 
 //+5V = SNES, GND = NES
 #define S_NES_PINS 23,22,21,20
@@ -56,12 +68,15 @@
 
 #define LED_PIN 13
 
+#define TOUCH_REF 15
+
 //C6/7 = 9/10
 #define PIN_TRIGGER LED_PIN
 
 #define IO_MASK 0x0F
 
-const int slow_pins[] = {SLOW_PINS};
-const int s_nes_pins[] = {S_NES_PINS};
+constexpr int fast_pins[] = {FAST_PINS};
+constexpr int slow_pins[] = {SLOW_PINS};
+constexpr int s_nes_pins[] = {S_NES_PINS};
 
 #endif /* PIN_CONFIG_H */

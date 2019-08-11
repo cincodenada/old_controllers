@@ -20,6 +20,12 @@ void BaseController::init() {
   printMsg("%s Pinmask: %X", this->controller_name, this->pinmask);
 }
 
+void BaseController::claim_slot(int num) {
+  uint8_t mask = 0x01 << num;
+  this->pinmask |= mask;
+  *(this->globalmask) |= mask;
+}
+
 bool BaseController::is_fast() {
   // If newer than N64, use 3.3V
   return (this->controller_type >= N64);

@@ -25,7 +25,7 @@
 #include "bt_controller.h"
 
 #define NUMCTL 3
-#define NUMSLOTS 4
+#define NUMSLOTS 2
 
 JoystickStatus JoyStatus[NUM_CONTROLLERS];
 BaseController* clist[NUMCTL];
@@ -147,6 +147,32 @@ void debug_detect2() {
   }
 }
 
+void detect_ports(char portmask, BaseController** clist) {
+  for(int slot = 0; slot < NUMSLOTS; slot++) {
+    if(portmask & 0x01) {
+      int ref = 0, fast=0, snesornes=0;
+      for(int i=0; i<10; i++) {
+        ref = max(ref, touchRead(TOUCH_REF)/100);
+        fast = max(ref, touchRead(fast_pins[slot])/100);
+        snesornes = max(ref, touchRead(s_nes_pins[slot])/100);
+      }
+
+      if(snesornes > ref*5) {
+        if(snesornes > ref*50) {
+          clist[SNES]->claim_slot(slot);
+        } else {
+          clist[NES]->claim_slot(slot);
+        }
+      } else if(fast > ref*50) {
+        clist[N64]->claim_slot(slot);
+      } else {
+        // Leave it empty
+      }
+    }
+    portmask >>= 1;
+  }
+}
+
 void setup() {
   Serial.begin(9600);
 
@@ -188,12 +214,10 @@ void setup() {
   printMsg("Created controllers");
   digitalWrite(LED_PIN, LOW);
 
-  for(int i=0; i < NUM_CONTROLLERS; i++) {
-    pinMode(s_nes_pins[i], OUTPUT);
-    //0/1 are SNES, 2/3 are NES
-    digitalWrite(s_nes_pins[i], i<2);
-    pinMode(clist[N64]->slow_pins[i], INPUT_PULLUP);
-    pinMode(clist[N64]->fast_pins[i], INPUT_PULLUP);
+  // Pins are default initialized to INPUT, which is what we want
+  detect_ports(pins_used, clist);
+  for(int i=0; i<NUMSLOTS; i++) {
+    clist[i]->setup_pins();
   }
 
   // Now that S/NES mode is set, we can set
@@ -203,17 +227,6 @@ void setup() {
   pinMode(LATCH_PIN, OUTPUT);
 
   printMsg("Initiated controller pins");
-  digitalWrite(LED_PIN, HIGH);
-
-  clist[N64]->init();
-
-  printMsg("Initiated N64");
-  digitalWrite(LED_PIN, LOW);
-
-  clist[SNES]->init();
-  clist[NES]->init();
-
-  printMsg("Initiated NES/SNES");
   digitalWrite(LED_PIN, HIGH);
 
   for(int i=0; i<10; i++) {

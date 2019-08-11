@@ -47,7 +47,10 @@ public:
 
   BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name);
   virtual void init();
+  virtual void claim_slot(int num);
+
   virtual void setup_pins() = 0;
+
   virtual void detect_controllers(uint8_t pins_avail) = 0;
   virtual void read_state() = 0;
   virtual void fillStatus(JoystickStatus *joylist);
