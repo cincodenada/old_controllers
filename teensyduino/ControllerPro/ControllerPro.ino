@@ -28,7 +28,7 @@
 #define NUMSLOTS 2
 
 JoystickStatus JoyStatus[NUM_CONTROLLERS];
-BaseController* clist[NUMCTL];
+BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
 uint8_t num_joys;
 
@@ -147,7 +147,7 @@ void debug_detect2() {
   }
 }
 
-void detect_ports(char portmask, BaseController** clist) {
+void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
     if(portmask & 0x01) {
       int ref = 0, fast=0, snesornes=0;
@@ -206,10 +206,10 @@ void setup() {
   digitalWrite(LED_PIN, HIGH);
 
   // We have to detect SNES before NES
-  // (see NESController::detect_controllers)
-  clist[N64] = new N64Controller(JoyStatus, &pins_used, "N64");
-  clist[SNES] = new SNESController(JoyStatus, &pins_used, "SNES");
-  clist[NES] = new NESController(JoyStatus, &pins_used, "NES");
+  // (see NESReader::detect_controllers)
+  clist[N64] = new N64Reader(JoyStatus, &pins_used, "N64");
+  clist[SNES] = new SNESReader(JoyStatus, &pins_used, "SNES");
+  clist[NES] = new NESReader(JoyStatus, &pins_used, "NES");
 
   printMsg("Created controllers");
   digitalWrite(LED_PIN, LOW);

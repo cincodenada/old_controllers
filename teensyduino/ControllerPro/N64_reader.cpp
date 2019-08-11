@@ -1,8 +1,8 @@
 #include "N64_reader.h"
 #include <stdio.h>
 
-void N64Controller::init() {
-  BaseController::init();
+void N64Reader::init() {
+  BaseReader::init();
 
   this->controller_type = N64;
 
@@ -11,17 +11,17 @@ void N64Controller::init() {
   // TODO: Does this actually...do anything?
   this->read_state();
 }
-void N64Controller::setup_pins() {
+void N64Reader::setup_pins() {
   //Don't need to do anything, we don't care about S/NES
 }
 
-void N64Controller::clear_dump() {
+void N64Reader::clear_dump() {
   for(int i=0;i<33;i++) {
     this->raw_dump[i] = 0;
   }
 }
 
-void N64Controller::detect_controllers(uint8_t pins_avail) {
+void N64Reader::detect_controllers(uint8_t pins_avail) {
   //NES and SNES pull low on idle, so check for that
   //(N64 maintains high, and we use pull-up)
   
@@ -56,7 +56,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
       if(responded) { break; }
     }
     if(responded) {
-      printMsg("Controller found in port %d", i+1);
+      printMsg("Reader found in port %d", i+1);
       this->pinmask |= (0x01 << i);
     } else {
       printMsg("No controller found in port %d", i+1);
@@ -65,7 +65,7 @@ void N64Controller::detect_controllers(uint8_t pins_avail) {
   }
 }
 
-void N64Controller::read_state() {
+void N64Reader::read_state() {
   // Clear raw_dump so we can set individual bits to it
   memset(raw_dump, 0, TBUFSIZE);
   // Run through our controllers one at a time
@@ -99,7 +99,7 @@ void N64Controller::read_state() {
       loops = 0;
       digitalWriteFast(PIN_TRIGGER, HIGH);
       while(val == HIGH && loops < max_loops) {
-        val = digitalReadFast(BaseController::isr_data.cur_pin);
+        val = digitalReadFast(BaseReader::isr_data.cur_pin);
         loops++;
       }
       if(loops == max_loops) {
@@ -109,11 +109,11 @@ void N64Controller::read_state() {
       }
       low_len = 0;
       while(val == LOW && loops < max_loops) {
-        val = digitalReadFast(BaseController::isr_data.cur_pin);
+        val = digitalReadFast(BaseReader::isr_data.cur_pin);
         low_len++;
       }
-      *BaseController::isr_data.cur_byte = low_len;
-      BaseController::isr_data.cur_byte++;
+      *BaseReader::isr_data.cur_byte = low_len;
+      BaseReader::isr_data.cur_byte++;
       bits++;
     }
     interrupts();
@@ -164,43 +164,43 @@ void N64Controller::read_state() {
   this->fillStatus(this->JoyStatus);
 }
 
-void N64Controller::isr_write() {
-  switch(BaseController::isr_data.cur_stage) {
+void N64Reader::isr_write() {
+  switch(BaseReader::isr_data.cur_stage) {
   case 0:
     //digitalWriteFast(PIN_TRIGGER, HIGH);
-    digitalWriteFast(BaseController::isr_data.cur_pin, LOW);
+    digitalWriteFast(BaseReader::isr_data.cur_pin, LOW);
     // Reset bit mask if we finished the previous byte
-    BaseController::isr_data.cur_stage++;
+    BaseReader::isr_data.cur_stage++;
     break;
   case 1:
-    if(BaseController::isr_data.cur_byte > BaseController::isr_data.end_byte) {
+    if(BaseReader::isr_data.cur_byte > BaseReader::isr_data.end_byte) {
       // Send stop bit
-      digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
+      digitalWriteFast(BaseReader::isr_data.cur_pin, HIGH);
       // Finish up
       Timer1.detachInterrupt();
-      BaseController::isr_data.mode = 1;
-      pinMode(BaseController::isr_data.cur_pin, INPUT_PULLUP);
+      BaseReader::isr_data.mode = 1;
+      pinMode(BaseReader::isr_data.cur_pin, INPUT_PULLUP);
       // Reset buf pointer for reading
-      BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
+      BaseReader::isr_data.cur_byte = BaseReader::isr_data.buf;
       break;
     }
-    digitalWriteFast(BaseController::isr_data.cur_pin, BaseController::isr_data.cur_val);
-    BaseController::isr_data.cur_stage++;
+    digitalWriteFast(BaseReader::isr_data.cur_pin, BaseReader::isr_data.cur_val);
+    BaseReader::isr_data.cur_stage++;
     break;
   case 2:
-    BaseController::isr_data.cur_bit >>= 1;
-    if(BaseController::isr_data.cur_bit == 0) {
-      BaseController::isr_data.cur_bit = 0x80;
-      BaseController::isr_data.cur_byte++;
+    BaseReader::isr_data.cur_bit >>= 1;
+    if(BaseReader::isr_data.cur_bit == 0) {
+        BaseReader::isr_data.cur_bit = 0x80;
+        BaseReader::isr_data.cur_byte++;
     }
-    BaseController::isr_data.cur_val = 1;
+    BaseReader::isr_data.cur_val = 1;
 
-    BaseController::isr_data.cur_val = *BaseController::isr_data.cur_byte & BaseController::isr_data.cur_bit;
-    BaseController::isr_data.cur_stage++;
+    BaseReader::isr_data.cur_val = *BaseReader::isr_data.cur_byte & BaseReader::isr_data.cur_bit;
+    BaseReader::isr_data.cur_stage++;
     break;
   case 3:
-    digitalWriteFast(BaseController::isr_data.cur_pin, HIGH);
-    BaseController::isr_data.cur_stage = 0;
+    digitalWriteFast(BaseReader::isr_data.cur_pin, HIGH);
+    BaseReader::isr_data.cur_stage = 0;
     break;
   }
 }
@@ -210,7 +210,7 @@ void N64Controller::isr_write() {
  * length must be at least 1
  * Oh, it destroys the buffer passed in as it writes it
  */
-void N64Controller::send(uint8_t pin, uint8_t *buffer, uint8_t length) {
+void N64Reader::send(uint8_t pin, uint8_t *buffer, uint8_t length) {
   this->reset_isr_data();
   this->isr_data.cur_pin = this->fast_pins[pin];
   memcpy((void*)this->isr_data.buf, buffer, length);
@@ -223,7 +223,7 @@ void N64Controller::send(uint8_t pin, uint8_t *buffer, uint8_t length) {
   while(this->isr_data.mode == 0) { j++; }
 }
 
-void N64Controller::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
+void N64Reader::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
   int i, setnum;
   int8_t xaxis = 0;
   int8_t yaxis = 0;
@@ -257,7 +257,7 @@ void N64Controller::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
   joystick->axis[3] = -this->safe_axis(yaxis);
 }
 
-signed short int N64Controller::safe_axis(int8_t rawval) {
+signed short int N64Reader::safe_axis(int8_t rawval) {
   return max(min(
     max(min(rawval, N64_AXIS_MAX), -N64_AXIS_MAX) * (AXIS_MAX/N64_AXIS_MAX), 
     AXIS_MAX), AXIS_MIN);

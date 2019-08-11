@@ -1,8 +1,8 @@
 #include "base_reader.h"
 
-interrupt_data_struct BaseController::isr_data;
+interrupt_data_struct BaseReader::isr_data;
 
-BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name) {
+BaseReader::BaseReader(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name) {
   this->JoyStatus = JoyStatus;
   this->globalmask = global_pins;
   strncpy(this->controller_name, controller_name, CNAME_LEN);
@@ -10,7 +10,7 @@ BaseController::BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, 
   this->isr_data = interrupt_data_struct();
 }
 
-void BaseController::init() {
+void BaseReader::init() {
   printMsg("Initiating %s controllers", this->controller_name);
 
   this->pinmask = 0;
@@ -20,18 +20,18 @@ void BaseController::init() {
   printMsg("%s Pinmask: %X", this->controller_name, this->pinmask);
 }
 
-void BaseController::claim_slot(int num) {
+void BaseReader::claim_slot(int num) {
   uint8_t mask = 0x01 << num;
   this->pinmask |= mask;
   *(this->globalmask) |= mask;
 }
 
-bool BaseController::is_fast() {
+bool BaseReader::is_fast() {
   // If newer than N64, use 3.3V
   return (this->controller_type >= N64);
 }
 
-void BaseController::safe_detect_controllers() {
+void BaseReader::safe_detect_controllers() {
   uint8_t pins_avail = ~(*globalmask);
 
   printBin(binstr, pins_avail, 4);
@@ -41,7 +41,7 @@ void BaseController::safe_detect_controllers() {
   *globalmask |= this->pinmask;
 }
 
-void BaseController::fillStatus(JoystickStatus *joylist) {
+void BaseReader::fillStatus(JoystickStatus *joylist) {
   uint8_t pinlist = this->pinmask;
   uint8_t datamask = 0x01;
   uint8_t allpins = *globalmask;
@@ -63,11 +63,11 @@ void BaseController::fillStatus(JoystickStatus *joylist) {
   }
 }
 
-uint8_t BaseController::read_pin(uint8_t pin) {
+uint8_t BaseReader::read_pin(uint8_t pin) {
   return digitalReadFast((this->is_fast() ? this->fast_pins[pin] : this->slow_pins[pin]));
 }
 
-uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
+uint8_t BaseReader::get_deviants(uint8_t pins_avail, uint8_t expected) {
   int x, resets = 0;
   uint8_t pinmask = 0;
   for (x=0; x<64; x++) {
@@ -94,13 +94,13 @@ uint8_t BaseController::get_deviants(uint8_t pins_avail, uint8_t expected) {
   return pinmask;
 }
 
-void BaseController::reset_isr_data() {
-  BaseController::isr_data.cur_stage = 0;
-  BaseController::isr_data.mode = 0;
-  BaseController::isr_data.cur_bit = 0x80;
+void BaseReader::reset_isr_data() {
+  BaseReader::isr_data.cur_stage = 0;
+  BaseReader::isr_data.mode = 0;
+  BaseReader::isr_data.cur_bit = 0x80;
   // Reset buffer pointers, fill with zeroes
-  BaseController::isr_data.cur_byte = BaseController::isr_data.buf;
-  BaseController::isr_data.end_byte = &BaseController::isr_data.buf[TBUFSIZE-1];
-  BaseController::isr_data.read_bits = TBUFSIZE;
-  memset((void*)BaseController::isr_data.buf, 0, TBUFSIZE);
+  BaseReader::isr_data.cur_byte = BaseReader::isr_data.buf;
+  BaseReader::isr_data.end_byte = &BaseReader::isr_data.buf[TBUFSIZE-1];
+  BaseReader::isr_data.read_bits = TBUFSIZE;
+  memset((void*)BaseReader::isr_data.buf, 0, TBUFSIZE);
 }

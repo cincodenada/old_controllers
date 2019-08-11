@@ -1,13 +1,13 @@
 #include "SNES_reader.h"
 #include <stdio.h>
 
-void SNESController::init() {
-  BaseController::init();
+void SNESReader::init() {
+  BaseReader::init();
 
   this->controller_type = SNES;
 }
 
-void SNESController::setup_pins() {
+void SNESReader::setup_pins() {
   //For our pins, set SNES flag to high (=SNES)
   for(int i=0; i<NUM_CONTROLLERS; i++) {
     if(pinmask & (0x01 << i)) {
@@ -17,11 +17,11 @@ void SNESController::setup_pins() {
   }
 }
 
-void SNESController::clear_dump() {
+void SNESReader::clear_dump() {
   memset(this->raw_dump, 0, 16);
 }
 
-void SNESController::detect_controllers(uint8_t pins_avail) {
+void SNESReader::detect_controllers(uint8_t pins_avail) {
   // This algorithm was after some experimentation.
   // With a weak pull-down on DATA, we can divine things safely
   // SNES must be detected/eliminated first
@@ -45,7 +45,7 @@ void SNESController::detect_controllers(uint8_t pins_avail) {
   this->pinmask = this->get_deviants(pins_avail, 0);
 }
 
-void SNESController::read_state() {
+void SNESReader::read_state() {
   //digitalWrite(PIN_TRIGGER, HIGH);
 
   // read in data and dump it to raw_dump
@@ -55,7 +55,7 @@ void SNESController::read_state() {
   //digitalWrite(PIN_TRIGGER, LOW);
 }
 
-void SNESController::get() {
+void SNESReader::get() {
   this->reset_isr_data();
   this->isr_data.mode = 1;
   this->isr_data.pins = this->slow_pins;
@@ -72,9 +72,9 @@ void SNESController::get() {
   }
 }
 
-void SNESController::isr_read() {
+void SNESReader::isr_read() {
   int mask = 0x01;
-  switch(BaseController::isr_data.cur_stage) {
+  switch(BaseReader::isr_data.cur_stage) {
     case 0:
       digitalWriteFast(LATCH_PIN, HIGH);
       digitalWriteFast(CLOCK_PIN, LOW);
@@ -82,8 +82,8 @@ void SNESController::isr_read() {
     case 1:
       // First bit is on latch, so read it
       for(int i=0; i < NUM_CONTROLLERS; i++) {
-        if(digitalReadFast(BaseController::isr_data.pins[i])) {
-          *BaseController::isr_data.cur_byte |= mask;
+        if(digitalReadFast(BaseReader::isr_data.pins[i])) {
+          *BaseReader::isr_data.cur_byte |= mask;
         }
         mask <<= 1;
       }
@@ -95,30 +95,30 @@ void SNESController::isr_read() {
       // Do nothing
       break;
     case 5:
-      if(BaseController::isr_data.cur_byte >= BaseController::isr_data.end_byte) {
-        BaseController::isr_data.mode = 2;
+      if(BaseReader::isr_data.cur_byte >= BaseReader::isr_data.end_byte) {
+        BaseReader::isr_data.mode = 2;
         Timer1.detachInterrupt();
       } else {
         digitalWriteFast(CLOCK_PIN, HIGH);
-        BaseController::isr_data.cur_byte++;
+        BaseReader::isr_data.cur_byte++;
       }
       break;
     case 6:
       for(int i=0; i < NUM_CONTROLLERS; i++) {
-        if(digitalReadFast(BaseController::isr_data.pins[i])) {
-          *BaseController::isr_data.cur_byte |= mask;
+        if(digitalReadFast(BaseReader::isr_data.pins[i])) {
+          *BaseReader::isr_data.cur_byte |= mask;
         }
         mask <<= 1;
       }
       digitalWriteFast(CLOCK_PIN, LOW);
       // Set back to 4 so it gets incremented to 5
-      BaseController::isr_data.cur_stage = 4;
+      BaseReader::isr_data.cur_stage = 4;
       break;
   }
-  BaseController::isr_data.cur_stage++;
+  BaseReader::isr_data.cur_stage++;
 }
 
-void SNESController::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
+void SNESReader::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
   int i, setnum;
   char ctldata[100] = "";
   joystick->clear();

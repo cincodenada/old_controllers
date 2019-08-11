@@ -3,12 +3,12 @@
 
 #include "base_reader.h"
 
-class SNESController : public BaseController {
+class SNESReader : public BaseReader {
 public:
   uint8_t raw_dump[16]; // Temp dump location
 
-  SNESController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
-    : BaseController(JoyStatus, global_pins, controller_name) {};
+  SNESReader(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
+    : BaseReader(JoyStatus, global_pins, controller_name) {};
 
   void init();
   void setup_pins();

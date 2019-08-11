@@ -33,7 +33,7 @@ struct interrupt_data_struct {
   volatile bool done;
 };
 
-class BaseController {
+class BaseReader {
 public:
   uint8_t pinmask = 0;
   uint8_t* globalmask;
@@ -45,7 +45,7 @@ public:
 
   JoystickStatus *JoyStatus;
 
-  BaseController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name);
+  BaseReader(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name);
   virtual void init();
   virtual void claim_slot(int num);
 
