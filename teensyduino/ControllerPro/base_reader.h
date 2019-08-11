@@ -6,7 +6,7 @@
 #include "Arduino.h"
 #include "pin_config.h"
 #include "common.h"
-#include "JoystickStatus.h"
+#include "joystick_status.h"
 #include "TimerOne.h"
 
 #define CNAME_LEN 10

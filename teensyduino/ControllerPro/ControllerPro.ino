@@ -16,11 +16,11 @@
 
 #include "pin_config.h"
 #include "common.h"
-#include "JoystickStatus.h"
+#include "joystick_status.h"
 #include "crc_table.h"
-#include "N64Controller.h"
-#include "SNESController.h"
-#include "NESController.h"
+#include "N64_reader.h"
+#include "SNES_reader.h"
+#include "NES_reader.h"
 
 #include "bt_controller.h"
 

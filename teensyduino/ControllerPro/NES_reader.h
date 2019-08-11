@@ -1,13 +1,13 @@
-#ifndef SNESCONTROLLER_H
-#define SNESCONTROLLER_H
+#ifndef NESCONTROLLER_H
+#define NESCONTROLLER_H
 
-#include "BaseController.h"
+#include "base_reader.h"
 
-class SNESController : public BaseController {
+class NESController : public BaseController {
 public:
   uint8_t raw_dump[16]; // Temp dump location
 
-  SNESController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
+  NESController(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
     : BaseController(JoyStatus, global_pins, controller_name) {};
 
   void init();
@@ -24,4 +24,4 @@ public:
   void fillJoystick(JoystickStatus *joystick, uint8_t datamask);
 };
 
-#endif /* SNESCONTROLLER_H */
+#endif /* NESCONTROLLER_H */

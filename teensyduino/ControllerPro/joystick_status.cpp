@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "common.h"
-#include "JoystickStatus.h"
+#include "joystick_status.h"
 
 void JoystickStatus::translate_buttons(
   JoystickStatus *dest,

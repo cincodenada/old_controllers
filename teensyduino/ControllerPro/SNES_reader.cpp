@@ -1,4 +1,4 @@
-#include "SNESController.h"
+#include "SNES_reader.h"
 #include <stdio.h>
 
 void SNESController::init() {

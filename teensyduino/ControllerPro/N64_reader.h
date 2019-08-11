@@ -1,7 +1,7 @@
 #ifndef N64CONTROLLER_H
 #define N64CONTROLLER_H
 
-#include "BaseController.h"
+#include "base_reader.h"
 
 //Important: set DATA_PORT to low before using these
 //So when we flip to output, we ouput a low!

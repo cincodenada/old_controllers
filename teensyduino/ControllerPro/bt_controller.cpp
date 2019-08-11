@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "common.h"
-#include "JoystickStatus.h"
+#include "joystick_status.h"
 #include "bt_controller.h"
 
 #define PACKET_BYTES 8

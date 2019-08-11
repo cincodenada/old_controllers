@@ -1,4 +1,4 @@
-#include "N64Controller.h"
+#include "N64_reader.h"
 #include <stdio.h>
 
 void N64Controller::init() {

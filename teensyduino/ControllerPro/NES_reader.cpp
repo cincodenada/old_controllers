@@ -1,4 +1,4 @@
-#include "NESController.h"
+#include "NES_reader.h"
 #include <stdio.h>
 
 void NESController::init() {
