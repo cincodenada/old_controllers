@@ -77,97 +77,45 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
   }
 };
 
-
-
-void truth_table() {
-  for(int i=0; i < NUM_CONTROLLERS; i++) {
-    pinMode(slow_pins[i], INPUT_PULLUP);
-    pinMode(CLOCK_PIN, INPUT);
-    digitalWrite(s_nes_pins[i], LOW);
-  }
-  while(true) {
-    for(int latch=0; latch <=1; latch++) {
-      for(int snes=0; snes <=1; snes++) {
-        digitalWrite(LATCH_PIN, latch);
-        for(int i=0; i<NUM_CONTROLLERS; i++) {
-          digitalWrite(s_nes_pins[i], snes);
-        }
-        for(int i=0; i<NUM_CONTROLLERS; i++) {
-          printMsg("%d: %d%d%d%d",
-            i,
-            digitalRead(slow_pins[i]),
-            latch,
-            digitalRead(CLOCK_PIN),
-            snes);
-          delay(1);
-        }
-      }
-    }
-    delay(500);
-    cls();
-  }
-}
-void debug_detect() {
-  while(true) {
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
-      pinMode(slow_pins[i], INPUT);
-      digitalWrite(s_nes_pins[i], LOW);
-    }
-    delay(1);
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
-      pinMode(slow_pins[i], INPUT);
-      digitalWrite(s_nes_pins[i], HIGH);
-    }
-    delay(1);
-  }
-}
-void debug_detect2() {
-  while(true) {
-    pins_used = 0;
-    clist[N64]->init();
-    clist[SNES]->init();
-    clist[NES]->init();
-
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
-      unsigned char mask = 1 << i;
-      char controller[] = "None";
-      bool matched = false;
-      for(int i=0; i < NUMCTL; i++) {
-        if(clist[i]->pinmask & mask) {
-          if(matched) {
-            printMsg("Duplicate pinmask! Also on %s", clist[i]->controller_name);
-          } else {
-            strncpy(controller, clist[i]->controller_name, 5);
-          }
-        }
-      }
-      printMsg("Slot %d: %s", i+1, controller);
-    }
-    delay(100);
-  }
-}
-
 void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
     if(portmask & 0x01) {
-      int ref = 0, fast=0, snesornes=0;
-      for(int i=0; i<10; i++) {
-        ref = max(ref, touchRead(TOUCH_REF)/100);
-        fast = max(ref, touchRead(fast_pins[slot])/100);
-        snesornes = max(ref, touchRead(s_nes_pins[slot])/100);
+      // First, check for definite SNES
+      pinMode(s_nes_pins[slot], OUTPUT);
+      pinMode(slow_pins[slot], INPUT_PULLUP);
+      digitalWrite(s_nes_pins[slot], LOW);
+      delay(10);
+      uint8_t val = digitalRead(slow_pins[slot]);
+      pinMode(s_nes_pins[slot], INPUT);
+      pinMode(slow_pins[slot], INPUT);
+
+      if(val == LOW) {
+        printMsg("Port %d low, assigning SNES", slot);
+        clist[SNES]->claim_slot(slot);
+      } else {
+        uint16_t ref, fast, slow, snesornes;
+        ref = fast = slow = snesornes = 0;
+        for(int i=0; i<1; i++) {
+          ref = max(ref, touchRead(TOUCH_REF)/1);
+          fast = max(fast, touchRead(fast_pins[slot])/1);
+          slow = max(slow, touchRead(slow_pins[slot])/1);
+          snesornes = max(snesornes, touchRead(s_nes_pins[slot])/1);
+        }
+
+        if(snesornes > ref*5) {
+          clist[NES]->claim_slot(slot);
+        } else if(fast > ref*50) {
+          clist[N64]->claim_slot(slot);
+        } else {
+          // Leave it empty
+        }
+
+        printMsg("Checked port %d: %d/%d/%d/%d", slot, ref, fast, slow, snesornes);
       }
 
-      if(snesornes > ref*5) {
-        if(snesornes > ref*50) {
-          clist[SNES]->claim_slot(slot);
-        } else {
-          clist[NES]->claim_slot(slot);
-        }
-      } else if(fast > ref*50) {
-        clist[N64]->claim_slot(slot);
-      } else {
-        // Leave it empty
-      }
+      delay(100);
+
+
     }
     portmask >>= 1;
   }
@@ -179,20 +127,6 @@ void setup() {
   //init_bt();
 
   pinMode(LED_PIN, OUTPUT);
-
-  int pinval = HIGH;
-  int waitsecs = 5;
-  printMsg("Waiting %d seconds for serial connection");
-  for(int i=waitsecs; i>0; --i) {
-    Serial.print(i);
-    Serial.print("...");
-    Serial.flush();
-    digitalWrite(LED_PIN, pinval);
-    delay(1000);
-    pinval = (pinval == HIGH) ? LOW : HIGH;
-  }
-  Serial.println();
-
   digitalWrite(LED_PIN, HIGH);
 
   MultiJoystick.setJoyNum(0);
@@ -202,11 +136,6 @@ void setup() {
   printMsg("Initiated joystick lib");
   digitalWrite(LED_PIN, LOW);
 
-  printMsg("Set up pins");
-  digitalWrite(LED_PIN, HIGH);
-
-  // We have to detect SNES before NES
-  // (see NESReader::detect_controllers)
   clist[N64] = new N64Reader(JoyStatus, &pins_used, "N64");
   clist[SNES] = new SNESReader(JoyStatus, &pins_used, "SNES");
   clist[NES] = new NESReader(JoyStatus, &pins_used, "NES");
@@ -215,10 +144,21 @@ void setup() {
   digitalWrite(LED_PIN, LOW);
 
   // Pins are default initialized to INPUT, which is what we want
-  detect_ports(pins_used, clist);
-  for(int i=0; i<NUMSLOTS; i++) {
-    clist[i]->setup_pins();
+  while(true) {
+    cls(); 
+    
+    detect_ports(0xF, clist);
+    printMsg("Detected pins");
+
+    for(int i=0; i<NUMSLOTS; i++) {
+      printMsg("%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+//      clist[i]->setup_pins();
+      clist[i]->pinmask = 0;
+    }
+    delay(100);
   }
+
+  digitalWrite(LED_PIN, HIGH);
 
   // Now that S/NES mode is set, we can set
   // CLOCK/LATCH to outputs. Doing so earlier

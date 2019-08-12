@@ -5,7 +5,7 @@
 char msg[MSG_LEN];
 char binstr[NUM_BITS+1];
 
-int max_len = 0;
+int max_len = 30;
 int messages_enabled = true;
 
 void enableMessages(bool enabled) {
