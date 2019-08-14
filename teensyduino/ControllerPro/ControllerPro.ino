@@ -79,17 +79,21 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
 void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
     if(portmask & 0x01) {
+      printMsg(DEBUG, "Checking slot %d for SNES...", slot);
       // First, check for definite SNES
+      LATCH_MODE(OUTPUT);
       pinMode(s_nes_pins[slot], OUTPUT);
       pinMode(slow_pins[slot], INPUT_PULLUP);
-      digitalWrite(s_nes_pins[slot], LOW);
+      digitalWrite(s_nes_pins[slot], HIGH);
+      LATCH(HIGH);
       delay(10);
       uint8_t val = digitalRead(slow_pins[slot]);
       pinMode(s_nes_pins[slot], INPUT);
       pinMode(slow_pins[slot], INPUT);
+      LATCH_MODE(INPUT);
 
       if(val == LOW) {
-        printMsg("Port %d low, assigning SNES", slot);
+        printMsg(DEBUG, "Port %d low, assigning SNES", slot);
         clist[SNES]->claim_slot(slot);
       } else {
         uint16_t ref, fast, slow, snesornes;
@@ -109,15 +113,30 @@ void detect_ports(char portmask, BaseReader** clist) {
           // Leave it empty
         }
 
-        printMsg("Checked port %d: %d/%d/%d/%d", slot, ref, fast, slow, snesornes);
+        printMsg(DEBUG, "Checked port %d: %d/%d/%d/%d", slot, ref, fast, slow, snesornes);
       }
 
-      delay(100);
-
-
+      delay(10);
     }
     portmask >>= 1;
   }
+}
+
+void safe_detect() {
+  digitalWrite(LED_PIN, HIGH);
+  pinMode(CLOCK_PIN, INPUT);
+
+  detect_ports(~pins_used, clist);
+
+  digitalWrite(LED_PIN, LOW);
+
+  for(int i=0; i<NUMCTL; i++) {
+    printMsg("%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    clist[i]->setup_pins();
+  }
+
+  pinMode(CLOCK_PIN, OUTPUT);
+  LATCH_MODE(OUTPUT);
 }
 
 void setup() {
@@ -144,28 +163,20 @@ void setup() {
   printMsg("Created controllers");
   digitalWrite(LED_PIN, LOW);
 
-  // Pins are default initialized to INPUT, which is what we want
   while(true) {
-    cls(); 
-    
-    detect_ports(0xF, clist);
-    printMsg("Detected pins");
-
-    for(int i=0; i<NUMSLOTS; i++) {
-      printMsg("%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
-//      clist[i]->setup_pins();
-      clist[i]->pinmask = 0;
+    /* Reset and test everything (ugh) */
+    pins_used = 0;
+    for(int i=0; i<NUMCTL; i++) {
+      clist[i]->pinmask=0;
     }
+
+    cls();
+
+    safe_detect();
     delay(100);
   }
 
   digitalWrite(LED_PIN, HIGH);
-
-  // Now that S/NES mode is set, we can set
-  // CLOCK/LATCH to outputs. Doing so earlier
-  // would expose the controllers to odd voltages
-  pinMode(CLOCK_PIN, OUTPUT);
-  pinMode(LATCH_PIN, OUTPUT);
 
   printMsg("Initiated controller pins");
   digitalWrite(LED_PIN, HIGH);

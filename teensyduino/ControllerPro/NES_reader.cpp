@@ -12,6 +12,7 @@ void NESReader::setup_pins() {
   for(int i=0; i<NUMSLOTS; i++) {
     if(pinmask & (0x01 << i)) {
       pinMode(this->slow_pins[i], INPUT_PULLUP);
+      pinMode(this->s_nes_pins[i], OUTPUT);
       digitalWrite(this->s_nes_pins[i], LOW);
     }
   }
