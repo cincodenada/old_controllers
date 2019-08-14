@@ -34,7 +34,7 @@ void N64Reader::detect_controllers(uint8_t pins_avail) {
   int num_tries = 5;
   pinMode(PIN_TRIGGER, OUTPUT);
 
-  for(int i=0; i < NUM_CONTROLLERS; i++) {
+  for(int i=0; i < NUMSLOTS; i++) {
     if(!(pins_avail & (0x01 << i))) { continue; }
 
     bool responded = false;
@@ -69,7 +69,7 @@ void N64Reader::read_state() {
   // Clear raw_dump so we can set individual bits to it
   memset(raw_dump, 0, TBUFSIZE);
   // Run through our controllers one at a time
-  for(int i=0; i<NUM_CONTROLLERS; i++) {
+  for(int i=0; i<NUMSLOTS; i++) {
     if(!(this->pinmask & (0x01 << i))) { continue; }
 
     uint8_t bits = 0;

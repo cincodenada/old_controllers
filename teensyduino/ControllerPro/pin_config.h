@@ -10,7 +10,8 @@
 #define SP2 2
 #define SP3 3
 
-#define SLOW_PINS SP0,SP1,SP2,SP3
+
+#define SLOW_PINS SP0,SP1//,SP2,SP3
 #define SLOW_MASKS \
   CORE_PIN ## SP0 ## _BITMASK, \
   CORE_PIN ## SP1 ## _BITMASK, \
@@ -37,7 +38,7 @@
 #define FP2 19
 #define FP3 4
 
-#define FAST_PINS FP0,FP1,FP2,FP3
+#define FAST_PINS FP0,FP1//,FP2,FP3
 #define FAST_MASKS \
   CORE_PIN ## FP0 ## _BITMASK, \
   CORE_PIN ## FP1 ## _BITMASK, \
@@ -60,7 +61,7 @@
   CORE_PIN ## FP3 ## _PORTCLEAR
 
 //+5V = SNES, GND = NES
-#define S_NES_PINS 23,22,21,20
+#define S_NES_PINS 23,22//,21,20
 
 //D7 = clock, D6 = latch
 #define CLOCK_PIN 16
@@ -74,6 +75,8 @@
 #define PIN_TRIGGER LED_PIN
 
 #define IO_MASK 0x0F
+
+#define NUMSLOTS 2
 
 constexpr int fast_pins[] = {FAST_PINS};
 constexpr int slow_pins[] = {SLOW_PINS};

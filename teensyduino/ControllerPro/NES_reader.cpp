@@ -9,7 +9,7 @@ void NESReader::init() {
 
 void NESReader::setup_pins() {
   //For our pins, set SNES flag to low (=NES)
-  for(int i=0; i<NUM_CONTROLLERS; i++) {
+  for(int i=0; i<NUMSLOTS; i++) {
     if(pinmask & (0x01 << i)) {
       pinMode(this->slow_pins[i], INPUT_PULLUP);
       digitalWrite(this->s_nes_pins[i], LOW);
@@ -28,7 +28,7 @@ void NESReader::detect_controllers(uint8_t pins_avail) {
 
   // Limit NES to slots 3/4
   pins_avail &= 0b1100;
-  for(int i=0; i<NUM_CONTROLLERS; i++) {
+  for(int i=0; i<NUMSLOTS; i++) {
     if(pins_avail & (0x01 << i)) {
       printMsg("Detecting NES on pin %d", i);
       pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
@@ -79,12 +79,12 @@ void NESReader::isr_read() {
   int mask = 0x01;
   switch(BaseReader::isr_data.cur_stage) {
     case 0:
-      digitalWriteFast(LATCH_PIN, HIGH);
+      LATCH(HIGH);
       digitalWriteFast(CLOCK_PIN, LOW);
       break;
     case 1:
       // First bit is on latch, so read it
-      for(int i=0; i < NUM_CONTROLLERS; i++) {
+      for(int i=0; i < NUMSLOTS; i++) {
         if(digitalReadFast(BaseReader::isr_data.pins[i])) {
           *BaseReader::isr_data.cur_byte |= mask;
         }
@@ -107,7 +107,7 @@ void NESReader::isr_read() {
       }
       break;
     case 6:
-      for(int i=0; i < NUM_CONTROLLERS; i++) {
+      for(int i=0; i < NUMSLOTS; i++) {
         if(digitalReadFast(BaseReader::isr_data.pins[i])) {
           *BaseReader::isr_data.cur_byte |= mask;
         }

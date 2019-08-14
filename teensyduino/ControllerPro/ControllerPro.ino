@@ -25,9 +25,8 @@
 #include "bt_controller.h"
 
 #define NUMCTL 3
-#define NUMSLOTS 2
 
-JoystickStatus JoyStatus[NUM_CONTROLLERS];
+JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
 uint8_t num_joys;

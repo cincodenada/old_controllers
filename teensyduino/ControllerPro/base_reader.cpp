@@ -75,7 +75,7 @@ uint8_t BaseReader::get_deviants(uint8_t pins_avail, uint8_t expected) {
     int curval;
     uint8_t inpins = 0;
     uint8_t curmask = 0x01;
-    for(int i=0; i < NUM_CONTROLLERS; i++) {
+    for(int i=0; i < NUMSLOTS; i++) {
       curval = this->read_pin(i);
       inpins |= (curval << i);
       if((pins_avail & curmask) && curval != expected) {

@@ -9,7 +9,7 @@ void SNESReader::init() {
 
 void SNESReader::setup_pins() {
   //For our pins, set SNES flag to high (=SNES)
-  for(int i=0; i<NUM_CONTROLLERS; i++) {
+  for(int i=0; i<NUMSLOTS; i++) {
     if(pinmask & (0x01 << i)) {
       pinMode(this->slow_pins[i], INPUT_PULLUP);
       digitalWrite(this->s_nes_pins[i], HIGH);
@@ -28,7 +28,7 @@ void SNESReader::detect_controllers(uint8_t pins_avail) {
 
   // Limit SNES to slots 1/2
   pins_avail &= 0b0011;
-  for(int i=0; i<NUM_CONTROLLERS; i++) {
+  for(int i=0; i<NUMSLOTS; i++) {
     if(pins_avail & (0x01 << i)) {
       pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
       digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
@@ -81,7 +81,7 @@ void SNESReader::isr_read() {
       break;
     case 1:
       // First bit is on latch, so read it
-      for(int i=0; i < NUM_CONTROLLERS; i++) {
+      for(int i=0; i < NUMSLOTS; i++) {
         if(digitalReadFast(BaseReader::isr_data.pins[i])) {
           *BaseReader::isr_data.cur_byte |= mask;
         }
@@ -104,7 +104,7 @@ void SNESReader::isr_read() {
       }
       break;
     case 6:
-      for(int i=0; i < NUM_CONTROLLERS; i++) {
+      for(int i=0; i < NUMSLOTS; i++) {
         if(digitalReadFast(BaseReader::isr_data.pins[i])) {
           *BaseReader::isr_data.cur_byte |= mask;
         }
