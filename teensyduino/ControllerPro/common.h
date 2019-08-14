@@ -1,9 +1,14 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#define ERROR 1
+#define WARN 2
+#define INFO 3
+#define DEBUG 4
+
 #define MSG_LEN 70
 #define NUM_BITS 8
-#define LOG_LEVEL 3
+#define LOG_LEVEL INFO
 
 extern char msg[MSG_LEN];
 extern char binstr[NUM_BITS+1];

@@ -128,6 +128,8 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
 
+  delay(2000);
+
   MultiJoystick.setJoyNum(0);
   MultiJoystick.useManualSend(true); 
   num_joys = MultiJoystick.num_joys();
@@ -180,6 +182,8 @@ void loop()
   int i;
   uint8_t joynum, joypos;
   JoystickStatus curStatus;
+
+  cls();
 
   // Determine how many controllers we're using
   printBin(binstr, pins_used);

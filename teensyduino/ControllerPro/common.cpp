@@ -36,13 +36,13 @@ void printMsg(int level, const char* format, ...) {
 void printMsg(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  vprintMsg(3, format, args);
+  vprintMsg(INFO, format, args);
   va_end(args);
 }
 
 void cls() {
   if(messages_enabled) {
-  //Serial.print("\033[2J");  // clear screen command
+  Serial.print("\033[2J");    // clear screen command
   Serial.print("\033[0;0H");   // cursor to home command
   Serial.flush();
   }
