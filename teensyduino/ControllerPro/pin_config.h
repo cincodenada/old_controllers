@@ -66,6 +66,7 @@
 //D7 = clock, D6 = latch
 #define CLOCK_PIN 16
 #define LATCH_PIN 15
+#define LATCH_PINS 5,6//,10,9
 
 #define LED_PIN 13
 
@@ -81,5 +82,17 @@
 constexpr int fast_pins[] = {FAST_PINS};
 constexpr int slow_pins[] = {SLOW_PINS};
 constexpr int s_nes_pins[] = {S_NES_PINS};
+constexpr int latch_pins[] = {LATCH_PINS};
+
+#define LATCH(val) \
+  for(int i=0; i<NUMSLOTS; i++) { \
+  pinMode(latch_pins[i], val); \
+  }
+
+#define LATCH_MODE(val) \
+  for(int i=0; i<NUMSLOTS; i++) { \
+  pinMode(latch_pins[i], val); \
+  }
+
 
 #endif /* PIN_CONFIG_H */

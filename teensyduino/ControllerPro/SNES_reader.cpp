@@ -76,7 +76,7 @@ void SNESReader::isr_read() {
   int mask = 0x01;
   switch(BaseReader::isr_data.cur_stage) {
     case 0:
-      digitalWriteFast(LATCH_PIN, HIGH);
+      LATCH(HIGH);
       digitalWriteFast(CLOCK_PIN, LOW);
       break;
     case 1:
@@ -89,7 +89,7 @@ void SNESReader::isr_read() {
       }
       break;
     case 3:
-      digitalWriteFast(LATCH_PIN, LOW);
+      LATCH(LOW);
       break;
     case 4:
       // Do nothing

@@ -92,7 +92,7 @@ void NESReader::isr_read() {
       }
       break;
     case 3:
-      digitalWriteFast(LATCH_PIN, LOW);
+      LATCH(LOW);
       break;
     case 4:
       // Do nothing
