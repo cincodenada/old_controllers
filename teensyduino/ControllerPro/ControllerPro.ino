@@ -136,7 +136,7 @@ void safe_detect() {
   }
 
   pinMode(CLOCK_PIN, OUTPUT);
-  LATCH_MODE(OUTPUT);
+  pinMode(LATCH_PIN, OUTPUT);
 }
 
 void setup() {

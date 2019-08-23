@@ -5,10 +5,10 @@
 
 #define PORT(p0,p1,p2,p3)
 
-#define SP0 0
-#define SP1 1
+#define SP0 5
+#define SP1 3
 #define SP2 2
-#define SP3 3
+#define SP3 4
 
 
 #define SLOW_PINS SP0,SP1//,SP2,SP3
@@ -33,10 +33,10 @@
   CORE_PIN ## SP2 ## _PORTCLEAR, \
   CORE_PIN ## SP3 ## _PORTCLEAR
 
-#define FP0 17
-#define FP1 18
-#define FP2 19
-#define FP3 4
+#define FP0 0
+#define FP1 23
+#define FP2 22
+#define FP3 1
 
 #define FAST_PINS FP0,FP1//,FP2,FP3
 #define FAST_MASKS \
@@ -61,12 +61,11 @@
   CORE_PIN ## FP3 ## _PORTCLEAR
 
 //+5V = SNES, GND = NES
-#define S_NES_PINS 23,22//,21,20
+#define S_NES_PINS 17,18,15,16
 
 //D7 = clock, D6 = latch
-#define CLOCK_PIN 16
-#define LATCH_PIN 15
-#define LATCH_PINS 5,6//,10,9
+#define CLOCK_PIN 9
+#define LATCH_PIN 10
 
 #define LED_PIN 13
 
@@ -77,22 +76,11 @@
 
 #define IO_MASK 0x0F
 
-#define NUMSLOTS 2
+#define NUMSLOTS 4
 
 constexpr int fast_pins[] = {FAST_PINS};
 constexpr int slow_pins[] = {SLOW_PINS};
 constexpr int s_nes_pins[] = {S_NES_PINS};
 constexpr int latch_pins[] = {LATCH_PINS};
-
-#define LATCH(val) \
-  for(int i=0; i<NUMSLOTS; i++) { \
-  pinMode(latch_pins[i], val); \
-  }
-
-#define LATCH_MODE(val) \
-  for(int i=0; i<NUMSLOTS; i++) { \
-  pinMode(latch_pins[i], val); \
-  }
-
 
 #endif /* PIN_CONFIG_H */
