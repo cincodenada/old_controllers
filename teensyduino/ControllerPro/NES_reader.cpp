@@ -59,6 +59,15 @@ void NESReader::read_state() {
   //digitalWrite(PIN_TRIGGER, LOW);
 }
 
+void NESReader::prune() {
+  pinMode(LATCH_PIN, OUTPUT);
+  delay(1);
+
+  int missing = this->get_deviants(pinmask, 1);
+  pinmask &= ~missing;
+  *globalmask &= ~missing;
+}
+
 void NESReader::get() {
   this->reset_isr_data();
   this->isr_data.mode = 1;

@@ -79,42 +79,29 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
 void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
     if(portmask & 0x01) {
-      printMsg(DEBUG, "Checking slot %d for SNES...", slot);
-      // First, check for definite SNES
-      LATCH_MODE(OUTPUT);
-      pinMode(s_nes_pins[slot], OUTPUT);
-      pinMode(slow_pins[slot], INPUT_PULLUP);
-      digitalWrite(s_nes_pins[slot], HIGH);
-      LATCH(HIGH);
-      delay(10);
-      uint8_t val = digitalRead(slow_pins[slot]);
       pinMode(s_nes_pins[slot], INPUT);
+      pinMode(fast_pins[slot], INPUT);
       pinMode(slow_pins[slot], INPUT);
-      LATCH_MODE(INPUT);
+      pinMode(extra_pins[slot], INPUT);
 
-      if(val == LOW) {
-        printMsg(DEBUG, "Port %d low, assigning SNES", slot);
-        clist[SNES]->claim_slot(slot);
-      } else {
-        uint16_t ref, fast, slow, snesornes;
-        ref = fast = slow = snesornes = 0;
-        for(int i=0; i<1; i++) {
-          ref = max(ref, touchRead(TOUCH_REF)/1);
-          fast = max(fast, touchRead(fast_pins[slot])/1);
-          slow = max(slow, touchRead(slow_pins[slot])/1);
-          snesornes = max(snesornes, touchRead(s_nes_pins[slot])/1);
-        }
-
-        if(snesornes > ref*5) {
-          clist[NES]->claim_slot(slot);
-        } else if(fast > ref*50) {
-          clist[N64]->claim_slot(slot);
-        } else {
-          // Leave it empty
-        }
-
-        printMsg(DEBUG, "Checked port %d: %d/%d/%d/%d", slot, ref, fast, slow, snesornes);
+      uint16_t fast, nes;
+      fast = nes = 0;
+      for(int i=0; i<1; i++) {
+        fast = max(fast, touchRead(fast_pins[slot])/1);
+        nes = max(nes, touchRead(extra_pins[slot])/1);
       }
+
+      if(nes > fast*5) {
+        clist[NES]->claim_slot(slot);
+      } else if(fast > nes*5) {
+        clist[N64]->claim_slot(slot);
+      } else {
+        // If it's empty, this will take itself
+        // off the list after the first try
+        clist[SNES]->claim_slot(slot);
+      }
+
+      printMsg(DEBUG, "Checked port %d: %d/%d", slot, fast, nes);
 
       delay(10);
     }
@@ -125,14 +112,20 @@ void detect_ports(char portmask, BaseReader** clist) {
 void safe_detect() {
   digitalWrite(LED_PIN, HIGH);
   pinMode(CLOCK_PIN, INPUT);
+  pinMode(LATCH_PIN, INPUT);
 
   detect_ports(~pins_used, clist);
 
   digitalWrite(LED_PIN, LOW);
 
   for(int i=0; i<NUMCTL; i++) {
-    printMsg("%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
     clist[i]->setup_pins();
+  }
+
+  clist[SNES]->prune();
+
+  for(int i=0; i<NUMCTL; i++) {
+    printMsg("%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
   }
 
   pinMode(CLOCK_PIN, OUTPUT);

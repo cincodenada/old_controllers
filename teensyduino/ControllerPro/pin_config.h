@@ -11,7 +11,7 @@
 #define SP3 4
 
 
-#define SLOW_PINS SP0,SP1//,SP2,SP3
+#define SLOW_PINS SP0,SP1,SP2,SP3
 #define SLOW_MASKS \
   CORE_PIN ## SP0 ## _BITMASK, \
   CORE_PIN ## SP1 ## _BITMASK, \
@@ -38,7 +38,7 @@
 #define FP2 22
 #define FP3 1
 
-#define FAST_PINS FP0,FP1//,FP2,FP3
+#define FAST_PINS FP0,FP1,FP2,FP3
 #define FAST_MASKS \
   CORE_PIN ## FP0 ## _BITMASK, \
   CORE_PIN ## FP1 ## _BITMASK, \
@@ -60,16 +60,20 @@
   CORE_PIN ## FP2 ## _PORTCLEAR, \
   CORE_PIN ## FP3 ## _PORTCLEAR
 
+/*
+#define EXTRA_PINS 20,21,6,19
 //+5V = SNES, GND = NES
 #define S_NES_PINS 17,18,15,16
+*/
+
+#define S_NES_PINS 20,21,6,19
+#define EXTRA_PINS 17,18,15,16
 
 //D7 = clock, D6 = latch
 #define CLOCK_PIN 9
 #define LATCH_PIN 10
 
 #define LED_PIN 13
-
-#define TOUCH_REF 15
 
 //C6/7 = 9/10
 #define PIN_TRIGGER LED_PIN
@@ -81,6 +85,6 @@
 constexpr int fast_pins[] = {FAST_PINS};
 constexpr int slow_pins[] = {SLOW_PINS};
 constexpr int s_nes_pins[] = {S_NES_PINS};
-constexpr int latch_pins[] = {LATCH_PINS};
+constexpr int extra_pins[] = {EXTRA_PINS};
 
 #endif /* PIN_CONFIG_H */

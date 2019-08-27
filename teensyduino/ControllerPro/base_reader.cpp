@@ -14,7 +14,6 @@ void BaseReader::init() {
   printMsg("Initiating %s controllers", this->controller_name);
 
   this->pinmask = 0;
-  this->safe_detect_controllers();
   this->setup_pins();
 
   printMsg("%s Pinmask: %X", this->controller_name, this->pinmask);
@@ -67,20 +66,20 @@ uint8_t BaseReader::read_pin(uint8_t pin) {
   return digitalReadFast((this->is_fast() ? this->fast_pins[pin] : this->slow_pins[pin]));
 }
 
-uint8_t BaseReader::get_deviants(uint8_t pins_avail, uint8_t expected) {
+uint8_t BaseReader::get_deviants(uint8_t pins, uint8_t expected) {
   int x, resets = 0;
   uint8_t pinmask = 0;
   for (x=0; x<64; x++) {
     int reset = 0;
     int curval;
-    uint8_t inpins = 0;
     uint8_t curmask = 0x01;
     for(int i=0; i < NUMSLOTS; i++) {
-      curval = this->read_pin(i);
-      inpins |= (curval << i);
-      if((pins_avail & curmask) && curval != expected) {
-        pinmask |= curmask;
-        reset = 1;
+      if(pins & curmask) {
+        curval = this->read_pin(i);
+        if(curval != expected) {
+          pinmask |= curmask;
+          reset = 1;
+        }
       }
       curmask <<= 1;
     }
@@ -89,7 +88,6 @@ uint8_t BaseReader::get_deviants(uint8_t pins_avail, uint8_t expected) {
       resets++;
       if(resets > 10) { break; }
     }
-    printMsg("Inpins %X, pins_avail %X, pinmask %X...", inpins, pins_avail, pinmask);
   }
   return pinmask;
 }

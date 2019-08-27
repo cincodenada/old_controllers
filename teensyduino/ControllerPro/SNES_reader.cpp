@@ -56,6 +56,15 @@ void SNESReader::read_state() {
   //digitalWrite(PIN_TRIGGER, LOW);
 }
 
+void SNESReader::prune() {
+  pinMode(LATCH_PIN, OUTPUT);
+  delay(1);
+
+  int missing = this->get_deviants(pinmask, 1);
+  pinmask &= ~missing;
+  *globalmask &= ~missing;
+}
+
 void SNESReader::get() {
   this->reset_isr_data();
   this->isr_data.mode = 1;
