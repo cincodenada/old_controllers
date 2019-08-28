@@ -91,9 +91,9 @@ void detect_ports(char portmask, BaseReader** clist) {
         nes = max(nes, touchRead(extra_pins[slot])/1);
       }
 
-      if(nes > fast*5) {
+      if(nes > fast*3) {
         clist[NES]->claim_slot(slot);
-      } else if(fast > nes*5) {
+      } else if(fast > nes*3) {
         clist[N64]->claim_slot(slot);
       } else {
         // If it's empty, this will take itself
