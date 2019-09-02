@@ -42,7 +42,7 @@ void N64Reader::detect_controllers(uint8_t pins_avail) {
       printMsg("Sending command for controller %d...", i+1);
       this->send(i, &command, 1);
 
-      uint8_t cur_pin = this->fast_pins[i];
+      uint8_t cur_pin = fast_pins[i];
       pinMode(cur_pin, INPUT_PULLUP);
       printMsg("Waiting for response...");
       for (int x=0; x<200; x++) {
@@ -79,7 +79,7 @@ void N64Reader::read_state() {
     uint8_t val = HIGH;
 
     this->reset_isr_data();
-    this->isr_data.cur_pin = this->fast_pins[i];
+    this->isr_data.cur_pin = fast_pins[i];
     this->isr_data.buf[0] = 0x01;
     this->isr_data.end_byte = this->isr_data.buf;
     this->isr_data.read_bits = 32;
@@ -216,7 +216,7 @@ void N64Reader::isr_write() {
  */
 void N64Reader::send(uint8_t pin, uint8_t *buffer, uint8_t length) {
   this->reset_isr_data();
-  this->isr_data.cur_pin = this->fast_pins[pin];
+  this->isr_data.cur_pin = fast_pins[pin];
   memcpy((void*)this->isr_data.buf, buffer, length);
   this->isr_data.end_byte = &this->isr_data.buf[length-1];
   pinMode(this->isr_data.cur_pin, OUTPUT);

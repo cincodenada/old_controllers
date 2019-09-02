@@ -11,9 +11,9 @@ void NESReader::setup_pins() {
   //For our pins, set SNES flag to low (=NES)
   for(int i=0; i<NUMSLOTS; i++) {
     if(pinmask & (0x01 << i)) {
-      pinMode(this->slow_pins[i], INPUT_PULLUP);
-      pinMode(this->s_nes_pins[i], OUTPUT);
-      digitalWrite(this->s_nes_pins[i], LOW);
+      pinMode(slow_pins[i], INPUT_PULLUP);
+      pinMode(s_nes_pins[i], OUTPUT);
+      digitalWrite(s_nes_pins[i], LOW);
     }
   }
 }
@@ -32,9 +32,9 @@ void NESReader::detect_controllers(uint8_t pins_avail) {
   for(int i=0; i<NUMSLOTS; i++) {
     if(pins_avail & (0x01 << i)) {
       printMsg("Detecting NES on pin %d", i);
-      pinMode(this->slow_pins[i], INPUT); // Hi-Z so the pulldown works
-      digitalWrite(this->slow_pins[i], LOW); // Hi-Z so the pulldown works
-      digitalWrite(this->s_nes_pins[i], LOW);
+      pinMode(slow_pins[i], INPUT); // Hi-Z so the pulldown works
+      digitalWrite(slow_pins[i], LOW); // Hi-Z so the pulldown works
+      digitalWrite(s_nes_pins[i], LOW);
     }
   }
 
@@ -74,7 +74,7 @@ void NESReader::prune() {
 void NESReader::get() {
   this->reset_isr_data();
   this->isr_data.mode = 1;
-  this->isr_data.pins = this->slow_pins;
+  this->isr_data.pins = slow_pins;
   this->isr_data.end_byte = &this->isr_data.buf[8];
   Timer1.initialize();
   Timer1.attachInterrupt(&this->isr_read, 6);

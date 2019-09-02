@@ -82,9 +82,9 @@
 
 #define NUMSLOTS 4
 
-constexpr int fast_pins[] = {FAST_PINS};
-constexpr int slow_pins[] = {SLOW_PINS};
-constexpr int s_nes_pins[] = {S_NES_PINS};
-constexpr int extra_pins[] = {EXTRA_PINS};
+constexpr uint8_t fast_pins[] = {FAST_PINS};
+constexpr uint8_t slow_pins[] = {SLOW_PINS};
+constexpr uint8_t s_nes_pins[] = {S_NES_PINS};
+constexpr uint8_t extra_pins[] = {EXTRA_PINS};
 
 #endif /* PIN_CONFIG_H */

@@ -63,7 +63,7 @@ void BaseReader::fillStatus(JoystickStatus *joylist) {
 }
 
 uint8_t BaseReader::read_pin(uint8_t pin) {
-  return digitalReadFast((this->is_fast() ? this->fast_pins[pin] : this->slow_pins[pin]));
+  return digitalReadFast((this->is_fast() ? fast_pins[pin] : slow_pins[pin]));
 }
 
 uint8_t BaseReader::get_deviants(uint8_t pins, uint8_t expected) {

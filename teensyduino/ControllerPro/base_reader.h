@@ -39,9 +39,6 @@ public:
   uint8_t* globalmask;
   char controller_name[CNAME_LEN];
   controller_type_t controller_type;
-  const uint8_t fast_pins[NUMSLOTS] = { FAST_PINS };
-  const uint8_t slow_pins[NUMSLOTS] = { SLOW_PINS };
-  const uint8_t s_nes_pins[NUMSLOTS] = { S_NES_PINS };
 
   JoystickStatus *JoyStatus;
 
