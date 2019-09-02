@@ -67,6 +67,7 @@ uint8_t BaseReader::read_pin(uint8_t pin) {
 }
 
 uint8_t BaseReader::get_deviants(uint8_t pins, uint8_t expected) {
+  digitalWrite(LED_PIN, LOW);
   int x, resets = 0;
   uint8_t pinmask = 0;
   for (x=0; x<64; x++) {
@@ -89,6 +90,7 @@ uint8_t BaseReader::get_deviants(uint8_t pins, uint8_t expected) {
       if(resets > 10) { break; }
     }
   }
+  digitalWrite(LED_PIN, HIGH);
   return pinmask;
 }
 

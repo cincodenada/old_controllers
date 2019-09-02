@@ -61,11 +61,14 @@ void NESReader::read_state() {
 
 void NESReader::prune() {
   pinMode(LATCH_PIN, OUTPUT);
+  digitalWrite(LATCH_PIN, HIGH);
   delay(1);
 
   int missing = this->get_deviants(pinmask, 1);
   pinmask &= ~missing;
   *globalmask &= ~missing;
+
+  pinMode(LATCH_PIN, INPUT);
 }
 
 void NESReader::get() {

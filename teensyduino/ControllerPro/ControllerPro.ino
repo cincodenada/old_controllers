@@ -30,6 +30,8 @@ JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
 uint8_t num_joys;
+int cycle_count=0, check_count=10;
+int cycle_delay = 25;
 
 uint8_t button_map[3][NUM_BUTTONS] = {
   { //NES
@@ -91,6 +93,10 @@ void detect_ports(char portmask, BaseReader** clist) {
         nes = max(nes, touchRead(extra_pins[slot])/1);
       }
 
+      // Put high pin back
+      pinMode(extra_pins[slot], OUTPUT);
+      digitalWrite(extra_pins[slot], HIGH);
+
       if(nes > fast*3) {
         clist[NES]->claim_slot(slot);
       } else if(fast > nes*3) {
@@ -110,6 +116,7 @@ void detect_ports(char portmask, BaseReader** clist) {
 }
 
 void safe_detect() {
+  pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
   pinMode(CLOCK_PIN, INPUT);
   pinMode(LATCH_PIN, INPUT);
@@ -122,14 +129,15 @@ void safe_detect() {
     clist[i]->setup_pins();
   }
 
-  clist[SNES]->prune();
 
   for(int i=0; i<NUMCTL; i++) {
-    printMsg("%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    printMsg(DEBUG, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    clist[i]->prune();
+    printMsg(DEBUG, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
   }
 
-  pinMode(CLOCK_PIN, OUTPUT);
-  pinMode(LATCH_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, INPUT);
+  pinMode(LATCH_PIN, INPUT);
 }
 
 void setup() {
@@ -156,24 +164,6 @@ void setup() {
   printMsg("Created controllers");
   digitalWrite(LED_PIN, LOW);
 
-  while(true) {
-    /* Reset and test everything (ugh) */
-    pins_used = 0;
-    for(int i=0; i<NUMCTL; i++) {
-      clist[i]->pinmask=0;
-    }
-
-    cls();
-
-    safe_detect();
-    delay(100);
-  }
-
-  digitalWrite(LED_PIN, HIGH);
-
-  printMsg("Initiated controller pins");
-  digitalWrite(LED_PIN, HIGH);
-
   for(int i=0; i<10; i++) {
     Serial.println();
   }
@@ -187,17 +177,45 @@ void loop()
   uint8_t joynum, joypos;
   JoystickStatus curStatus;
 
-  cls();
+  // Detect controllers
+  if(cycle_count >= check_count) {
+    enableMessages(true);
+    cls();
+    cycle_count = 0;
+    safe_detect();
+  } else {
+    delay(cycle_delay);
+    cycle_count++;
+    enableMessages(false);
+  }
 
   // Determine how many controllers we're using
   printBin(binstr, pins_used);
   printMsg("Pins used: 0x%X (%s)", pins_used, binstr);
   printMsg("%lu: Polling Controllers...", millis());
+
+  /************************
+   * Read controller state
+   ************************/
+
+  // Keep these output as short as possible
+  // So we don't break things
+  pinMode(CLOCK_PIN, OUTPUT);
+  pinMode(LATCH_PIN, OUTPUT);
+
   for(i=0;i<NUMCTL;i++) {
     clist[i]->read_state();
     printBin(binstr, clist[i]->pinmask);
     printMsg("%s mask: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
   }
+
+  pinMode(CLOCK_PIN, INPUT);
+  pinMode(LATCH_PIN, INPUT);
+
+  /************************
+   * Output to joysticks
+   ************************/
+
   int cnum = 0;
   for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
     // Skip this slot if it's not used
@@ -271,15 +289,11 @@ void loop()
     cnum++;
   }
 
-  
   //For now, just send controller 0 via BT
   JoyStatus[0].translate_buttons(&curStatus, button_map_bt[JoyStatus[0].controller_type]);
   send_bt(&curStatus);
 
-  // DEBUG: print it
-  //controllers.print_status(0);
-  //controllers.print_status(1);
-  delay(25);
+  delay(cycle_delay);
 }
 
 void remap_buttons(uint8_t cnum) {

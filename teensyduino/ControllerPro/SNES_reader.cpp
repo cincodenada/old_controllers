@@ -63,6 +63,8 @@ void SNESReader::prune() {
   int missing = this->get_deviants(pinmask, 1);
   pinmask &= ~missing;
   *globalmask &= ~missing;
+
+  pinMode(LATCH_PIN, INPUT);
 }
 
 void SNESReader::get() {
