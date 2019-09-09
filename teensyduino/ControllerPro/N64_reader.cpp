@@ -4,8 +4,6 @@
 void N64Reader::init() {
   BaseReader::init();
 
-  this->controller_type = N64;
-
   // Query for the gamecube controller's status. We do this
   // to get the 0 point for the control stick.
   // TODO: Does this actually...do anything?

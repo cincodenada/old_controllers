@@ -22,7 +22,9 @@ public:
   uint8_t raw_dump[TBUFSIZE]; // Temp dump location
 
   N64Reader(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
-    : BaseReader(JoyStatus, global_pins, controller_name) {};
+    : BaseReader(JoyStatus, global_pins, controller_name) {
+    this->controller_type = N64;
+  };
 
   void init();
   void setup_pins();

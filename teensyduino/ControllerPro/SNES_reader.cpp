@@ -3,8 +3,6 @@
 
 void SNESReader::init() {
   BaseReader::init();
-
-  this->controller_type = SNES;
 }
 
 void SNESReader::setup_pins() {

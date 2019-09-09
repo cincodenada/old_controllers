@@ -8,7 +8,9 @@ public:
   uint8_t raw_dump[16]; // Temp dump location
 
   NESReader(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
-    : BaseReader(JoyStatus, global_pins, controller_name) {};
+    : BaseReader(JoyStatus, global_pins, controller_name) {
+    this->controller_type = NES;
+  };
 
   void init();
   void setup_pins();
