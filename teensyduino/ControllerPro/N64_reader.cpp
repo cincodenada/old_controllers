@@ -30,7 +30,7 @@ void N64Reader::detect_controllers(uint8_t pins_avail) {
   uint8_t command;
   command = 0x01;
   int num_tries = 5;
-  pinMode(PIN_TRIGGER, OUTPUT);
+  //pinMode(PIN_TRIGGER, OUTPUT);
 
   for(int i=0; i < NUMSLOTS; i++) {
     if(!(pins_avail & (0x01 << i))) { continue; }
@@ -59,7 +59,7 @@ void N64Reader::detect_controllers(uint8_t pins_avail) {
     } else {
       printMsg("No controller found in port %d", i+1);
     }
-    digitalWriteFast(PIN_TRIGGER, LOW);
+    //digitalWriteFast(PIN_TRIGGER, LOW);
   }
 }
 
@@ -83,7 +83,7 @@ void N64Reader::read_state() {
     this->isr_data.read_bits = 32;
     pinMode(this->isr_data.cur_pin, OUTPUT);
     Timer1.initialize();
-    digitalWriteFast(PIN_TRIGGER, HIGH);
+    //digitalWriteFast(PIN_TRIGGER, HIGH);
     Timer1.attachInterrupt(&this->isr_write, 1);
     // Spin our wheels
     uint16_t j=0;
@@ -95,13 +95,13 @@ void N64Reader::read_state() {
     // Wait for initial low...
     while(bits < this->isr_data.read_bits) {
       loops = 0;
-      digitalWriteFast(PIN_TRIGGER, HIGH);
+      //digitalWriteFast(PIN_TRIGGER, HIGH);
       while(val == HIGH && loops < max_loops) {
         val = digitalReadFast(BaseReader::isr_data.cur_pin);
         loops++;
       }
       if(loops == max_loops) {
-        digitalWrite(PIN_TRIGGER, LOW);
+        //digitalWrite(PIN_TRIGGER, LOW);
         hung = 1;
         break;
       }
@@ -157,7 +157,7 @@ void N64Reader::read_state() {
       //memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
     }
     delay(1);
-    digitalWrite(PIN_TRIGGER, LOW);
+    //digitalWrite(PIN_TRIGGER, LOW);
   }
   this->fillStatus(this->JoyStatus);
 }

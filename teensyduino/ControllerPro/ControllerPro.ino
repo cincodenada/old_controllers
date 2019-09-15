@@ -107,7 +107,7 @@ void detect_ports(char portmask, BaseReader** clist) {
         clist[SNES]->claim_slot(slot);
       }
 
-      printMsg(DEBUG, "Checked port %d: %d/%d", slot, fast, nes);
+      printMsg(INFO, "Checked port %d: %d/%d", slot, fast, nes);
 
       delay(10);
     }
@@ -129,15 +129,14 @@ void safe_detect() {
     clist[i]->setup_pins();
   }
 
+  pinMode(LATCH_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, OUTPUT);
 
   for(int i=0; i<NUMCTL; i++) {
-    printMsg(DEBUG, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    printMsg(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
     clist[i]->prune();
-    printMsg(DEBUG, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    printMsg(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
   }
-
-  pinMode(CLOCK_PIN, INPUT);
-  pinMode(LATCH_PIN, INPUT);
 }
 
 void setup() {
@@ -184,9 +183,9 @@ void loop()
     cycle_count = 0;
     safe_detect();
   } else {
+    enableMessages(false);
     delay(cycle_delay);
     cycle_count++;
-    enableMessages(false);
   }
 
   // Determine how many controllers we're using

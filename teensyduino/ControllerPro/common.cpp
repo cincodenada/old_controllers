@@ -36,7 +36,7 @@ void printMsg(int level, const char* format, ...) {
 void printMsg(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  vprintMsg(INFO, format, args);
+  vprintMsg(DEBUG, format, args);
   va_end(args);
 }
 
@@ -71,17 +71,17 @@ void printBin(char* dest, char input, unsigned char num_bits) {
 
 void blink_binary(int num, uint8_t bits) {
   int mask = 1 << (bits-1);
-  digitalWrite(PIN_TRIGGER, HIGH);
+  digitalWrite(LED_PIN, HIGH);
   delay(300);
   while(mask) {
-    digitalWrite(PIN_TRIGGER, LOW);
+    digitalWrite(LED_PIN, LOW);
     delay(100);
-    digitalWrite(PIN_TRIGGER, HIGH);
+    digitalWrite(LED_PIN, HIGH);
     delay(100 + 200 * (num & mask));
     mask >>= 1;
   }
-  digitalWrite(PIN_TRIGGER, LOW);
+  digitalWrite(LED_PIN, LOW);
   delay(300);
-  digitalWrite(PIN_TRIGGER, HIGH);
+  digitalWrite(LED_PIN, HIGH);
 }
 

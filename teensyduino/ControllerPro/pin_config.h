@@ -60,14 +60,14 @@
   CORE_PIN ## FP2 ## _PORTCLEAR, \
   CORE_PIN ## FP3 ## _PORTCLEAR
 
-/*
 #define EXTRA_PINS 20,21,6,19
 //+5V = SNES, GND = NES
 #define S_NES_PINS 17,18,15,16
-*/
 
+/*
 #define S_NES_PINS 20,21,6,19
 #define EXTRA_PINS 17,18,15,16
+*/
 
 //D7 = clock, D6 = latch
 #define CLOCK_PIN 9
@@ -76,7 +76,7 @@
 #define LED_PIN 13
 
 //C6/7 = 9/10
-#define PIN_TRIGGER LED_PIN
+#define TRIGGER_PIN LED_PIN
 
 #define IO_MASK 0x0F
 
