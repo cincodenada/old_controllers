@@ -82,6 +82,18 @@
 
 #define NUMSLOTS 4
 
+// Values for s_nes_pins
+// Reversed depending on whether we're using transistors,
+// or supplying directly from the I/O ports
+#define BJT_MODE
+#ifdef BJT_MODE
+  #define MODE_SNES LOW
+  #define MODE_NES HIGH
+#else
+  #define MODE_SNES HIGH
+  #define MODE_NES LOW
+#endif
+
 constexpr uint8_t fast_pins[] = {FAST_PINS};
 constexpr uint8_t slow_pins[] = {SLOW_PINS};
 constexpr uint8_t s_nes_pins[] = {S_NES_PINS};

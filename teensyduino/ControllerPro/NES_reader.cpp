@@ -11,7 +11,7 @@ void NESReader::setup_pins() {
     if(pinmask & (0x01 << i)) {
       pinMode(slow_pins[i], INPUT_PULLUP);
       pinMode(s_nes_pins[i], OUTPUT);
-      digitalWrite(s_nes_pins[i], LOW);
+      digitalWriteFast(s_nes_pins[i], MODE_NES);
     }
   }
 }
@@ -32,7 +32,7 @@ void NESReader::detect_controllers(uint8_t pins_avail) {
       printMsg("Detecting NES on pin %d", i);
       pinMode(slow_pins[i], INPUT); // Hi-Z so the pulldown works
       digitalWrite(slow_pins[i], LOW); // Hi-Z so the pulldown works
-      digitalWrite(s_nes_pins[i], LOW);
+      digitalWrite(s_nes_pins[i], MODE_NES);
     }
   }
 
