@@ -162,9 +162,7 @@ void N64Reader::read_state() {
   this->fillStatus(this->JoyStatus);
 }
 
-void N64Reader::prune() {
-  //TODO
-}
+void N64Reader::prune(uint8_t candidates) {}
 
 void N64Reader::isr_write() {
   switch(BaseReader::isr_data.cur_stage) {

@@ -14,7 +14,7 @@ public:
 
   void init();
   void setup_pins();
-  void prune();
+  void prune(uint8_t candidates);
   void print_status(short int cnum);
   void detect_controllers(uint8_t pins_avail);
   void get();

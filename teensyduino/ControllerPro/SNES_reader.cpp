@@ -54,11 +54,12 @@ void SNESReader::read_state() {
   //digitalWrite(PIN_TRIGGER, LOW);
 }
 
-void SNESReader::prune() {
+void SNESReader::prune(uint8_t candidates) {
   pinMode(LATCH_PIN, OUTPUT);
+  digitalWrite(LATCH_PIN, HIGH);
   delay(1);
 
-  int missing = this->get_deviants(pinmask, 1);
+  int missing = this->get_deviants(candidates, 1);
   pinmask &= ~missing;
   *globalmask &= ~missing;
 

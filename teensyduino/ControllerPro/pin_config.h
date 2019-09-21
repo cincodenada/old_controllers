@@ -60,14 +60,14 @@
   CORE_PIN ## FP2 ## _PORTCLEAR, \
   CORE_PIN ## FP3 ## _PORTCLEAR
 
+/*
 #define EXTRA_PINS 20,21,6,19
 //+5V = SNES, GND = NES
 #define S_NES_PINS 17,18,15,16
+*/
 
-/*
 #define S_NES_PINS 20,21,6,19
 #define EXTRA_PINS 17,18,15,16
-*/
 
 //D7 = clock, D6 = latch
 #define CLOCK_PIN 9
@@ -85,8 +85,8 @@
 // Values for s_nes_pins
 // Reversed depending on whether we're using transistors,
 // or supplying directly from the I/O ports
-#define BJT_MODE
-#ifdef BJT_MODE
+//#define BUFFERED_MODE
+#ifdef BUFFERED_MODE
   #define MODE_SNES LOW
   #define MODE_NES HIGH
 #else

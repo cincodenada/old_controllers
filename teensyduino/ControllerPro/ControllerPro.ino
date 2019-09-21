@@ -80,6 +80,7 @@ uint8_t button_map_bt[3][NUM_BUTTONS] = {
 
 void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
+    printMsg("Detecting %d", slot);
     if(portmask & 0x01) {
       pinMode(s_nes_pins[slot], INPUT);
       pinMode(fast_pins[slot], INPUT);
@@ -109,21 +110,23 @@ void detect_ports(char portmask, BaseReader** clist) {
 
       printMsg(INFO, "Checked port %d: %d/%d", slot, fast, nes);
 
-      delay(10);
+      delay(1);
     }
     portmask >>= 1;
   }
 }
 
 void safe_detect() {
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
+  pinMode(TRIGGER_PIN, OUTPUT);
+  digitalWrite(TRIGGER_PIN, HIGH);
   pinMode(CLOCK_PIN, INPUT);
   pinMode(LATCH_PIN, INPUT);
 
+  uint8_t SNES_before = clist[SNES]->pinmask;
   detect_ports(~pins_used, clist);
+  uint8_t SNES_new = clist[SNES]->pinmask & ~SNES_before;
 
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(TRIGGER_PIN, LOW);
 
   for(int i=0; i<NUMCTL; i++) {
     clist[i]->setup_pins();
@@ -134,8 +137,11 @@ void safe_detect() {
 
   for(int i=0; i<NUMCTL; i++) {
     printMsg(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
-    clist[i]->prune();
-    printMsg(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    // For now, only SNES needs pruning
+    if(i == SNES) {
+      clist[i]->prune(SNES_new);
+      printMsg(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    }
   }
 }
 
@@ -146,8 +152,6 @@ void setup() {
 
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
-
-  delay(2000);
 
   MultiJoystick.setJoyNum(0);
   MultiJoystick.useManualSend(true); 

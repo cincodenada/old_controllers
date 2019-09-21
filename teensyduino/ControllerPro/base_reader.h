@@ -47,14 +47,14 @@ public:
   virtual void claim_slot(int num);
 
   virtual void setup_pins() = 0;
-  virtual void prune() = 0;
+  virtual void prune(uint8_t candidates) = 0;
 
   virtual void detect_controllers(uint8_t pins_avail) = 0;
   virtual void read_state() = 0;
   virtual void fillStatus(JoystickStatus *joylist);
   virtual void fillJoystick(JoystickStatus *joystick, uint8_t datamask) = 0;
   void safe_detect_controllers();
-  bool is_fast();
+  virtual bool is_fast();
   uint8_t read_pin(uint8_t pin);
   uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);
 
