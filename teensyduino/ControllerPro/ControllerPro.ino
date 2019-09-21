@@ -82,10 +82,16 @@ void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
     printMsg("Detecting %d", slot);
     if(portmask & 0x01) {
-      pinMode(s_nes_pins[slot], INPUT);
       pinMode(fast_pins[slot], INPUT);
       pinMode(slow_pins[slot], INPUT);
       pinMode(extra_pins[slot], INPUT);
+
+#ifdef BUFFERED_MODE
+      pinMode(s_nes_pins[slot], OUTPUT);
+      digitalWrite(s_nes_pins[slot], MODE_SNES);
+#else
+      pinMode(s_nes_pins[slot], INPUT);
+#endif
 
       uint16_t fast, nes;
       fast = nes = 0;
@@ -146,7 +152,9 @@ void safe_detect() {
 }
 
 void setup() {
+#ifdef USB_SERIAL_MULTIJOY
   Serial.begin(9600);
+#endif
 
   //init_bt();
 

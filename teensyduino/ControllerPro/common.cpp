@@ -13,6 +13,7 @@ void enableMessages(bool enabled) {
 }
 
 void vprintMsg(int level, const char* format, va_list args) {
+#ifdef USB_SERIAL_MULTIJOY
   if(level > LOG_LEVEL) { return; }
   if(messages_enabled) {
     int cur_len, i;
@@ -26,6 +27,7 @@ void vprintMsg(int level, const char* format, va_list args) {
     Serial.println(msg);
     Serial.flush();
   }
+#endif
 }
 void printMsg(int level, const char* format, ...) {
   va_list args;
@@ -41,11 +43,13 @@ void printMsg(const char* format, ...) {
 }
 
 void cls() {
+#ifdef USB_SERIAL_MULTIJOY
   if(messages_enabled) {
   Serial.print("\033[2J");    // clear screen command
   Serial.print("\033[0;0H");   // cursor to home command
   Serial.flush();
   }
+#endif
 }
 
 void printBin(char* dest, char input, unsigned char num_bits) {
