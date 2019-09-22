@@ -6,29 +6,31 @@
 #define PACKET_BYTES 8
 uint8_t btdata[PACKET_BYTES];
 
+void handle_response() {
+  delay(100);  // Short delay, wait for the Mate to send back CMD
+  while(HWSERIAL.available()) {
+#ifdef USB_SERIAL_MULTIJOY
+    Serial.print((char)HWSERIAL.read());
+#else
+    HWSERIAL.read()
+#endif
+  }
+}
+
 void init_bt() {
   delay(1000);
   HWSERIAL.begin(115200);  // The Bluetooth Mate defaults to 115200bps
   HWSERIAL.print("$");  // Print three times individually
   HWSERIAL.print("$");
   HWSERIAL.print("$");  // Enter command mode
-  delay(100);  // Short delay, wait for the Mate to send back CMD
-  while(HWSERIAL.available()) {
-    Serial.print((char)HWSERIAL.read());
-  }
+  handle_response();
   HWSERIAL.print("SH,0247\r");  // Set as joystick
-  delay(100);  // Short delay, wait for the Mate to send back CMD
-  while(HWSERIAL.available()) {
-    Serial.print((char)HWSERIAL.read());  // Set as joystick
-  }
+  handle_response();
   HWSERIAL.print("-");  // Print three times individually
   HWSERIAL.print("-");
   HWSERIAL.print("-");  // Enter command mode
   HWSERIAL.print("\r");
-  delay(100);  // Short delay, wait for the Mate to send back CMD
-  while(HWSERIAL.available()) {
-    Serial.print((char)HWSERIAL.read());
-  }
+  handle_response();
 }
 
 void send_bt(JoystickStatus *JoyStatus) {
