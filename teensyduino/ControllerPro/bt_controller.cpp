@@ -12,7 +12,7 @@ void handle_response() {
 #ifdef USB_SERIAL_MULTIJOY
     Serial.print((char)HWSERIAL.read());
 #else
-    HWSERIAL.read()
+    HWSERIAL.read();
 #endif
   }
 }

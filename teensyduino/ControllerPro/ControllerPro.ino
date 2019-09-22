@@ -26,6 +26,9 @@
 
 #define NUMCTL 3
 
+//auto Controller = MultiJoystick;
+auto& Controller = Gamepad;
+
 JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
@@ -161,9 +164,9 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
 
-  MultiJoystick.setJoyNum(0);
-  MultiJoystick.useManualSend(true); 
-  num_joys = MultiJoystick.num_joys();
+  Controller.setJoyNum(0);
+  Controller.useManualSend(true);
+  num_joys = Controller.num_joys();
 
   printMsg("Initiated joystick lib");
   digitalWrite(LED_PIN, LOW);
@@ -176,7 +179,9 @@ void setup() {
   digitalWrite(LED_PIN, LOW);
 
   for(int i=0; i<10; i++) {
+#ifdef USB_SERIAL_MULTIJOY
     Serial.println();
+#endif
   }
 
   enableMessages(false);
@@ -249,12 +254,12 @@ void loop()
     printMsg(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
     printMsg(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
 
-    MultiJoystick.setJoyNum(joynum);
+    Controller.setJoyNum(joynum);
     //Update each button
     uint8_t mask = 0x01;
     for (i=1; i<=8; i++) {
-      MultiJoystick.button(i+joypos*16,curStatus.buttonset[0] & mask ? 1 : 0);
-      MultiJoystick.button((i+8)+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
+      Controller.button(i+joypos*16,curStatus.buttonset[0] & mask ? 1 : 0);
+      Controller.button((i+8)+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
       mask = mask << 1;
     }
 
@@ -266,22 +271,22 @@ void loop()
     joyx = curStatus.axis[0]/JOY_FACT + JOY_OFFSET;
     joyy = curStatus.axis[1]/JOY_FACT + JOY_OFFSET;
 
-    MultiJoystick.axis(joypos*2+1,joyx);
-    MultiJoystick.axis(joypos*2+2,joyy);
+    Controller.axis(joypos*2+1,joyx);
+    Controller.axis(joypos*2+2,joyy);
 
     // Throttle/Z (constant center)
-    MultiJoystick.axis(joypos*2+3, JOY_OFFSET);
+    Controller.axis(joypos*2+3, JOY_OFFSET);
 
     // X2/Y2
     joyx = curStatus.axis[2]/JOY_FACT + JOY_OFFSET;
     joyy = curStatus.axis[3]/JOY_FACT + JOY_OFFSET;
 
-    MultiJoystick.axis(joypos*2+4,joyx);
-    MultiJoystick.axis(joypos*2+5,joyy);
+    Controller.axis(joypos*2+4,joyx);
+    Controller.axis(joypos*2+5,joyy);
 
-    MultiJoystick.hat(curStatus.hat);
+    Controller.hat(curStatus.hat);
 
-    MultiJoystick.send_now();
+    Controller.send_now();
 
     // Increment the controller number for next time
     // (Separate from slot number, cause we skip empty slots)
@@ -291,12 +296,12 @@ void loop()
   // If we have empty joysticks, set axes to centered
   // Otherwise we might get axes all off to one corner which is bad
   while(cnum < num_joys) {
-    MultiJoystick.setJoyNum(cnum);
+    Controller.setJoyNum(cnum);
     for(int axis=1; axis <= 5; axis++) {
-      MultiJoystick.axis(axis, JOY_OFFSET);
+      Controller.axis(axis, JOY_OFFSET);
     }
-    MultiJoystick.hat(-1);
-    MultiJoystick.send_now();
+    Controller.hat(-1);
+    Controller.send_now();
     cnum++;
   }
 
