@@ -39,25 +39,22 @@ int cycle_delay = 25;
 uint8_t button_map[3][NUM_BUTTONS] = {
   { //NES
     // A B Sel St U D L R
-    2,1,7,8,
-    AXIS(1,-1),AXIS(1,1),
-    AXIS(0,-1),AXIS(0,1),
-    3,4,5,6,0,0,0,0
+    3,2,9,10,
+    HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
+    0,0,0,0,0,0,0,0
   },{ //SNES
     // B Y Sel St U D L R
-    1,3,7,8,
-    AXIS(1,-1),AXIS(1,1),
-    AXIS(0,-1),AXIS(0,1),
+    2,1,9,10,
+    HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
     // A X L R
-    2,4,5,6,0,0,0,0
+    3,4,5,6,0,0,0,0
   },{ //N64
     // A B Z St U D L R
-    1,2,3,4,
-    AXIS(1,-1),AXIS(1,1),
-    AXIS(0,-1),AXIS(0,1),
+    2,1,7,13,
+    HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
     // X X L R U D L R <-(c)
     0,0,5,6,
-    HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0)
+    9,3,4,10
   }
 };
 
@@ -276,13 +273,8 @@ void loop()
 
     // Throttle/Z (constant center)
     Controller.axis(joypos*2+3, JOY_OFFSET);
-
-    // X2/Y2
-    joyx = curStatus.axis[2]/JOY_FACT + JOY_OFFSET;
-    joyy = curStatus.axis[3]/JOY_FACT + JOY_OFFSET;
-
-    Controller.axis(joypos*2+4,joyx);
-    Controller.axis(joypos*2+5,joyy);
+    Controller.axis(joypos*2+4, JOY_OFFSET);
+    Controller.axis(joypos*2+5, JOY_OFFSET);
 
     Controller.hat(curStatus.hat);
 
