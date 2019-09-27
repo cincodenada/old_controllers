@@ -4,3 +4,9 @@
 [submodule "teensyduino/cores"]
 	path = teensyduino/cores
 	url = https://github.com/cincodenada/cores
+[submodule "pcb"]
+	path = pcb
+	url = git@github.com:cincodenada/old_controllers-pcb.git
+[submodule "models"]
+	path = models
+	url = git@github.com:cincodenada/old_controllers-models.git
