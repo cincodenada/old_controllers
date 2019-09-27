@@ -1,6 +1,6 @@
 [submodule "teensyduino/teensy"]
 	path = teensyduino/teensy
 	url = git@github.com:cincodenada/teensyduino_multijoy.git
-[submodule "teensyduino/multijoy"]
-	path = teensyduino/multijoy
-	url = git@github.com:cincodenada/teensyduino-multijoy.git
+[submodule "teensyduino/cores"]
+	path = teensyduino/cores
+	url = https://github.com/cincodenada/cores
