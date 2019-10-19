@@ -20,33 +20,6 @@ void NESReader::clear_dump() {
   memset(this->raw_dump, 0, 16);
 }
 
-void NESReader::detect_controllers(uint8_t pins_avail) {
-  // At this point any SNES controllers are out of the running
-  // Enable the rest as NES controllers, and see which ones
-  // pull the DATA line high (and are thus NES controllers)
-
-  // Limit NES to slots 3/4
-  pins_avail &= 0b1100;
-  for(int i=0; i<NUMSLOTS; i++) {
-    if(pins_avail & (0x01 << i)) {
-      printMsg("Detecting NES on pin %d", i);
-      pinMode(slow_pins[i], INPUT); // Hi-Z so the pulldown works
-      digitalWrite(slow_pins[i], LOW); // Hi-Z so the pulldown works
-      digitalWrite(s_nes_pins[i], MODE_NES);
-    }
-  }
-
-  // We're safe to use LATCH now, since SNES controllers
-  // are where they want to be
-  pinMode(LATCH_PIN, OUTPUT);
-  digitalWrite(LATCH_PIN, HIGH);
-
-  // Anyone that responds is an NES controller
-  this->pinmask = this->get_deviants(pins_avail, 0);
-
-  digitalWrite(LATCH_PIN, LOW); // Reset latch
-}
-
 void NESReader::read_state() {
   //digitalWrite(PIN_TRIGGER, HIGH);
 

@@ -30,16 +30,6 @@ bool BaseReader::is_fast() {
   return (this->controller_type >= N64);
 }
 
-void BaseReader::safe_detect_controllers() {
-  uint8_t pins_avail = ~(*globalmask);
-
-  printBin(binstr, pins_avail, 4);
-  printMsg("Searching for %s on %s...", this->controller_name, binstr);
-
-  this->detect_controllers(pins_avail);
-  *globalmask |= this->pinmask;
-}
-
 void BaseReader::fillStatus(JoystickStatus *joylist) {
   uint8_t pinlist = this->pinmask;
   uint8_t datamask = 0x01;

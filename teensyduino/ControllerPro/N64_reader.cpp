@@ -19,50 +19,6 @@ void N64Reader::clear_dump() {
   }
 }
 
-void N64Reader::detect_controllers(uint8_t pins_avail) {
-  //NES and SNES pull low on idle, so check for that
-  //(N64 maintains high, and we use pull-up)
-  
-  //SNES/NES port doesn't matter
-  
-  //Just send the ID command and see who answers
-  //This also initializes some controllers (Wavebird, I guess?)
-  uint8_t command;
-  command = 0x01;
-  int num_tries = 5;
-  //pinMode(PIN_TRIGGER, OUTPUT);
-
-  for(int i=0; i < NUMSLOTS; i++) {
-    if(!(pins_avail & (0x01 << i))) { continue; }
-
-    bool responded = false;
-    for(int t=0; t < num_tries; t++) {
-      printMsg("Sending command for controller %d...", i+1);
-      this->send(i, &command, 1);
-
-      uint8_t cur_pin = fast_pins[i];
-      pinMode(cur_pin, INPUT_PULLUP);
-      printMsg("Waiting for response...");
-      for (int x=0; x<200; x++) {
-        if(!digitalReadFast(cur_pin)) {
-          responded = true;
-          // Reset so we keep going until we've
-          // swallowed the whole response
-          x = 0;
-        }
-      }
-      if(responded) { break; }
-    }
-    if(responded) {
-      printMsg("Reader found in port %d", i+1);
-      this->pinmask |= (0x01 << i);
-    } else {
-      printMsg("No controller found in port %d", i+1);
-    }
-    //digitalWriteFast(PIN_TRIGGER, LOW);
-  }
-}
-
 void N64Reader::read_state() {
   // Clear raw_dump so we can set individual bits to it
   memset(raw_dump, 0, TBUFSIZE);

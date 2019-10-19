@@ -20,30 +20,6 @@ void SNESReader::clear_dump() {
   memset(this->raw_dump, 0, 16);
 }
 
-void SNESReader::detect_controllers(uint8_t pins_avail) {
-  // This algorithm was after some experimentation.
-  // With a weak pull-down on DATA, we can divine things safely
-  // SNES must be detected/eliminated first
-
-  // Limit SNES to slots 1/2
-  pins_avail &= 0b0011;
-  for(int i=0; i<NUMSLOTS; i++) {
-    if(pins_avail & (0x01 << i)) {
-      pinMode(slow_pins[i], INPUT); // Hi-Z so the pulldown works
-      digitalWrite(slow_pins[i], LOW); // Hi-Z so the pulldown works
-      digitalWrite(s_nes_pins[i], MODE_SNES);
-    }
-  }
-
-  // We're safe to use LATCH now, since SNES controllers
-  // are where they want to be
-  pinMode(LATCH_PIN, OUTPUT);
-  digitalWrite(LATCH_PIN, HIGH);
-
-  // Anyone that responds is an SNES controller
-  this->pinmask = this->get_deviants(pins_avail, 0);
-}
-
 void SNESReader::read_state() {
   //digitalWrite(PIN_TRIGGER, HIGH);
 
