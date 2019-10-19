@@ -26,8 +26,8 @@
 
 #define NUMCTL 3
 
-//auto Controller = MultiJoystick;
-auto& Controller = Gamepad;
+auto& Controller = MultiJoystick;
+//auto& Controller = Gamepad;
 
 JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
