@@ -252,9 +252,8 @@ void N64Reader::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
   }
 
   // Safely translate the axis values from [-N64_AXIS_MAX, N64_AXIS_MAX] to [AXIS_MIN, AXIS_MAX]
-  // Axis 0/1 is the dpad
-  joystick->axis[2] = this->safe_axis(xaxis);
-  joystick->axis[3] = -this->safe_axis(yaxis);
+  joystick->axis[0] = this->safe_axis(xaxis);
+  joystick->axis[1] = -this->safe_axis(yaxis);
 }
 
 signed short int N64Reader::safe_axis(int8_t rawval) {
