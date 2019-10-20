@@ -9,7 +9,7 @@ void NESReader::setup_pins() {
   //For our pins, set SNES flag to low (=NES)
   for(int i=0; i<NUMSLOTS; i++) {
     if(pinmask & (0x01 << i)) {
-      pinMode(slow_pins[i], INPUT_PULLUP);
+      pinMode(slow_pins[i], INPUT);
       pinMode(s_nes_pins[i], OUTPUT);
       digitalWriteFast(s_nes_pins[i], MODE_NES);
     }

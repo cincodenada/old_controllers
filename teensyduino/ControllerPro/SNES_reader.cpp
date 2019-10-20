@@ -9,7 +9,7 @@ void SNESReader::setup_pins() {
   //For our pins, set SNES flag to high (=SNES)
   for(int i=0; i<NUMSLOTS; i++) {
     if(pinmask & (0x01 << i)) {
-      pinMode(slow_pins[i], INPUT_PULLUP);
+      pinMode(slow_pins[i], INPUT);
       pinMode(s_nes_pins[i], OUTPUT);
       digitalWrite(s_nes_pins[i], MODE_SNES);
     }
@@ -47,7 +47,7 @@ void SNESReader::prune(uint8_t candidates) {
 
   for(int i=0; i<NUMSLOTS; i++) {
     if(pinmask & (0x01 << i)) {
-      pinMode(slow_pins[i], INPUT_PULLUP);
+      pinMode(slow_pins[i], INPUT);
     }
   }
   pinMode(LATCH_PIN, INPUT);
