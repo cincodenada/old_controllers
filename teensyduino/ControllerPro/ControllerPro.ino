@@ -298,8 +298,10 @@ void loop()
   }
 
   //For now, just send controller 0 via BT
+  /*
   JoyStatus[0].translate_buttons(&curStatus, button_map_bt[JoyStatus[0].controller_type]);
   send_bt(&curStatus);
+  */
 
   delay(cycle_delay);
 }
