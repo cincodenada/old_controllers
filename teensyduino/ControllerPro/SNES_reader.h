@@ -9,7 +9,7 @@ public:
 
   SNESReader(JoystickStatus *JoyStatus, uint8_t* global_pins, const char* controller_name)
     : BaseReader(JoyStatus, global_pins, controller_name) {
-    this->controller_type = NES;
+    this->controller_type = SNES;
   };
 
   void init();
