@@ -39,22 +39,24 @@ int cycle_delay = 25;
 uint8_t button_map[3][NUM_BUTTONS] = {
   { //NES
     // A B Sel St U D L R
-    3,2,9,10,
+    2,1,7,8,
+    //AXIS(1,-1),AXIS(1,1),AXIS(0,-1),AXIS(0,1),
     HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
     0,0,0,0,0,0,0,0
   },{ //SNES
     // B Y Sel St U D L R
-    2,1,9,10,
+    1,3,7,8,
+    //AXIS(1,-1),AXIS(1,1),AXIS(0,-1),AXIS(0,1),
     HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
     // A X L R
-    3,4,5,6,0,0,0,0
+    2,4,5,6,0,0,0,0
   },{ //N64
     // A B Z St U D L R
-    2,1,7,13,
+    2,1,11,8,
     HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
     // X X L R U D L R <-(c)
     0,0,5,6,
-    9,3,4,10
+    AXIS(3,-1),AXIS(3,1),AXIS(2,-1),AXIS(2,1),
   }
 };
 
@@ -265,16 +267,13 @@ void loop()
     unsigned int joyx, joyy;
 
     // X/Y
-    joyx = curStatus.axis[0]/JOY_FACT + JOY_OFFSET;
-    joyy = curStatus.axis[1]/JOY_FACT + JOY_OFFSET;
-
-    Controller.axis(joypos*2+1,joyx);
-    Controller.axis(joypos*2+2,joyy);
+    for(int i=0; i<4; i++) {
+      Controller.axis(joypos*2+i+1,curStatus.axis[i]/JOY_FACT + JOY_OFFSET);
+    }
 
     // Throttle/Z (constant center)
-    Controller.axis(joypos*2+3, JOY_OFFSET);
-    Controller.axis(joypos*2+4, JOY_OFFSET);
-    Controller.axis(joypos*2+5, JOY_OFFSET);
+    // Gamepad doesn't have this axis
+    //Controller.axis(joypos*2+5, JOY_OFFSET);
 
     Controller.hat(curStatus.hat);
 
