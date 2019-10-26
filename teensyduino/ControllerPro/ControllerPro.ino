@@ -262,18 +262,15 @@ void loop()
       mask = mask << 1;
     }
 
-    //The array is given as AXIS_MIN to AXIS_MAX
-    //Joystick funcitons need 0 to 1023
-    unsigned int joyx, joyy;
+    for(int i=0; i<NUM_AXES; i++) {
+      //The array is given as AXIS_MIN to AXIS_MAX
+      //Joystick funcitons need 0 to 1023
+      unsigned int val = (i < 4)
+        ? curStatus.axis[i]/JOY_FACT + JOY_OFFSET
+        : JOY_OFFSET;
 
-    // X/Y
-    for(int i=0; i<4; i++) {
-      Controller.axis(joypos*2+i+1,curStatus.axis[i]/JOY_FACT + JOY_OFFSET);
+      Controller.axis(joypos*2+i+1, val);
     }
-
-    // Throttle/Z (constant center)
-    // Gamepad doesn't have this axis
-    //Controller.axis(joypos*2+5, JOY_OFFSET);
 
     Controller.hat(curStatus.hat);
 
