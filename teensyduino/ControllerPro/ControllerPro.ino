@@ -28,6 +28,8 @@
 
 #ifdef USB_MULTIJOY
 auto& Controller = MultiJoystick;
+#elif USB_SERIAL_MULTIJOY
+auto& Controller = MultiJoystick;
 #elif USB_GAMEPAD
 auto& Controller = Gamepad;
 #endif
