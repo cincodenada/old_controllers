@@ -26,8 +26,11 @@
 
 #define NUMCTL 3
 
+#ifdef USB_MULTIJOY
 auto& Controller = MultiJoystick;
-//auto& Controller = Gamepad;
+#elif USB_GAMEPAD
+auto& Controller = Gamepad;
+#endif
 
 JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
@@ -36,6 +39,35 @@ uint8_t num_joys;
 int cycle_count=0, check_count=10;
 int cycle_delay = 25;
 
+#define BUTTONMAP_SWITCH
+
+#ifdef BUTTONMAP_SWITCH
+// L2/R2 are 6/7
+uint8_t button_map[3][NUM_BUTTONS] = {
+  { //NES
+    // A B Sel St U D L R
+    2,1,9,10,
+    //AXIS(1,-1),AXIS(1,1),AXIS(0,-1),AXIS(0,1),
+    HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
+    0,0,0,0,0,0,0,0
+  },{ //SNES
+    // B Y Sel St U D L R
+    2,1,9,10,
+    //AXIS(1,-1),AXIS(1,1),AXIS(0,-1),AXIS(0,1),
+    HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
+    // A X L R
+    3,4,5,6,0,0,0,0
+  },{ //N64
+    // A B Z St U D L R
+    //2,1,7,10, // A/B -> B/Y
+    3,2,11,8, // A/B -> A/B
+    HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
+    // X X L R U D L R <-(c)
+    0,0,5,6,
+    AXIS(3,-1),AXIS(3,1),AXIS(2,-1),AXIS(2,1),
+  }
+};
+#else
 uint8_t button_map[3][NUM_BUTTONS] = {
   { //NES
     // A B Sel St U D L R
@@ -59,6 +91,7 @@ uint8_t button_map[3][NUM_BUTTONS] = {
     AXIS(3,-1),AXIS(3,1),AXIS(2,-1),AXIS(2,1),
   }
 };
+#endif
 
 uint8_t button_map_bt[3][NUM_BUTTONS] = {
   { //NES
