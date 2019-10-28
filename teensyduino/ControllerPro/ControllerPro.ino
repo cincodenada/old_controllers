@@ -161,7 +161,7 @@ void detect_ports(char portmask, BaseReader** clist) {
 
 void safe_detect() {
   pinMode(TRIGGER_PIN, OUTPUT);
-  digitalWrite(TRIGGER_PIN, HIGH);
+  //digitalWrite(TRIGGER_PIN, HIGH);
   pinMode(CLOCK_PIN, INPUT);
   pinMode(LATCH_PIN, INPUT);
 
@@ -169,7 +169,7 @@ void safe_detect() {
   detect_ports(~pins_used, clist);
   uint8_t SNES_new = clist[SNES]->pinmask & ~SNES_before;
 
-  digitalWrite(TRIGGER_PIN, LOW);
+  //digitalWrite(TRIGGER_PIN, LOW);
 
   for(int i=0; i<NUMCTL; i++) {
     clist[i]->setup_pins();
@@ -234,7 +234,7 @@ void loop()
     cycle_count = 0;
     safe_detect();
   } else {
-    enableMessages(false);
+    //enableMessages(false);
     delay(cycle_delay);
     cycle_count++;
   }
