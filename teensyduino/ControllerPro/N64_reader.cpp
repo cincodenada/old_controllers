@@ -29,7 +29,6 @@ void N64Reader::read_state() {
     uint8_t bits = 0;
     uint8_t max_loops = 200;
     int loops = 0;
-    uint8_t high_len = 0;
     uint8_t val = HIGH;
 
     this->reset_isr_data();
@@ -54,62 +53,43 @@ void N64Reader::read_state() {
       loops++;
     }
 
-    while(bits < this->isr_data.read_bits && loops < max_loops) {
-      loops = high_len = 0;
+    uint8_t low_len = 0;
+    uint8_t high_len = 0;
+    bool hung = false;
+    while(bits < this->isr_data.read_bits && !hung) {
+      low_len = high_len = 0;
       //digitalWriteFast(TRIGGER_PIN, HIGH);
-      while(val == LOW && loops < max_loops) {
+      while(val == LOW) {
         val = digitalReadFast(BaseReader::isr_data.cur_pin);
-        loops++;
+        low_len++;
+        if(low_len > max_loops) {
+          hung = true;
+          goto hung;
+        }
       }
-      while(val == HIGH && loops < max_loops) {
+      while(val == HIGH) {
         val = digitalReadFast(BaseReader::isr_data.cur_pin);
-        loops++;
         high_len++;
+        if(high_len > max_loops) {
+          hung = true;
+          goto hung;
+        }
       }
-      *BaseReader::isr_data.cur_byte = high_len;
+      *BaseReader::isr_data.cur_byte = (high_len > low_len);
       BaseReader::isr_data.cur_byte++;
       bits++;
     }
+
+hung:
     interrupts();
 
-    bool hung = false;
-    if(loops == max_loops) {
+    if(hung) {
       printMsg("Read %02d bits /!\\", bits);
-      // Rewind and erase the last value, in case it was a long high
-      BaseReader::isr_data.cur_byte--;
-      BaseReader::isr_data.cur_byte = 0;
-      hung = true;
     } else {
       printMsg("Read %02d bits   ", bits);
     }
 
-    // Find min/max
-    uint8_t curval, min=255, max=0;
-    uint8_t k;
-    for(k=0; k < this->isr_data.read_bits; k++) {
-      curval = this->isr_data.buf[k];
-      if(curval > 0) {
-        if(curval > max) { max = curval; }
-        if(curval < min) { min = curval; }
-      }
-    }
-    // Account for all-zero instances
-    if(max < min*2) {
-      max = min*2;
-    }
-    // Remap to 0/1 based on average
-    uint8_t mid = (min+max)/2;
-
-    printMsg("First/min/mid/max: %d/%d/%d/%d",
-        this->isr_data.buf[0],
-        min, mid, max
-    );
-    for(k=0; k < this->isr_data.read_bits; k++) {
-      if(this->isr_data.buf[k]) {
-        this->isr_data.buf[k] = (this->isr_data.buf[k] > mid);
-      }
-    }
-    if(this->isr_data.buf[0] == 1) {
+    if(this->isr_data.buf[0] == 1 && !hung) {
       digitalWriteFast(TRIGGER_PIN, HIGH);
     }
 
