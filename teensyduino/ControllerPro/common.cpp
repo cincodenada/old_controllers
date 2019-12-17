@@ -23,9 +23,14 @@ void vprintMsg(int level, const char* format, va_list args) {
       msg[i] = ' ';
     }
     msg[i] = '\0';
-    Serial.flush();
-    Serial.println(msg);
-    Serial.flush();
+    // This could maybe be >= but why risk it
+    if (Serial.availableForWrite() > max_len) {
+      Serial.flush();
+      Serial.println(msg);
+      Serial.flush();
+    } else {
+      // Don't fill our buffer
+    }
   }
 #endif
 }
@@ -44,7 +49,7 @@ void printMsg(const char* format, ...) {
 
 void cls() {
 #ifdef USB_SERIAL_MULTIJOY
-  if(messages_enabled) {
+  if(messages_enabled && Serial.availableForWrite() > 10) {
   Serial.print("\033[2J");    // clear screen command
   Serial.print("\033[0;0H");   // cursor to home command
   Serial.flush();
