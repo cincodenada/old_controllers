@@ -29,7 +29,6 @@ void N64Reader::read_state() {
     uint8_t bits = 0;
     uint8_t max_loops = 200;
     int loops = 0;
-    uint8_t low_len = 0;
     uint8_t val = HIGH;
 
     this->reset_isr_data();
@@ -39,37 +38,49 @@ void N64Reader::read_state() {
     this->isr_data.read_bits = 32;
     pinMode(this->isr_data.cur_pin, OUTPUT);
     Timer1.initialize();
-    //digitalWriteFast(PIN_TRIGGER, HIGH);
+    //digitalWriteFast(TRIGGER_PIN, HIGH);
     Timer1.attachInterrupt(&this->isr_write, 1);
     // Spin our wheels
-    uint16_t j=0;
-    while(this->isr_data.mode == 0) { j++; }
-    //printMsg("Blooped for %d loops", j);
+    uint16_t send_cycles=0;
+    while(this->isr_data.mode == 0) { send_cycles++; }
+    //printMsg("Blooped for %d loops", send_cycles);
 
-    int hung = 0;
     noInterrupts();
     // Wait for initial low...
-    while(bits < this->isr_data.read_bits) {
-      loops = 0;
-      //digitalWriteFast(PIN_TRIGGER, HIGH);
-      while(val == HIGH && loops < max_loops) {
-        val = digitalReadFast(BaseReader::isr_data.cur_pin);
-        loops++;
-      }
-      if(loops == max_loops) {
-        //digitalWrite(PIN_TRIGGER, LOW);
-        hung = 1;
-        break;
-      }
-      low_len = 0;
-      while(val == LOW && loops < max_loops) {
+    loops = 0;
+    while(val == HIGH && loops < max_loops) {
+      val = digitalReadFast(BaseReader::isr_data.cur_pin);
+      loops++;
+    }
+
+    uint8_t low_len = 0;
+    uint8_t high_len = 0;
+    bool hung = false;
+    while(bits < this->isr_data.read_bits && !hung) {
+      low_len = high_len = 0;
+      //digitalWriteFast(TRIGGER_PIN, HIGH);
+      while(val == LOW) {
         val = digitalReadFast(BaseReader::isr_data.cur_pin);
         low_len++;
+        if(low_len > max_loops) {
+          hung = true;
+          goto hung;
+        }
       }
-      *BaseReader::isr_data.cur_byte = low_len;
+      while(val == HIGH) {
+        val = digitalReadFast(BaseReader::isr_data.cur_pin);
+        high_len++;
+        if(high_len > max_loops) {
+          hung = true;
+          goto hung;
+        }
+      }
+      *BaseReader::isr_data.cur_byte = (high_len > low_len);
       BaseReader::isr_data.cur_byte++;
       bits++;
     }
+
+hung:
     interrupts();
 
     if(hung) {
@@ -78,31 +89,8 @@ void N64Reader::read_state() {
       printMsg("Read %02d bits   ", bits);
     }
 
-    // Find min/max
-    uint8_t curval, min=255, max=0;
-    uint8_t k;
-    for(k=0; k < this->isr_data.read_bits; k++) {
-      curval = this->isr_data.buf[k];
-      if(curval > 0) {
-        if(curval > max) { max = curval; }
-        if(curval < min) { min = curval; }
-      }
-    }
-    // Account for all-zero instances
-    if(min > max/2) {
-      min = max/2;
-    }
-    // Remap to 0/1 based on average
-    uint8_t mid = (min+max)/2;
-
-    printMsg("First/min/mid/max: %d/%d/%d/%d",
-        this->isr_data.buf[0],
-        min, mid, max
-    );
-    for(k=0; k < this->isr_data.read_bits; k++) {
-      if(this->isr_data.buf[k]) {
-        this->isr_data.buf[k] = (this->isr_data.buf[k] < mid);
-      }
+    if(this->isr_data.buf[0] == 1 && !hung) {
+      digitalWriteFast(TRIGGER_PIN, HIGH);
     }
 
     // Don't fill status if we got a bad read
@@ -113,7 +101,7 @@ void N64Reader::read_state() {
       //memcpy(raw_dump, (void*)this->isr_data.buf, TBUFSIZE);
     }
     delay(1);
-    //digitalWrite(PIN_TRIGGER, LOW);
+    digitalWrite(TRIGGER_PIN, LOW);
   }
   this->fillStatus(this->JoyStatus);
 }
@@ -123,7 +111,7 @@ void N64Reader::prune(uint8_t candidates) {}
 void N64Reader::isr_write() {
   switch(BaseReader::isr_data.cur_stage) {
   case 0:
-    //digitalWriteFast(PIN_TRIGGER, HIGH);
+    //digitalWriteFast(TRIGGER_PIN, HIGH);
     digitalWriteFast(BaseReader::isr_data.cur_pin, LOW);
     // Reset bit mask if we finished the previous byte
     BaseReader::isr_data.cur_stage++;
