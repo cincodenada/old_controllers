@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "common.h"
 
 #include <EEPROM.h>
 
@@ -100,11 +101,14 @@ void SettingsLoader::save() {
 }
 
 bool SettingsLoader::load() {
+  printMsg(INFO, "Attempting to load...");
   if(EEPROM.read(0) == VERSION) {
+    printMsg(INFO, "Loading from EEPROM");
     maps.clear();
     size_t count;
     size_t map_addr = 16;
     EEPROM.get(map_addr, count);
+    printMsg(INFO, "Loading %d maps", count);
     map_addr += sizeof(size_t);
     for(size_t i=0; i<count; i++) {
       ButtonMapping cur_map;
@@ -112,6 +116,7 @@ bool SettingsLoader::load() {
       maps.push_back(std::move(cur_map));
       map_addr += sizeof(ButtonMapping);
     }
+    printMsg(INFO, "Maps loaded");
   }
 
   return false;
