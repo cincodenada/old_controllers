@@ -41,7 +41,7 @@ BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
 uint8_t num_joys;
 int cycle_count=0, check_count=10;
-int cycle_delay = 25;
+int cycle_delay = 1;
 
 void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
@@ -261,8 +261,6 @@ void loop()
   JoyStatus[0].translate_buttons(&curStatus, button_map_bt[JoyStatus[0].controller_type]);
   send_bt(&curStatus);
   */
-
-  delay(cycle_delay);
 }
 
 void remap_buttons(uint8_t cnum) {

@@ -27,14 +27,17 @@ void JoystickStatus::translate_buttons(
   dest->buttonset[1] = 0;
   dest->hat = -1;
 
+  int8_t hat_x = 0;
+  int8_t hat_y = 0;
+
   int num_bytes = NUM_BUTTONS/8;
   for(int byte=0; byte < num_bytes; byte++) {
     for(int bit=0; bit < 8; bit++) {
       int btn_num = button_map.get_btn(type, byte, bit);
       if(this->buttonset[byte] & (0x80 >> bit)) {
         if(btn_num >= HAT_BASE) {
-          dest->hat = hat_map[HAT_Y(btn_num)+1][HAT_X(btn_num)+1];
-          printMsg(5,"%d: Setting hat to %d (%d, %d)", btn_num, dest->hat, HAT_X(btn_num), HAT_Y(btn_num));
+          hat_x += HAT_X(btn_num);
+          hat_y += HAT_Y(btn_num);
         } else if(btn_num >= AXIS_BASE) {
           int axis_num = AXIS_NUM(btn_num);
           int axis_dir = AXIS_DIR(btn_num);
@@ -57,6 +60,10 @@ void JoystickStatus::translate_buttons(
       }
     }
   }
+
+  // Set the combine dhat
+  dest->hat = hat_map[hat_y+1][hat_x+1];
+  printMsg(5,"%d: Setting hat to %d (%d, %d)", btn_num, dest->hat, HAT_X(btn_num), HAT_Y(btn_num));
 }
 
 void JoystickStatus::copyFrom(JoystickStatus* source) {
