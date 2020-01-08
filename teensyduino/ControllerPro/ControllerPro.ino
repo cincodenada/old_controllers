@@ -17,6 +17,7 @@
 #include "pin_config.h"
 #include "common.h"
 #include "joystick_status.h"
+#include "settings.h"
 #include "crc_table.h"
 #include "N64_reader.h"
 #include "SNES_reader.h"
@@ -34,6 +35,7 @@ auto& Controller = MultiJoystick;
 auto& Controller = Gamepad;
 #endif
 
+SettingsLoader settings;
 JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
