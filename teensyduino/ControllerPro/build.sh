@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+ARDUINO=/opt/arduino/arduino
+
 BOARD="teensy31"
 USB="serialmultijoy"
 while true; do
@@ -26,4 +28,4 @@ fi
 echo "Using board $BOARD";
 echo "Using mode $USB";
 
-arduino --board teensy:avr:$BOARD:usb=$USB --preserve-temp-files $@ N64_Arduino.ino
+$ARDUINO --board teensy:avr:$BOARD:usb=$USB --preserve-temp-files $@ N64_Arduino.ino
