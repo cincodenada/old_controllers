@@ -2,19 +2,6 @@
 
 #include <EEPROM.h>
 
-#include "joystick_status.h"
-
-uint8_t ButtonMapping::get_btn(controller_type_t type, uint8_t byte, uint8_t bit) {
-  switch(type) {
-    case NES: return NES_map[byte*8 + bit];
-    case SNES: return SNES_map[byte*8 + bit];
-    case N64: return N64_map[byte*8 + bit];
-    default: return 0;
-  }
-};
-
-std::vector<ButtonMapping> maps;
-
 SettingsLoader::SettingsLoader() {
   if(!load()) {
     set_defaults();

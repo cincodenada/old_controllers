@@ -3,9 +3,19 @@
 #include "common.h"
 #include "joystick_status.h"
 
+uint8_t ButtonMapping::get_btn(controller_type_t type, uint8_t byte, uint8_t bit) {
+  switch(type) {
+    case NES: return NES_map[byte*8 + bit];
+    case SNES: return SNES_map[byte*8 + bit];
+    case N64: return N64_map[byte*8 + bit];
+    default: return 0;
+  }
+};
+
 void JoystickStatus::translate_buttons(
   JoystickStatus *dest,
-  uint8_t *button_map
+  ButtonMapping& button_map,
+  controller_type_t type
 ) {
   // Copy our status
   dest->copyFrom(this);
@@ -20,7 +30,7 @@ void JoystickStatus::translate_buttons(
   int num_bytes = NUM_BUTTONS/8;
   for(int byte=0; byte < num_bytes; byte++) {
     for(int bit=0; bit < 8; bit++) {
-      int btn_num = button_map[bit + byte*8];
+      int btn_num = button_map.get_btn(type, byte, bit);
       if(this->buttonset[byte] & (0x80 >> bit)) {
         if(btn_num >= HAT_BASE) {
           dest->hat = hat_map[HAT_Y(btn_num)+1][HAT_X(btn_num)+1];
