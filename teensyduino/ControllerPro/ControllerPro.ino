@@ -16,7 +16,7 @@
 #include "TimerOne.h"
 
 #include "pin_config.h"
-#include "console.h"
+#include "serial_console.h"
 #include "joystick_status.h"
 #include "settings.h"
 #include "crc_table.h"
@@ -28,7 +28,7 @@
 
 namespace std {
   void __throw_length_error(char const* msg) {
-    printMsg("Length error: %s, halting", msg);
+    console.out("Length error: %s, halting", msg);
     while(true);
   }
 }
@@ -53,7 +53,7 @@ int cycle_delay = 1;
 
 void detect_ports(char portmask, BaseReader** clist) {
   for(int slot = 0; slot < NUMSLOTS; slot++) {
-    printMsg("Detecting %d", slot);
+    console.out("Detecting %d", slot);
     if(portmask & 0x01) {
       pinMode(fast_pins[slot], INPUT);
       pinMode(slow_pins[slot], INPUT);
@@ -87,7 +87,7 @@ void detect_ports(char portmask, BaseReader** clist) {
         clist[SNES]->claim_slot(slot);
       }
 
-      printMsg(INFO, "Checked port %d: %d/%d", slot, fast, nes);
+      console.out(INFO, "Checked port %d: %d/%d", slot, fast, nes);
 
       delay(1);
     }
@@ -115,11 +115,11 @@ void safe_detect() {
   pinMode(CLOCK_PIN, OUTPUT);
 
   for(int i=0; i<NUMCTL; i++) {
-    printMsg(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    console.out(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
     // For now, only SNES needs pruning
     if(i == SNES) {
       clist[i]->prune(SNES_new);
-      printMsg(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+      console.out(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
     }
   }
 }
@@ -138,14 +138,14 @@ void setup() {
   Controller.useManualSend(true);
   num_joys = Controller.num_joys();
 
-  printMsg("Initiated joystick lib");
+  console.out("Initiated joystick lib");
   digitalWrite(LED_PIN, LOW);
 
   clist[N64] = new N64Reader(JoyStatus, &pins_used, "N64");
   clist[SNES] = new SNESReader(JoyStatus, &pins_used, "SNES");
   clist[NES] = new NESReader(JoyStatus, &pins_used, "NES");
 
-  printMsg("Created controllers");
+  console.out("Created controllers");
   digitalWrite(LED_PIN, LOW);
 
   for(int i=0; i<10; i++) {
@@ -154,7 +154,7 @@ void setup() {
 #endif
   }
 
-  enableMessages(false);
+  console.enable(false);
 }
 
 void loop()
@@ -165,20 +165,20 @@ void loop()
 
   // Detect controllers
   if(cycle_count >= check_count) {
-    enableMessages(true);
-    cls();
+    console.enable(true);
+    console.cls();
     cycle_count = 0;
     safe_detect();
   } else {
-    //enableMessages(false);
+    //console.enable(false);
     delay(cycle_delay);
     cycle_count++;
   }
 
   // Determine how many controllers we're using
   printBin(binstr, pins_used);
-  printMsg("Pins used: 0x%X (%s)", pins_used, binstr);
-  printMsg("%lu: Polling Controllers...", millis());
+  console.out("Pins used: 0x%X (%s)", pins_used, binstr);
+  console.out("%lu: Polling Controllers...", millis());
 
   /************************
    * Read controller state
@@ -192,7 +192,7 @@ void loop()
   for(i=0;i<NUMCTL;i++) {
     clist[i]->read_state();
     printBin(binstr, clist[i]->pinmask);
-    printMsg("%s mask: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
+    console.out("%s mask: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
   }
 
   pinMode(CLOCK_PIN, INPUT);
@@ -220,9 +220,9 @@ void loop()
 
     JoyStatus[cnum].translate_buttons(&curStatus, settings.get_map(0), JoyStatus[cnum].controller_type);
 
-    printMsg(5, "Setting joystick to %u pos %u", joynum, joypos);
-    printMsg(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
-    printMsg(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
+    console.out(5, "Setting joystick to %u pos %u", joynum, joypos);
+    console.out(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
+    console.out(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
 
     Controller.setJoyNum(joynum);
     //Update each button

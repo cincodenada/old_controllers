@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "console.h"
+#include "serial_console.h"
 #include "joystick_status.h"
 #include "bt_controller.h"
 
@@ -43,11 +43,11 @@ void send_bt(JoystickStatus *JoyStatus) {
   btdata[6] = JoyStatus->buttonset[0];
   btdata[7] = JoyStatus->buttonset[1];
 
-  printMsg("Axes: %d %d", JoyStatus->axis[0], JoyStatus->axis[1]);
-  printMsg("Sending BT packet: ");
+  console.out("Axes: %d %d", JoyStatus->axis[0], JoyStatus->axis[1]);
+  console.out("Sending BT packet: ");
   for(int i=0;i<PACKET_BYTES;i++) {
     HWSERIAL.write((byte)btdata[i]);
-    printMsg("%.2X", btdata[i]);
+    console.out("%.2X", btdata[i]);
   }
-  printMsg("");
+  console.out("");
 }

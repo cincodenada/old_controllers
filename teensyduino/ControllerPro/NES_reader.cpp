@@ -103,7 +103,7 @@ void NESReader::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
   // (reversed)
   for (int i=0; i<8; i++) {
     printBin(binstr, this->raw_dump[i]);
-    printMsg(binstr);
+    console.out(binstr);
     //If the button is pressed, set the bit
     if(raw_dump[i] & datamask) {
       joystick->buttonset[0] |= (0x80 >> i);
