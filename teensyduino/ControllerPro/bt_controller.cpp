@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "Arduino.h"
 #include "serial_console.h"
 #include "joystick_status.h"
 #include "bt_controller.h"

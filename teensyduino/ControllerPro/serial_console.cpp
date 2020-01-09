@@ -4,8 +4,14 @@
 
 SerialConsole console;
 
-void SerialConsole::out_impl(int level, const char* format, va_list args) {
 #ifdef USB_SERIAL_MULTIJOY
+#include "Arduino.h"
+
+SerialConsole::SerialConsole() {
+  Serial.begin(9600);
+}
+
+void SerialConsole::out_impl(int level, const char* format, va_list args) {
   if(level > LOG_LEVEL) { return; }
   if(enabled) {
     int cur_len, i;
@@ -24,15 +30,18 @@ void SerialConsole::out_impl(int level, const char* format, va_list args) {
       // Don't fill our buffer
     }
   }
-#endif
 }
 
 void SerialConsole::cls() {
-#ifdef USB_SERIAL_MULTIJOY
   if(enabled && Serial.availableForWrite() > 10) {
-  Serial.print("\033[2J");    // clear screen command
-  Serial.print("\033[0;0H");   // cursor to home command
-  Serial.flush();
+    Serial.print("\033[2J");    // clear screen command
+    Serial.print("\033[0;0H");   // cursor to home command
+    Serial.flush();
   }
-#endif
 }
+#else
+// If we don't have serial, just stub everything
+void SerialConsole::SerialConsole() {}
+void SerialConsole::out_impl(int level, const char* format, va_list args) {}
+void SerialConsole::cls() {}
+#endif

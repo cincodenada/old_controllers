@@ -125,10 +125,6 @@ void safe_detect() {
 }
 
 void setup() {
-#ifdef USB_SERIAL_MULTIJOY
-  Serial.begin(9600);
-#endif
-
   //init_bt();
 
   pinMode(LED_PIN, OUTPUT);
@@ -149,9 +145,7 @@ void setup() {
   digitalWrite(LED_PIN, LOW);
 
   for(int i=0; i<10; i++) {
-#ifdef USB_SERIAL_MULTIJOY
-    Serial.println();
-#endif
+    console.out("");
   }
 
   console.enable(false);

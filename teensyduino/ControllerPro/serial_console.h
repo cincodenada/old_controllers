@@ -1,8 +1,6 @@
 #pragma once
 #include "console.h"
 
-#include "Arduino.h"
-
 class SerialConsole : public Console {
  public:
   SerialConsole();
