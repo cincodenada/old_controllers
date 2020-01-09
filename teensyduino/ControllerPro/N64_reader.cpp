@@ -1,6 +1,8 @@
 #include "N64_reader.h"
 #include <stdio.h>
 
+auto console = SerialConsole::getInstance();
+
 void N64Reader::init() {
   BaseReader::init();
 
@@ -43,7 +45,7 @@ void N64Reader::read_state() {
     // Spin our wheels
     uint16_t send_cycles=0;
     while(this->isr_data.mode == 0) { send_cycles++; }
-    //console.out("Blooped for %d loops", send_cycles);
+    //console->out("Blooped for %d loops", send_cycles);
 
     noInterrupts();
     // Wait for initial low...
@@ -84,9 +86,9 @@ hung:
     interrupts();
 
     if(hung) {
-      console.out("Read %02d bits /!\\", bits);
+      console->out("Read %02d bits /!\\", bits);
     } else {
-      console.out("Read %02d bits   ", bits);
+      console->out("Read %02d bits   ", bits);
     }
 
     if(this->isr_data.buf[0] == 1 && !hung) {
@@ -176,7 +178,7 @@ void N64Reader::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
   // line 1
   // bits: A, B, Z, Start, Dup, Ddown, Dleft, Dright
   for (i=0; i<8; i++) {
-    console.out("%.2X%.2X%.2X%.2X",
+    console->out("%.2X%.2X%.2X%.2X",
       this->raw_dump[i],
       this->raw_dump[i+8],
       this->raw_dump[i+16],

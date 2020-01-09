@@ -27,7 +27,7 @@
 
 namespace std {
   void __throw_length_error(char const* msg) {
-    console.out("Length error: %s, halting", msg);
+    //console->out("Length error: %s, halting", msg);
     while(true);
   }
 }
@@ -51,8 +51,10 @@ int cycle_count=0, check_count=10;
 int cycle_delay = 1;
 
 void detect_ports(char portmask, BaseReader** clist) {
+  auto console = SerialConsole::getInstance();
+
   for(int slot = 0; slot < NUMSLOTS; slot++) {
-    console.out("Detecting %d", slot);
+    console->out("Detecting %d", slot);
     if(portmask & 0x01) {
       pinMode(fast_pins[slot], INPUT);
       pinMode(slow_pins[slot], INPUT);
@@ -86,7 +88,7 @@ void detect_ports(char portmask, BaseReader** clist) {
         clist[SNES]->claim_slot(slot);
       }
 
-      console.out(INFO, "Checked port %d: %d/%d", slot, fast, nes);
+      console->out(INFO, "Checked port %d: %d/%d", slot, fast, nes);
 
       delay(1);
     }
@@ -95,6 +97,8 @@ void detect_ports(char portmask, BaseReader** clist) {
 }
 
 void safe_detect() {
+  auto console = SerialConsole::getInstance();
+
   pinMode(TRIGGER_PIN, OUTPUT);
   //digitalWrite(TRIGGER_PIN, HIGH);
   pinMode(CLOCK_PIN, INPUT);
@@ -114,16 +118,17 @@ void safe_detect() {
   pinMode(CLOCK_PIN, OUTPUT);
 
   for(int i=0; i<NUMCTL; i++) {
-    console.out(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+    console->out(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
     // For now, only SNES needs pruning
     if(i == SNES) {
       clist[i]->prune(SNES_new);
-      console.out(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
+      console->out(INFO, "%s pinmask: %02x", clist[i]->controller_name, clist[i]->pinmask);
     }
   }
 }
 
 void setup() {
+  auto console = SerialConsole::getInstance();
   //init_bt();
 
   pinMode(LED_PIN, OUTPUT);
@@ -133,45 +138,46 @@ void setup() {
   Controller.useManualSend(true);
   num_joys = Controller.num_joys();
 
-  console.out("Initiated joystick lib");
+  console->out("Initiated joystick lib");
   digitalWrite(LED_PIN, LOW);
 
   clist[N64] = new N64Reader(JoyStatus, &pins_used, "N64");
   clist[SNES] = new SNESReader(JoyStatus, &pins_used, "SNES");
   clist[NES] = new NESReader(JoyStatus, &pins_used, "NES");
 
-  console.out("Created controllers");
+  console->out("Created controllers");
   digitalWrite(LED_PIN, LOW);
 
   for(int i=0; i<10; i++) {
-    console.out("");
+    console->out("");
   }
 
-  console.enable(false);
+  //console->enable(false);
 }
 
 void loop()
 {
+  auto console = SerialConsole::getInstance();
   int i;
   uint8_t joynum, joypos;
   JoystickStatus curStatus;
 
   // Detect controllers
   if(cycle_count >= check_count) {
-    console.enable(true);
-    console.cls();
+    console->enable(true);
+    console->cls();
     cycle_count = 0;
     safe_detect();
   } else {
-    //console.enable(false);
+    //console->enable(false);
     delay(cycle_delay);
     cycle_count++;
   }
 
   // Determine how many controllers we're using
   printBin(binstr, pins_used);
-  console.out("Pins used: 0x%X (%s)", pins_used, binstr);
-  console.out("%lu: Polling Controllers...", millis());
+  console->out("Pins used: 0x%X (%s)", pins_used, binstr);
+  console->out("%lu: Polling Controllers...", millis());
 
   /************************
    * Read controller state
@@ -185,7 +191,7 @@ void loop()
   for(i=0;i<NUMCTL;i++) {
     clist[i]->read_state();
     printBin(binstr, clist[i]->pinmask);
-    console.out("%s mask: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
+    console->out("%s mask: 0x%X (%s)", clist[i]->controller_name, clist[i]->pinmask, binstr);
   }
 
   pinMode(CLOCK_PIN, INPUT);
@@ -211,11 +217,11 @@ void loop()
     continue;
     }
 
-    JoyStatus[cnum].translate_buttons(&curStatus, settings.get_map(0), JoyStatus[cnum].controller_type);
+    //JoyStatus[cnum].translate_buttons(&curStatus, settings.get_map(0), JoyStatus[cnum].controller_type);
 
-    console.out(5, "Setting joystick to %u pos %u", joynum, joypos);
-    console.out(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
-    console.out(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
+    console->out(5, "Setting joystick to %u pos %u", joynum, joypos);
+    console->out(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
+    console->out(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
 
     Controller.setJoyNum(joynum);
     //Update each button

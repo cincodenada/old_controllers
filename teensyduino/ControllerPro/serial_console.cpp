@@ -1,7 +1,5 @@
 #include "serial_console.h"
 
-SerialConsole console;
-
 #ifdef USB_SERIAL_MULTIJOY
 #include "Arduino.h"
 
