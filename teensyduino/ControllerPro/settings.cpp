@@ -127,6 +127,8 @@ bool Settings::load() {
       map_addr += sizeof(ButtonMapping);
     }
     console.out(INFO, "Maps loaded");
+
+    return true;
   }
 
   return false;
