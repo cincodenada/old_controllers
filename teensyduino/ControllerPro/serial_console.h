@@ -7,7 +7,7 @@ class SerialConsole : public Console {
   virtual void cls();
 
  private:
-  void out_impl(int level, const char* format, va_list args);
+  void out_impl();
 };
 
 // Shim singleton

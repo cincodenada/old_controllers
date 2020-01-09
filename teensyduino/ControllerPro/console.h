@@ -16,19 +16,9 @@ class Console {
  public:
   virtual void cls() = 0;
 
-  void out(int level, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    out_impl(level, format, args);
-    va_end(args);
-  }
-  void out(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    out_impl(DEBUG, format, args);
-    va_end(args);
-  }
-
+  void out(int level, const char* format, ...);
+  void out(const char* format, ...);
+  void build_message(int level, const char* format, va_list args);
 
   void enable(bool enabled) {
     this->enabled = enabled;
@@ -39,7 +29,8 @@ class Console {
   };
 
  protected:
-  virtual void out_impl(int level, const char* format, va_list args) = 0;
+  // Writes the contents of msg to the output
+  virtual void out_impl() = 0;
 
   bool enabled = true;
   int max_len = 30;

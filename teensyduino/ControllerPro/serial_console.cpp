@@ -9,18 +9,8 @@ SerialConsole::SerialConsole() {
   Serial.begin(9600);
 }
 
-void SerialConsole::out_impl(int level, const char* format, va_list args) {
-  if(level > log_level) { return; }
-  if(!enabled) { return; }
-
-  int cur_len, i;
-  cur_len = vsnprintf(msg, MSG_LEN, format, args);
-  if(cur_len > max_len) { max_len = cur_len; }
-  for(i=cur_len; i < max_len && i < MSG_LEN; i++) {
-    msg[i] = ' ';
-  }
-  msg[i] = '\0';
-  // This could maybe be >= but why risk it
+void SerialConsole::out_impl() {
+ // This could maybe be >= but why risk it
   if (Serial.availableForWrite() > max_len) {
     Serial.flush();
     Serial.println(msg);
