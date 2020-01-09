@@ -5,6 +5,7 @@
 
 #include "Arduino.h"
 #include "pin_config.h"
+#include "binutil.h"
 #include "serial_console.h"
 #include "joystick_status.h"
 #include "TimerOne.h"

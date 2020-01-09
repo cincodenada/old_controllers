@@ -1,4 +1,4 @@
-#include "console.h"
+#include "binutil.h"
 
 #include "Arduino.h"
 #include "pin_config.h"
@@ -39,3 +39,4 @@ void blink_binary(int num, uint8_t bits) {
   delay(300);
   digitalWrite(LED_PIN, HIGH);
 }
+

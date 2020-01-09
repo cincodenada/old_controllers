@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "Arduino.h"
 #include "TimerOne.h"
 
 #include "pin_config.h"

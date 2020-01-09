@@ -11,13 +11,7 @@
 #define TRACE 5
 
 #define MSG_LEN 70
-#define NUM_BITS 8
 #define LOG_LEVEL TRACE
-
-// These are junk drawer, TBD
-extern char binstr[];
-void printBin(char* dest, char input, unsigned char num_bits = NUM_BITS);
-void blink_binary(int num, uint8_t bits);
 
 class Console {
  public:

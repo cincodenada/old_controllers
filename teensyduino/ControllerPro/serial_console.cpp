@@ -1,7 +1,5 @@
 #include "serial_console.h"
 
-#include "pin_config.h"
-
 SerialConsole console;
 
 #ifdef USB_SERIAL_MULTIJOY
