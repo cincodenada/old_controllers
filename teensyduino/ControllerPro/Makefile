@@ -1,6 +1,6 @@
 default: build
 
-.PHONY: upload
+.PHONY: build upload
 
 build: *.cpp *.h *.ino
 	./build.sh --verify

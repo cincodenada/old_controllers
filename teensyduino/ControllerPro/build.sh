@@ -35,5 +35,5 @@ if [[ "$ARDUINO" == *"arduino-cli" ]]; then
   mkdir -p build
   $ARDUINO compile -b teensy:avr:$BOARD:usb=$USB --build-path build $@ .
 else
-  $ARDUINO --board teensy:avr:$BOARD:usb=$USB --preserve-temp-files $@ ControllerPro.ino
+  $ARDUINO --board teensy:avr:$BOARD:usb=$USB --preserve-temp-files $@ *.ino
 fi
