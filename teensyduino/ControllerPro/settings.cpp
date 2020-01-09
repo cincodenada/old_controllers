@@ -1,5 +1,5 @@
 #include "settings.h"
-#include "common.h"
+#include "console.h"
 
 #include <algorithm>
 #include <EEPROM.h>

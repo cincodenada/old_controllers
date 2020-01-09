@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "common.h"
+#include "console.h"
 #include "joystick_status.h"
 #include "bt_controller.h"
 

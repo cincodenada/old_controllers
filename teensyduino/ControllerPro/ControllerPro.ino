@@ -12,10 +12,11 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "Arduino.h"
 #include "TimerOne.h"
 
 #include "pin_config.h"
-#include "common.h"
+#include "console.h"
 #include "joystick_status.h"
 #include "settings.h"
 #include "crc_table.h"
@@ -24,6 +25,13 @@
 #include "NES_reader.h"
 
 #include "bt_controller.h"
+
+namespace std {
+  void __throw_length_error(char const* msg) {
+    printMsg("Length error: %s, halting", msg);
+    while(true);
+  }
+}
 
 #define NUMCTL 3
 
