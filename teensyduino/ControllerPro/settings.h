@@ -3,7 +3,7 @@
 #include <vector>
 #include <stdint.h>
 
-#include "string.h"
+#include "simple_string.h"
 #include "joystick_status.h"
 
 #define VERSION 1
@@ -14,7 +14,7 @@ class SettingsLoader {
 
   void set_defaults();
   void add_map(const char* name, ButtonMapping&& map);
-  ButtonMapping& get_map(std::string name);
+  ButtonMapping& find_map(const char* name);
   ButtonMapping& get_map(size_t idx);
 
   void save();
@@ -22,5 +22,5 @@ class SettingsLoader {
 
  private:
   std::vector<ButtonMapping> maps;
-  std::vector<std::string> map_names;
+  std::vector<SimpleString> map_names;
 };

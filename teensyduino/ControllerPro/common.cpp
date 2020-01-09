@@ -2,6 +2,13 @@
 
 #include "pin_config.h"
 
+namespace std {
+  void __throw_length_error(char const* msg) {
+    printMsg("Length error: %s, halting", msg);
+    while(true);
+  }
+}
+
 char msg[MSG_LEN];
 char binstr[NUM_BITS+1];
 

@@ -11,7 +11,7 @@ SettingsLoader::SettingsLoader() {
   }
 }
 
-ButtonMapping& SettingsLoader::get_map(std::string name) {
+ButtonMapping& SettingsLoader::find_map(const char* name) {
   auto it = std::find(map_names.begin(), map_names.end(), name);
   return maps[std::distance(map_names.begin(), it)];
 }
