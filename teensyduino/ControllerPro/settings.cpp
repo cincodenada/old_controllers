@@ -4,22 +4,22 @@
 #include <algorithm>
 #include <EEPROM.h>
 
-SettingsLoader::SettingsLoader() {
+void Settings::init() {
   if(!load()) {
     set_defaults();
     save();
   }
 }
 
-ButtonMapping& SettingsLoader::find_map(const char* name) {
+ButtonMapping& Settings::find_map(const char* name) {
   auto it = std::find(map_names.begin(), map_names.end(), name);
   return maps[std::distance(map_names.begin(), it)];
 }
-ButtonMapping& SettingsLoader::get_map(size_t idx) {
+ButtonMapping& Settings::get_map(size_t idx) {
   return maps[idx];
 }
 
-void SettingsLoader::set_defaults() {
+void Settings::set_defaults() {
   maps.clear();
   map_names.clear();
 
@@ -94,12 +94,12 @@ void SettingsLoader::set_defaults() {
   });
 }
 
-void SettingsLoader::add_map(const char* name, ButtonMapping&& map) {
+void Settings::add_map(const char* name, ButtonMapping&& map) {
   maps.push_back(std::move(map));
   map_names.emplace_back(name);
 }
 
-void SettingsLoader::save() {
+void Settings::save() {
   EEPROM.write(0, VERSION);
   size_t map_addr = 16;
   EEPROM.put(map_addr, maps.size());
@@ -110,7 +110,7 @@ void SettingsLoader::save() {
   }
 }
 
-bool SettingsLoader::load() {
+bool Settings::load() {
   console.out(INFO, "Attempting to load...");
   if(EEPROM.read(0) == VERSION) {
     console.out(INFO, "Loading from EEPROM");

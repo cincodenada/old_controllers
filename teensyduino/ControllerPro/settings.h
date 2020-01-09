@@ -8,15 +8,14 @@
 
 #define VERSION 1
 
-class SettingsLoader {
+class Settings {
  public:
-  SettingsLoader();
-
   void set_defaults();
   void add_map(const char* name, ButtonMapping&& map);
   ButtonMapping& find_map(const char* name);
   ButtonMapping& get_map(size_t idx);
 
+  void init();
   void save();
   bool load();
 

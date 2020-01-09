@@ -42,7 +42,7 @@ auto& Controller = MultiJoystick;
 auto& Controller = Gamepad;
 #endif
 
-SettingsLoader settings;
+Settings settings;
 JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
@@ -125,6 +125,10 @@ void safe_detect() {
 
 void setup() {
   //init_bt();
+
+  console.out("Loading settings...");
+
+  settings.init();
 
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
