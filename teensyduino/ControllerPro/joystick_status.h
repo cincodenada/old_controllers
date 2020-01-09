@@ -31,9 +31,6 @@ enum controller_type_t {
 
 #define NAME_LEN 32
 struct ButtonMapping {
-  uint8_t version = 1;
-  char name[NAME_LEN] = "";
-
   uint8_t NES_map[8] = {0};
   uint8_t SNES_map[12] = {0};
   uint8_t N64_map[16] = {0};

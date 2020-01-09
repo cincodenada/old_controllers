@@ -1,6 +1,8 @@
 #!/bin/bash -x
 
 ARDUINO=/opt/arduino/arduino
+# Teensyduino not supported here, it seems :(
+#ARDUINO=arduino-cli
 
 BOARD="teensy31"
 USB="serialmultijoy"
@@ -28,4 +30,10 @@ fi
 echo "Using board $BOARD";
 echo "Using mode $USB";
 
-$ARDUINO --board teensy:avr:$BOARD:usb=$USB --preserve-temp-files $@ N64_Arduino.ino
+if [[ "$ARDUINO" == *"arduino-cli" ]]; then
+  rm -rf build
+  mkdir -p build
+  $ARDUINO compile -b teensy:avr:$BOARD:usb=$USB --build-path build $@ .
+else
+  $ARDUINO --board teensy:avr:$BOARD:usb=$USB --preserve-temp-files $@ ControllerPro.ino
+fi

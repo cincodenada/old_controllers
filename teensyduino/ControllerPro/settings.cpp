@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "common.h"
 
+#include <algorithm>
 #include <EEPROM.h>
 
 SettingsLoader::SettingsLoader() {
@@ -10,10 +11,19 @@ SettingsLoader::SettingsLoader() {
   }
 }
 
+ButtonMapping& SettingsLoader::get_map(std::string name) {
+  auto it = std::find(map_names.begin(), map_names.end(), name);
+  return maps[std::distance(map_names.begin(), it)];
+}
+ButtonMapping& SettingsLoader::get_map(size_t idx) {
+  return maps[idx];
+}
+
 void SettingsLoader::set_defaults() {
   maps.clear();
-  ButtonMapping standard{
-    VERSION, "Standard",
+  map_names.clear();
+
+  add_map("Standard", {
     {
       2,1,9,10,
       AXIS(1,-1),AXIS(1,1),AXIS(0,-1),AXIS(0,1),
@@ -36,11 +46,9 @@ void SettingsLoader::set_defaults() {
       0,0,5,6,
       AXIS(3,-1),AXIS(3,1),AXIS(2,-1),AXIS(2,1),
     }
-  };
-  maps.push_back(std::move(standard));
+  });
 
-  ButtonMapping ninswitch{
-    VERSION, "Switch",
+  add_map("Switch", {
     {
       // A B Sel St U D L R
       2,1,7,8,
@@ -63,11 +71,9 @@ void SettingsLoader::set_defaults() {
       0,0,5,6,
       AXIS(3,-1),AXIS(3,1),AXIS(2,-1),AXIS(2,1),
     }
-  };
-  maps.push_back(std::move(ninswitch));
+  });
 
-  ButtonMapping bluetooth {
-    VERSION, "Bluetooth",
+  add_map("Bluetooth", {
     {
       2,1,7,8,
       AXIS(1,-1),AXIS(1,1),
@@ -85,8 +91,12 @@ void SettingsLoader::set_defaults() {
       0,0,7,8,
       14,15,9,10,
     }
-  };
-  maps.push_back(std::move(bluetooth));
+  });
+}
+
+void SettingsLoader::add_map(const char* name, ButtonMapping&& map) {
+  maps.push_back(std::move(map));
+  map_names.emplace_back(name);
 }
 
 void SettingsLoader::save() {
