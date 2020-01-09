@@ -63,7 +63,7 @@ void JoystickStatus::translate_buttons(
 
   // Set the combine dhat
   dest->hat = hat_map[hat_y+1][hat_x+1];
-  printMsg(5,"%d: Setting hat to %d (%d, %d)", btn_num, dest->hat, HAT_X(btn_num), HAT_Y(btn_num));
+  printMsg(5,"Setting hat to %d (%d, %d)", dest->hat, hat_x, hat_y);
 }
 
 void JoystickStatus::copyFrom(JoystickStatus* source) {
