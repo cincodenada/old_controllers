@@ -11,7 +11,6 @@
 #define TRACE 5
 
 #define MSG_LEN 70
-#define LOG_LEVEL TRACE
 
 class Console {
  public:
@@ -35,11 +34,16 @@ class Console {
     this->enabled = enabled;
   };
 
+  void set_level(uint8_t level) {
+    this->log_level = level;
+  };
+
  protected:
   virtual void out_impl(int level, const char* format, va_list args) = 0;
 
   bool enabled = true;
   int max_len = 30;
+  uint8_t log_level = INFO;
 
   char msg[MSG_LEN];
 };
