@@ -3,8 +3,6 @@
 #include "serial_console.h"
 #include "joystick_status.h"
 
-auto console = SerialConsole::getInstance();
-
 uint8_t ButtonMapping::get_btn(controller_type_t type, uint8_t byte, uint8_t bit) {
   switch(type) {
     case NES: return NES_map[byte*8 + bit];
@@ -43,7 +41,7 @@ void JoystickStatus::translate_buttons(
         } else if(btn_num >= AXIS_BASE) {
           int axis_num = AXIS_NUM(btn_num);
           int axis_dir = AXIS_DIR(btn_num);
-          console->out(5,"%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
+          console.out(5,"%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
           // TODO: Adjusted because Bluetooth seems to 
           // freak out if we're at the limits,
           // do some further testing here
@@ -56,7 +54,7 @@ void JoystickStatus::translate_buttons(
           btn_num -= 1;
           int dest_byte = btn_num/8;
           int dest_bit = btn_num%8;
-          console->out(5, "Mapping %d:%d to %d:%d...", byte, bit, dest_byte, dest_bit);
+          console.out(5, "Mapping %d:%d to %d:%d...", byte, bit, dest_byte, dest_bit);
           dest->buttonset[dest_byte] |= (0x01 << dest_bit);
         }
       }
@@ -65,7 +63,7 @@ void JoystickStatus::translate_buttons(
 
   // Set the combine dhat
   dest->hat = hat_map[hat_y+1][hat_x+1];
-  console->out(5,"Setting hat to %d (%d, %d)", dest->hat, hat_x, hat_y);
+  console.out(5,"Setting hat to %d (%d, %d)", dest->hat, hat_x, hat_y);
 }
 
 void JoystickStatus::copyFrom(JoystickStatus* source) {

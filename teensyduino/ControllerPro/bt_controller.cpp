@@ -6,7 +6,6 @@
 
 #define PACKET_BYTES 8
 uint8_t btdata[PACKET_BYTES];
-auto console = SerialConsole::getInstance();
 
 void handle_response() {
   delay(100);  // Short delay, wait for the Mate to send back CMD
@@ -45,11 +44,11 @@ void send_bt(JoystickStatus *JoyStatus) {
   btdata[6] = JoyStatus->buttonset[0];
   btdata[7] = JoyStatus->buttonset[1];
 
-  console->out("Axes: %d %d", JoyStatus->axis[0], JoyStatus->axis[1]);
-  console->out("Sending BT packet: ");
+  console.out("Axes: %d %d", JoyStatus->axis[0], JoyStatus->axis[1]);
+  console.out("Sending BT packet: ");
   for(int i=0;i<PACKET_BYTES;i++) {
     HWSERIAL.write((byte)btdata[i]);
-    console->out("%.2X", btdata[i]);
+    console.out("%.2X", btdata[i]);
   }
-  console->out("");
+  console.out("");
 }

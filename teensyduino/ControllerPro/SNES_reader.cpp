@@ -1,8 +1,6 @@
 #include "SNES_reader.h"
 #include <stdio.h>
 
-auto console = SerialConsole::getInstance();
-
 void SNESReader::init() {
   BaseReader::init();
 }
@@ -131,7 +129,7 @@ void SNESReader::fillJoystick(JoystickStatus *joystick, uint8_t datamask) {
     printBin(ctldata, this->raw_dump[i]);
     ctldata[8] = ' ';
     printBin(ctldata + 9, this->raw_dump[i+8]);
-    console->out(ctldata);
+    console.out(ctldata);
 
     // Bit offset, 0 and then 8
     for (setnum=0; setnum<2; setnum++) {
