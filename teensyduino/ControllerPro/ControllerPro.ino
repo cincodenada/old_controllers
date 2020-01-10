@@ -14,6 +14,7 @@
 
 #include "TimerOne.h"
 
+#include "config_editor.h"
 #include "pin_config.h"
 #include "serial_console.h"
 #include "joystick_status.h"
@@ -45,6 +46,7 @@ auto& Controller = Gamepad;
 Settings settings;
 JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
+ConfigEditor config;
 uint8_t pins_used = 0;
 uint8_t num_joys;
 int cycle_count=0, check_count=100;
@@ -198,73 +200,78 @@ void loop()
    * Output to joysticks
    ************************/
 
-  int cnum = 0;
-  for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
-    // Skip this slot if it's not used
-    if(!(pins_used & (0x01 << slotnum))) { continue; }
+  if(config.state == ConfigState::DISABLED) {
+    int cnum = 0;
+    for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
+      // Skip this slot if it's not used
+      if(!(pins_used & (0x01 << slotnum))) { continue; }
 
-    // Set joystick parameters
-    if(cnum < num_joys) {
-      joypos = 0;
-      joynum = cnum;
-    } else if(cnum < num_joys*2) {
-      joypos = 1;
-      joynum = cnum - num_joys;
-    } else {
-      continue;
+      // Set joystick parameters
+      if(cnum < num_joys) {
+        joypos = 0;
+        joynum = cnum;
+      } else if(cnum < num_joys*2) {
+        joypos = 1;
+        joynum = cnum - num_joys;
+      } else {
+        continue;
+      }
+
+      config.update(JoyStatus[cnum]);
+      auto curStatus = settings.get_map(0).remap(JoyStatus[cnum]);
+
+      console.log(5, "Setting joystick to %u pos %u", joynum, joypos);
+      console.log(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
+      console.log(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
+
+      Controller.setJoyNum(joynum);
+      //Update each button
+      uint8_t mask = 0x01;
+      for (i=1; i<=8; i++) {
+        Controller.button(i+joypos*16,curStatus.buttonset[0] & mask ? 1 : 0);
+        Controller.button((i+8)+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
+        mask = mask << 1;
+      }
+
+      for(int i=0; i<NUM_AXES; i++) {
+        //The array is given as AXIS_MIN to AXIS_MAX
+        //Joystick funcitons need 0 to 1023
+        unsigned int val = (i < 4)
+          ? curStatus.axis[i]/JOY_FACT + JOY_OFFSET
+          : JOY_OFFSET;
+
+        Controller.axis(joypos*2+i+1, val);
+      }
+
+      Controller.hat(curStatus.hat);
+
+      Controller.send_now();
+
+      // Increment the controller number for next time
+      // (Separate from slot number, cause we skip empty slots)
+      cnum++;
     }
 
-    auto curStatus = settings.get_map(0).remap(JoyStatus[cnum]);
-
-    console.log(5, "Setting joystick to %u pos %u", joynum, joypos);
-    console.log(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
-    console.log(5, "Axes: %d %d %d", curStatus.axis[0], curStatus.axis[1], curStatus.axis[2]);
-
-    Controller.setJoyNum(joynum);
-    //Update each button
-    uint8_t mask = 0x01;
-    for (i=1; i<=8; i++) {
-      Controller.button(i+joypos*16,curStatus.buttonset[0] & mask ? 1 : 0);
-      Controller.button((i+8)+joypos*16,curStatus.buttonset[1] & mask ? 1 : 0);
-      mask = mask << 1;
+    // If we have empty joysticks, set axes to centered
+    // Otherwise we might get axes all off to one corner which is bad
+    while(cnum < num_joys) {
+      Controller.setJoyNum(cnum);
+      for(int axis=1; axis <= 5; axis++) {
+        Controller.axis(axis, JOY_OFFSET);
+      }
+      Controller.hat(-1);
+      Controller.send_now();
+      cnum++;
     }
 
-    for(int i=0; i<NUM_AXES; i++) {
-      //The array is given as AXIS_MIN to AXIS_MAX
-      //Joystick funcitons need 0 to 1023
-      unsigned int val = (i < 4)
-        ? curStatus.axis[i]/JOY_FACT + JOY_OFFSET
-        : JOY_OFFSET;
-
-      Controller.axis(joypos*2+i+1, val);
-    }
-
-    Controller.hat(curStatus.hat);
-
-    Controller.send_now();
-
-    // Increment the controller number for next time
-    // (Separate from slot number, cause we skip empty slots)
-    cnum++;
+    //For now, just send controller 0 via BT
+    /*
+    JoyStatus[0].translate_buttons(&curStatus, button_map_bt[JoyStatus[0].controller_type]);
+    send_bt(&curStatus);
+    */
+  } else {
+    // Config logic
   }
-
-  // If we have empty joysticks, set axes to centered
-  // Otherwise we might get axes all off to one corner which is bad
-  while(cnum < num_joys) {
-    Controller.setJoyNum(cnum);
-    for(int axis=1; axis <= 5; axis++) {
-      Controller.axis(axis, JOY_OFFSET);
-    }
-    Controller.hat(-1);
-    Controller.send_now();
-    cnum++;
-  }
-
-  //For now, just send controller 0 via BT
-  /*
-  JoyStatus[0].translate_buttons(&curStatus, button_map_bt[JoyStatus[0].controller_type]);
-  send_bt(&curStatus);
-  */
 }
 
 void remap_buttons(uint8_t cnum) {

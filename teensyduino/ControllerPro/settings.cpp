@@ -27,6 +27,7 @@ void Settings::set_defaults() {
 
   add_map("Standard", {
     {
+      // A B Sel St U D L R
       2,1,9,10,
       AXIS(1,-1),AXIS(1,1),AXIS(0,-1),AXIS(0,1),
       //HAT(0,-1),HAT(0,1),HAT(-1,0),HAT(1,0),
