@@ -47,7 +47,7 @@ JoystickStatus JoyStatus[NUMSLOTS];
 BaseReader* clist[NUMCTL];
 uint8_t pins_used = 0;
 uint8_t num_joys;
-int cycle_count=0, check_count=10;
+int cycle_count=0, check_count=100;
 int cycle_delay = 1;
 
 void detect_ports(char portmask, BaseReader** clist) {
@@ -125,7 +125,7 @@ void safe_detect() {
 
 void setup() {
   //init_bt();
-
+  console.set_level(TRACE);
   console.out("Loading settings...");
 
   settings.init();
@@ -158,7 +158,6 @@ void loop()
 {
   int i;
   uint8_t joynum, joypos;
-  JoystickStatus curStatus;
 
   // Detect controllers
   if(cycle_count >= check_count) {
@@ -167,7 +166,7 @@ void loop()
     cycle_count = 0;
     safe_detect();
   } else {
-    //console.enable(false);
+    console.enable(false);
     delay(cycle_delay);
     cycle_count++;
   }
@@ -215,7 +214,7 @@ void loop()
     continue;
     }
 
-    JoyStatus[cnum].translate_buttons(&curStatus, settings.get_map(0), JoyStatus[cnum].controller_type);
+    auto curStatus = settings.get_map(0).remap(JoyStatus[cnum]);
 
     console.out(5, "Setting joystick to %u pos %u", joynum, joypos);
     console.out(5, "Joystick button data: %X %X", curStatus.buttonset[0], curStatus.buttonset[1]);
