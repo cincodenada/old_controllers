@@ -18,6 +18,7 @@ class Settings {
   void init();
   void save();
   bool load();
+  void clear();
 
  private:
   std::vector<ButtonMapping> maps;

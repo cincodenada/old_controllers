@@ -10,6 +10,9 @@ class SimpleString : public std::vector<char> {
   SimpleString(const char* orig) : Base() {
     while(orig != '\0') { push_back(*orig); }
   }
+  SimpleString(SimpleString&& other) : Base() {
+    swap(other);
+  }
 
   bool operator==(const char* other) {
     if(strncmp(other, data(), size()) == 0) {

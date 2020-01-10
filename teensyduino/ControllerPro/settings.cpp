@@ -23,6 +23,8 @@ void Settings::set_defaults() {
   maps.clear();
   map_names.clear();
 
+  console.log("Creating default maps");
+
   add_map("Standard", {
     {
       2,1,9,10,
@@ -100,13 +102,30 @@ void Settings::add_map(const char* name, ButtonMapping&& map) {
 }
 
 void Settings::save() {
+  console.log("Writing maps");
+
   EEPROM.write(0, VERSION);
   size_t map_addr = 16;
   EEPROM.put(map_addr, maps.size());
   map_addr += sizeof(size_t);
+  size_t idx = 0;
   for(auto m: maps) {
+    auto& name = map_names[idx];
+    EEPROM.write(map_addr, (uint8_t)name.size());
+    map_addr++;
+    for(auto c: name) {
+      EEPROM.write(map_addr, c);
+      map_addr++;
+    }
     EEPROM.put(map_addr, m);
     map_addr += sizeof(ButtonMapping);
+    idx++;
+  }
+}
+
+void Settings::clear() {
+  for (int i = 0 ; i < EEPROM.length() ; i++) {
+    EEPROM.write(i, 0);
   }
 }
 
@@ -122,8 +141,17 @@ bool Settings::load() {
     map_addr += sizeof(size_t);
     for(size_t i=0; i<count; i++) {
       ButtonMapping cur_map;
+      uint8_t name_len = EEPROM.read(map_addr);
+      map_addr++;
+      SimpleString name;
+      for(int i=0; i<name_len; i++) {
+        name.push_back(EEPROM.read(map_addr+i));
+      }
+      map_addr += name_len;
       EEPROM.get(map_addr, cur_map);
       maps.push_back(std::move(cur_map));
+      map_names.push_back(std::move(name));
+
       map_addr += sizeof(ButtonMapping);
     }
     console.log(INFO, "Maps loaded");
