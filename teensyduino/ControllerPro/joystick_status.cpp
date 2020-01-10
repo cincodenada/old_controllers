@@ -37,7 +37,7 @@ JoystickStatus ButtonMapping::remap(const JoystickStatus& from) {
         } else if(btn_num >= AXIS_BASE) {
           int axis_num = AXIS_NUM(btn_num);
           int axis_dir = AXIS_DIR(btn_num);
-          console.out(5,"%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
+          console.log(5,"%d: Setting axis %d to %d", btn_num, axis_num, axis_dir);
           // TODO: Adjusted because Bluetooth seems to 
           // freak out if we're at the limits,
           // do some further testing here
@@ -50,7 +50,7 @@ JoystickStatus ButtonMapping::remap(const JoystickStatus& from) {
           btn_num -= 1;
           int dest_byte = btn_num/8;
           int dest_bit = btn_num%8;
-          console.out(5, "Mapping %d:%d to %d:%d...", byte, bit, dest_byte, dest_bit);
+          console.log(5, "Mapping %d:%d to %d:%d...", byte, bit, dest_byte, dest_bit);
           mapped.buttonset[dest_byte] |= (0x01 << dest_bit);
         }
       }
@@ -59,7 +59,7 @@ JoystickStatus ButtonMapping::remap(const JoystickStatus& from) {
 
   // Set the combine dhat
   mapped.hat = hat_map[hat_y+1][hat_x+1];
-  console.out(5,"Setting hat to %d (%d, %d)", mapped.hat, hat_x, hat_y);
+  console.log(5,"Setting hat to %d (%d, %d)", mapped.hat, hat_x, hat_y);
 
   return mapped;
 }

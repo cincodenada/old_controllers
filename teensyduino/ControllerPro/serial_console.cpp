@@ -9,7 +9,7 @@ SerialConsole::SerialConsole() {
   Serial.begin(9600);
 }
 
-void SerialConsole::out_impl() {
+void SerialConsole::log_impl() {
  // This could maybe be >= but why risk it
   if (Serial.availableForWrite() > max_len) {
     Serial.flush();
@@ -30,6 +30,6 @@ void SerialConsole::cls() {
 #else
 // If we don't have serial, just stub everything
 void SerialConsole::SerialConsole() {}
-void SerialConsole::out_impl(int level, const char* format, va_list args) {}
+void SerialConsole::log_impl(int level, const char* format, va_list args) {}
 void SerialConsole::cls() {}
 #endif

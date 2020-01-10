@@ -2,13 +2,13 @@
 
 #include "stdio.h"
 
-void Console::out(int level, const char* format, ...) {
+void Console::log(int level, const char* format, ...) {
   va_list args;
   va_start(args, format);
   build_message(level, format, args);
   va_end(args);
 }
-void Console::out(const char* format, ...) {
+void Console::log(const char* format, ...) {
   va_list args;
   va_start(args, format);
   build_message(DEBUG, format, args);
@@ -27,5 +27,5 @@ void Console::build_message(int level, const char* format, va_list args) {
   }
   msg[i] = '\0';
 
-  out_impl();
+  log_impl();
 }

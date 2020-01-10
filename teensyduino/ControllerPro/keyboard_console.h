@@ -13,7 +13,7 @@ class KeyboardConsole : public Console {
   void set_mode(KeyboardMode mode) { this->mode = mode; };
 
  private:
-  void out_impl();
+  void log_impl();
 
   KeyboardMode mode;
 };

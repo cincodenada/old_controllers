@@ -44,11 +44,11 @@ void send_bt(JoystickStatus *JoyStatus) {
   btdata[6] = JoyStatus->buttonset[0];
   btdata[7] = JoyStatus->buttonset[1];
 
-  console.out("Axes: %d %d", JoyStatus->axis[0], JoyStatus->axis[1]);
-  console.out("Sending BT packet: ");
+  console.log("Axes: %d %d", JoyStatus->axis[0], JoyStatus->axis[1]);
+  console.log("Sending BT packet: ");
   for(int i=0;i<PACKET_BYTES;i++) {
     HWSERIAL.write((byte)btdata[i]);
-    console.out("%.2X", btdata[i]);
+    console.log("%.2X", btdata[i]);
   }
-  console.out("");
+  console.log("");
 }

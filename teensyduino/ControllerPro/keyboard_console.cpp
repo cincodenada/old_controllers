@@ -3,7 +3,7 @@
 
 //KeyboardConsole console;
 
-void KeyboardConsole::out_impl() {
+void KeyboardConsole::log_impl() {
   Keyboard.println(msg);
 }
 

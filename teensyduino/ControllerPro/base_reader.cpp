@@ -11,12 +11,12 @@ BaseReader::BaseReader(JoystickStatus *JoyStatus, uint8_t* global_pins, const ch
 }
 
 void BaseReader::init() {
-  console.out("Initiating %s controllers", this->controller_name);
+  console.log("Initiating %s controllers", this->controller_name);
 
   this->pinmask = 0;
   this->setup_pins();
 
-  console.out("%s Pinmask: %X", this->controller_name, this->pinmask);
+  console.log("%s Pinmask: %X", this->controller_name, this->pinmask);
 }
 
 void BaseReader::claim_slot(int num) {
@@ -38,8 +38,8 @@ void BaseReader::fillStatus(JoystickStatus *joylist) {
 
   while(pinlist) {
     if(pinlist & 0x01) {
-      console.out("%lu: Filling status for %s:", millis(), this->controller_name);
-      console.out("%X %X %d", allpins, datamask, cnum);
+      console.log("%lu: Filling status for %s:", millis(), this->controller_name);
+      console.log("%X %X %d", allpins, datamask, cnum);
 
       this->fillJoystick(&joylist[cnum], datamask);
       joylist[cnum].controller_type = this->controller_type;

@@ -16,8 +16,8 @@ class Console {
  public:
   virtual void cls() = 0;
 
-  void out(int level, const char* format, ...);
-  void out(const char* format, ...);
+  void log(int level, const char* format, ...);
+  void log(const char* format, ...);
   void build_message(int level, const char* format, va_list args);
 
   void enable(bool enabled) {
@@ -30,7 +30,7 @@ class Console {
 
  protected:
   // Writes the contents of msg to the output
-  virtual void out_impl() = 0;
+  virtual void log_impl() = 0;
 
   bool enabled = true;
   int max_len = 30;

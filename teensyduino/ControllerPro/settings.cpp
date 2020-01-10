@@ -111,14 +111,14 @@ void Settings::save() {
 }
 
 bool Settings::load() {
-  console.out(INFO, "Attempting to load...");
+  console.log(INFO, "Attempting to load...");
   if(EEPROM.read(0) == VERSION) {
-    console.out(INFO, "Loading from EEPROM");
+    console.log(INFO, "Loading from EEPROM");
     maps.clear();
     size_t count;
     size_t map_addr = 16;
     EEPROM.get(map_addr, count);
-    console.out(INFO, "Loading %d maps", count);
+    console.log(INFO, "Loading %d maps", count);
     map_addr += sizeof(size_t);
     for(size_t i=0; i<count; i++) {
       ButtonMapping cur_map;
@@ -126,7 +126,7 @@ bool Settings::load() {
       maps.push_back(std::move(cur_map));
       map_addr += sizeof(ButtonMapping);
     }
-    console.out(INFO, "Maps loaded");
+    console.log(INFO, "Maps loaded");
 
     return true;
   }

@@ -12,7 +12,7 @@ void truth_table() {
           digitalWrite(s_nes_pins[i], snes);
         }
         for(int i=0; i<NUM_CONTROLLERS; i++) {
-          console.out("%d: %d%d%d%d",
+          console.log("%d: %d%d%d%d",
             i,
             digitalRead(slow_pins[i]),
             latch,
@@ -54,13 +54,13 @@ void debug_detect2() {
       for(int i=0; i < NUMCTL; i++) {
         if(clist[i]->pinmask & mask) {
           if(matched) {
-            console.out("Duplicate pinmask! Also on %s", clist[i]->controller_name);
+            console.log("Duplicate pinmask! Also on %s", clist[i]->controller_name);
           } else {
             strncpy(controller, clist[i]->controller_name, 5);
           }
         }
       }
-      console.out("Slot %d: %s", i+1, controller);
+      console.log("Slot %d: %s", i+1, controller);
     }
     delay(100);
   }
