@@ -200,7 +200,8 @@ void loop()
    * Output to joysticks
    ************************/
 
-  if(config.state == ConfigState::DISABLED) {
+  int controllers_sent = 0;
+  if(config.state == ConfigState::DISABLED || config.state == ConfigState::ENTERING) {
     int cnum = 0;
     for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
       // Skip this slot if it's not used
@@ -252,17 +253,7 @@ void loop()
       cnum++;
     }
 
-    // If we have empty joysticks, set axes to centered
-    // Otherwise we might get axes all off to one corner which is bad
-    while(cnum < num_joys) {
-      Controller.setJoyNum(cnum);
-      for(int axis=1; axis <= 5; axis++) {
-        Controller.axis(axis, JOY_OFFSET);
-      }
-      Controller.hat(-1);
-      Controller.send_now();
-      cnum++;
-    }
+    controllers_sent = cnum;
 
     //For now, just send controller 0 via BT
     /*
@@ -271,7 +262,30 @@ void loop()
     */
   } else {
     // Config logic
+    int cnum = 0;
+    for(short int slotnum=0; slotnum < NUMSLOTS; slotnum++) {
+      // Skip this slot if it's not used
+      if(!(pins_used & (0x01 << slotnum))) { continue; }
+      config.update(JoyStatus[cnum]);
+      cnum++;
+    }
   }
+
+  // If we have empty joysticks, set axes to centered
+  // Otherwise we might get axes all off to one corner which is bad
+  while(controllers_sent < num_joys) {
+    Controller.setJoyNum(controllers_sent);
+    for (i=1; i<=16; i++) {
+      Controller.button(i,0);
+    }
+    for(int axis=1; axis <= 5; axis++) {
+      Controller.axis(axis, JOY_OFFSET);
+    }
+    Controller.hat(-1);
+    Controller.send_now();
+    controllers_sent++;
+  }
+
 }
 
 void remap_buttons(uint8_t cnum) {

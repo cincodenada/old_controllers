@@ -1,21 +1,20 @@
 #include <stdint.h>
-#include <chrono>
 
+#include "Arduino.h"
 #include "serial_console.h"
 #include "joystick_status.h"
 
-using Clock = std::chrono::steady_clock;
-
-enum class ConfigState {
-  DISABLED,
+enum class ConfigState : uint8_t {
+  DISABLED = 0,
   ENTERING,
   CONFIG,
   EXITING,
 };
 
 class ConfigEditor {
-  std::chrono::time_point<Clock> timer_start{};
-  constexpr static auto chord_len = std::chrono::seconds(5);
+  long timer_start{};
+  static constexpr long chord_len = 5*1000;
+  static constexpr uint8_t chord = 0b1100; // Sel + St
 
   // Makes order consistently A B Sel/Z St U D L R
   ButtonMapping config_map {
@@ -31,24 +30,27 @@ class ConfigEditor {
     auto status = config_map.remap(raw_status);
     auto buttons = status.buttonset[0];
     state = transition(state, buttons);
+
+    console.log("Config state: %d (from %x)", (uint8_t)state, buttons);
   }
 
   ConfigState transition(ConfigState from, uint8_t buttons) {
-    if(buttons & 0b00110000) {
+    if((buttons & chord) == chord) {
       switch(state) {
         case ConfigState::DISABLED:
-          timer_start = Clock::now();
+          timer_start = millis();
           return ConfigState::ENTERING;
         case ConfigState::ENTERING:
-          if((Clock::now() - timer_start) >= chord_len) {
+          if((millis() - timer_start) >= chord_len) {
             console.log("Entering config mode");
             return ConfigState::CONFIG;
           }
           break;
         case ConfigState::CONFIG:
+          timer_start = millis();
           return ConfigState::EXITING;
         case ConfigState::EXITING:
-          if((Clock::now() - timer_start) >= chord_len) {
+          if((millis() - timer_start) >= chord_len) {
             console.log("Exiting config mode");
             return ConfigState::DISABLED;
           }
