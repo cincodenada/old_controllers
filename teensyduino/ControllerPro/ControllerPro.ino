@@ -205,13 +205,13 @@ void loop()
 
     // Set joystick parameters
     if(cnum < num_joys) {
-    joypos = 0;
-    joynum = cnum;
+      joypos = 0;
+      joynum = cnum;
     } else if(cnum < num_joys*2) {
-    joypos = 1;
-    joynum = cnum - num_joys;
+      joypos = 1;
+      joynum = cnum - num_joys;
     } else {
-    continue;
+      continue;
     }
 
     auto curStatus = settings.get_map(0).remap(JoyStatus[cnum]);
