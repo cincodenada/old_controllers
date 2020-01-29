@@ -1,6 +1,15 @@
 #include "N64_reader.h"
 #include <stdio.h>
 
+// Borrowed from https://kthompson.gitlab.io/2016/07/26/n64-controller-protocol.html
+// Thanks kthompson!
+const uint16_t address_crc[] = {
+    0x00, 0x15, 0x3F, 0x2A, 0x6B, 0x7E, 0x54, 0x41,
+    0xD6, 0xC3, 0xE9, 0xFC, 0xBD, 0xA8, 0x82, 0x97,
+    0xB9, 0xAC, 0x86, 0x93, 0xD2, 0xC7, 0xED, 0xF8,
+    0x6F, 0x7A, 0x50, 0x45, 0x04, 0x11, 0x3B, 0x2E,
+};
+
 void N64Reader::init() {
   BaseReader::init();
 
@@ -104,6 +113,12 @@ hung:
     digitalWrite(TRIGGER_PIN, LOW);
   }
   this->fillStatus(this->JoyStatus);
+}
+
+void N64Reader::memread(uint8_t slot, uint16_t address) {
+  
+
+
 }
 
 void N64Reader::prune(uint8_t candidates) {}
