@@ -27,14 +27,17 @@ public:
   };
 
   void init();
+
   void setup_pins();
   void prune(uint8_t candidates);
+
   void print_status(short int cnum);
   void send(uint8_t pin, uint8_t *buffer, uint8_t length);
   bool recv(size_t read_bits);
   void get();
   void translate_raw_data();
   void clear_dump();
+  size_t read_mem(uint8_t slot, uint16_t address, uint8_t* buf);
 
   static void isr_read();
   static void isr_write();

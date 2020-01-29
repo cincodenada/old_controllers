@@ -50,8 +50,9 @@ public:
   virtual void prune(uint8_t candidates) = 0;
 
   virtual void read_state() = 0;
-  virtual void fillStatus(JoystickStatus *joylist);
   virtual void fillJoystick(JoystickStatus *joystick, uint8_t datamask) = 0;
+
+  virtual void fillStatus(JoystickStatus *joylist);
   virtual bool is_fast();
   uint8_t read_pin(uint8_t pin);
   uint8_t get_deviants(uint8_t pins_avail, uint8_t expected);

@@ -99,6 +99,52 @@ void N64Reader::read_state() {
   this->fillStatus(this->JoyStatus);
 }
 
+size_t N64Reader::read_mem(uint8_t slot, uint16_t address, uint8_t* buf) {
+  address &= ~0x1F; // These should be blank anyway, but make sure
+
+  uint16_t crc = address;
+  constexpr uint8_t addr_bits = 16-5;
+  uint16_t poly = (0x15 + 0x20) << addr_bits;  // 5-bit CRC; 0x20 = 100000 
+  uint16_t mask = 0x8000;
+  for(int i=0; i<addr_bits; i++) {
+    if(crc & mask) {
+      crc ^= poly;
+    }
+    poly >>= 1;
+    mask >>= 1;
+  }
+
+  address |= crc;
+
+  console.log("Reading address %04x", address);
+  uint8_t command[3];
+  command[0] = 2;
+  command[1] = (address & 0xFF00) >> 8;
+  command[2] = address & 0x00FF;
+  send(slot, command, 3);
+  bool hung = recv(33*8); // 32 bytes + CRC
+  size_t bits = isr_data.cur_byte - isr_data.buf;
+
+  if(hung) {
+    console.log("Read %02d bits /!\\", bits);
+  } else {
+    console.log("Read %02d bits   ", bits);
+  }
+
+  if(hung) {
+    return 0;
+  } else {
+    for(int byte=0; byte<33; byte++) {
+      buf[byte] = 0;
+      for(int bit=0; bit < 8; bit++) {
+        buf[byte] |= buf[byte*8+bit] << bit;
+      }
+    }
+
+    return 33;
+  }
+}
+
 void N64Reader::prune(uint8_t candidates) {}
 
 void N64Reader::isr_write() {

@@ -178,6 +178,25 @@ void loop()
   console.log("Pins used: 0x%X (%s)", pins_used, binstr);
   console.log("%lu: Polling Controllers...", millis());
 
+  uint8_t data[33] = {0};
+  for(int i=0; i < 4; i++) {
+    if(clist[N64]->pinmask & (1 << i)) {
+      size_t len = ((N64Reader*)clist[N64])->read_mem(i, 32, data);
+
+      uint16_t* curword = (uint16_t*)data;
+      // Print 4 words at a time
+      for(int i=0; i<4; i++) {
+        console.log("%04x %04x %04x %04x",
+          *curword,
+          *(curword+1),
+          *(curword+2),
+          *(curword+3));
+        curword += 4;
+      }
+    }
+  }
+  return;
+
   /************************
    * Read controller state
    ************************/
