@@ -12,7 +12,7 @@
 
 #define CNAME_LEN 10
 // Maximum data an interrupt will need to read/write
-#define TBUFSIZE 32
+#define TBUFSIZE 32*8
 
 struct interrupt_data_struct {
   // Add a pad byte cause we might try to
@@ -23,7 +23,6 @@ struct interrupt_data_struct {
   volatile uint8_t cur_bit;
   volatile uint8_t cur_stage;
   volatile uint8_t cur_val;
-  uint8_t read_bits;
 
   // Mode: 0 = writing, 1 = reading, 2 = done
   volatile uint8_t mode;

@@ -19,6 +19,51 @@ void N64Reader::clear_dump() {
   }
 }
 
+bool N64Reader::recv(size_t read_bits) {
+  noInterrupts();
+  // Wait for initial low...
+  uint8_t val = HIGH;
+  uint8_t loops = 0;
+  uint8_t max_loops = 200;
+
+  while(val == HIGH && loops < max_loops) {
+    val = digitalReadFast(BaseReader::isr_data.cur_pin);
+    loops++;
+  }
+
+  uint8_t low_len = 0;
+  uint8_t high_len = 0;
+  bool hung = false;
+  uint8_t* end = this->isr_data.buf + read_bits;
+  while(this->isr_data.cur_byte < end && !hung) {
+    low_len = high_len = 0;
+    //digitalWriteFast(TRIGGER_PIN, HIGH);
+    while(val == LOW) {
+      val = digitalReadFast(BaseReader::isr_data.cur_pin);
+      low_len++;
+      if(low_len > max_loops) {
+        hung = true;
+        goto hung;
+      }
+    }
+    while(val == HIGH) {
+      val = digitalReadFast(BaseReader::isr_data.cur_pin);
+      high_len++;
+      if(high_len > max_loops) {
+        hung = true;
+        goto hung;
+      }
+    }
+    *BaseReader::isr_data.cur_byte = (high_len > low_len);
+    BaseReader::isr_data.cur_byte++;
+  }
+
+hung:
+  interrupts();
+
+  return hung;
+}
+
 void N64Reader::read_state() {
   // Clear raw_dump so we can set individual bits to it
   memset(raw_dump, 0, TBUFSIZE);
@@ -26,62 +71,10 @@ void N64Reader::read_state() {
   for(int i=0; i<NUMSLOTS; i++) {
     if(!(this->pinmask & (0x01 << i))) { continue; }
 
-    uint8_t bits = 0;
-    uint8_t max_loops = 200;
-    int loops = 0;
-    uint8_t val = HIGH;
-
-    this->reset_isr_data();
-    this->isr_data.cur_pin = fast_pins[i];
-    this->isr_data.buf[0] = 0x01;
-    this->isr_data.end_byte = this->isr_data.buf;
-    this->isr_data.read_bits = 32;
-    pinMode(this->isr_data.cur_pin, OUTPUT);
-    Timer1.initialize();
-    //digitalWriteFast(TRIGGER_PIN, HIGH);
-    Timer1.attachInterrupt(&this->isr_write, 1);
-    // Spin our wheels
-    uint16_t send_cycles=0;
-    while(this->isr_data.mode == 0) { send_cycles++; }
-    //console.log("Blooped for %d loops", send_cycles);
-
-    noInterrupts();
-    // Wait for initial low...
-    loops = 0;
-    while(val == HIGH && loops < max_loops) {
-      val = digitalReadFast(BaseReader::isr_data.cur_pin);
-      loops++;
-    }
-
-    uint8_t low_len = 0;
-    uint8_t high_len = 0;
-    bool hung = false;
-    while(bits < this->isr_data.read_bits && !hung) {
-      low_len = high_len = 0;
-      //digitalWriteFast(TRIGGER_PIN, HIGH);
-      while(val == LOW) {
-        val = digitalReadFast(BaseReader::isr_data.cur_pin);
-        low_len++;
-        if(low_len > max_loops) {
-          hung = true;
-          goto hung;
-        }
-      }
-      while(val == HIGH) {
-        val = digitalReadFast(BaseReader::isr_data.cur_pin);
-        high_len++;
-        if(high_len > max_loops) {
-          hung = true;
-          goto hung;
-        }
-      }
-      *BaseReader::isr_data.cur_byte = (high_len > low_len);
-      BaseReader::isr_data.cur_byte++;
-      bits++;
-    }
-
-hung:
-    interrupts();
+    uint8_t cmd = 1;
+    send(i, &cmd, 1);
+    bool hung = recv(32);
+    size_t bits = this->isr_data.cur_byte - this->isr_data.buf;
 
     if(hung) {
       console.log("Read %02d bits /!\\", bits);

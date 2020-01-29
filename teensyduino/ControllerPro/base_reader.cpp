@@ -89,6 +89,5 @@ void BaseReader::reset_isr_data() {
   // Reset buffer pointers, fill with zeroes
   BaseReader::isr_data.cur_byte = BaseReader::isr_data.buf;
   BaseReader::isr_data.end_byte = &BaseReader::isr_data.buf[TBUFSIZE-1];
-  BaseReader::isr_data.read_bits = TBUFSIZE;
   memset((void*)BaseReader::isr_data.buf, 0, TBUFSIZE);
 }

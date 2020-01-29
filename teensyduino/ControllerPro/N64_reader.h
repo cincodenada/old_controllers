@@ -31,6 +31,7 @@ public:
   void prune(uint8_t candidates);
   void print_status(short int cnum);
   void send(uint8_t pin, uint8_t *buffer, uint8_t length);
+  bool recv(size_t read_bits);
   void get();
   void translate_raw_data();
   void clear_dump();
